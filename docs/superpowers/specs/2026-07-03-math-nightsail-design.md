@@ -63,9 +63,11 @@ type QuestionKind =
 
 interface Question {
   kind: QuestionKind;
-  operands: number[];        // [a,b] 或 [a,b,c]
+  operands: number[];        // 等式的全部真实数值：[a,b] 或 [a,b,c]（缺数题也存完整值）
   ops: Op[];                 // 1 个或 2 个
-  missingIndex?: number;     // 未知数在 operands 中的下标（缺数题）
+  missingIndex?: number;     // 缺数题：operands 中被隐藏（待答）项的下标，
+                             //   此时 answer === operands[missingIndex]，等式结果单独展示
+                             // 计算题：undefined，answer = 运算结果（不在 operands 中）
   answer: number;
   options: number[];         // 3 个，含 answer，已乱序
   ttsText: string;           // 朗读文案（数字重读由 UI 层拆分处理）
@@ -80,7 +82,12 @@ interface Progress {
   unlocked: number;                        // 1..45
   endless: { bestStreak: number; totalAnswered: number };
   timed: { bestCount: number };
-  settings: { questionCount: number; hardMode: boolean; showBlocks: boolean };
+  settings: {
+    questionCount: number;      // 3–10，仅主线
+    hardMode: boolean;          // 加法计算题转 a+?=c（见 4.2）
+    showBlocks: boolean;        // 主线/无尽的计数块开关，默认 true
+    showBlocksTimed: boolean;   // 限时模式单独开关，默认 false（题库规范 §2.2）
+  };
 }
 ```
 
@@ -91,8 +98,9 @@ generateQuestion(cfg: BandConfig, rng: Rng, recentKeys: string[]): Question
 generateLevel(cfg: BandConfig, count: number, rng: Rng): Question[]
 ```
 
-- **实现策略：枚举 + 抽样**。按 `BandConfig` 穷举该档全部合法组合（最大档 7245 个，性能无虞），过滤 `recentKeys`（模式滚动去重，最近 5 题）后随机抽取。天然保证约束正确、可出题数与规范附录一致。
-- `generateLevel`：抽 `count` 道两两不同（题面 key = operands+ops+missingIndex），按答案升序排列（首题不为最难）。
+- **实现策略：枚举 + 两段式加权抽样**。混合档（`mix`）先按 `weight` 选中子池，再在子池内穷举合法组合（最大子池 4365 个，性能无虞）并均匀抽取；过滤 `recentKeys`（模式滚动去重，最近 5 题）。单一子池即退化为均匀抽样。若直接对合并域均匀抽样，band 15 的 60/40 会因子池大小悬殊（145 vs 36）跑成 80/20——禁止这种实现。
+- `generateLevel`：混合档**按整关强制配比**——各子池题数 = round(weight × count) 并修正总和（如 5 题 60/40 → 3+2；「各半」5 题 → 3+2，多出的 1 题随机归属），子池内抽样去重后合并；整关题面两两不同（题面 key = operands+ops+missingIndex），按答案升序排列（首题不为最难）。
+- **hardMode 变换**：生成前的配置预处理 `applyHardMode(cfg)`（所有生成入口统一走它）——把加法计算子池（add/凑十/进退位加法）替换为同数域的 `a+?=c` 缺数形态；减法与连算不变。
 - **干扰项**：按题库规范 §4 实现——距离干扰（档 1–6 d∈{2,3}，档 7+ d∈{1,2}）、弄反干扰（档 7+，50% 概率）、十位偏差 ±10（第三章）、整十题 d∈{10,20}、兜底扩距；clamp 到 [1, 章上限]（第一、二章 20，第三章 100）。
 - **RNG 注入**：`Rng = () => number`（[0,1)），生产用 `Math.random`，测试注入种子实现以复现。
 
@@ -101,6 +109,7 @@ generateLevel(cfg: BandConfig, count: number, rng: Rng): Question[]
 ```ts
 starsFor(wrongCount: number): 1 | 2 | 3          // 0 错→3；≤2 错→2；否则 1
 chapterOf(level: number): 1 | 2 | 3              // 每 15 关一章
+// 「当前章」的统一定义：chapterOf(progress.unlocked)，即已解锁最高关所在章
 endlessBand(correctCount: number, maxUnlocked: number): number
   // 起始 = 当前章首档；每答对 4 题 +1；封顶 maxUnlocked
 timedPool(progress: Progress): number[]
@@ -123,7 +132,7 @@ timedPool(progress: Progress): number[]
 - **计数块**：渲染完全由 `Question.blocksPlan` 驱动（组数、颜色、空槽数、交互类型：divide-out / two-group / fill-slot / three-group），组件不含题型知识。
 - **章节切换**：路径面板顶部左右箭头 + 章节名（启航/深海/远洋），未解锁章置灰 + 锁。
 - **模式入口**：地图右侧面板 CTA 下方两个按钮，解锁条件见题库规范 §2（完成第 3 / 9 关）。
-- **家长设置**：地图角落齿轮，**长按 1.5s** 打开（防误触）：`questionCount`(3–10)、`hardMode`、`showBlocks`、重置进度（二次确认）。
+- **家长设置**：地图角落齿轮，**长按 1.5s** 打开（防误触）：`questionCount`(3–10)、`hardMode`、`showBlocks`（主线/无尽）、`showBlocksTimed`（冲刺模式，默认关）、重置进度（二次确认）。
 - 新题型排版（`?+b=c`、`a−?=c`、连算三操作数）与字号自适应（连算/两位数降至 72–80px）按题库规范 §6/§7。
 
 ## 6. 语音（src/audio/tts.ts）
@@ -139,11 +148,11 @@ timedPool(progress: Progress): number[]
 - `vite-plugin-pwa`（Workbox `generateSW`）：预缓存全部构建产物，离线完整可玩；`registerType: 'autoUpdate'`。
 - manifest：名称「数学夜航」、`display: fullscreen`、`orientation: landscape`、主题色 `#12333E`、图标为几何吉祥物（SVG 源生成 192/512 PNG + iOS `apple-touch-icon`）。
 - 字体：Noto Sans SC **本地打包**（subset：数字/常用字号所需字符 + 界面文案），不依赖 Google Fonts 在线加载（离线 + 国内网络可靠性）。
-- 部署：GitHub Actions（push `main` → `npm ci && npm run build && test` → 发布 `dist/` 到 Pages）；Vite `base: '/<repo>/'`。
+- 部署：GitHub Actions（push `main` → `npm ci && npm test && npm run build` → 发布 `dist/` 到 Pages）；仓库名定为 `child-math-app`，Vite `base: '/child-math-app/'`。
 
 ## 8. 测试策略
 
-- **性质测试**（Vitest，`src/core` 全覆盖）：每档用种子 RNG 生成 500 题断言约束全部成立（操作数 ≥1、和/差/中间结果域、进退位条件、缺数 `?`≥1、选项 3 个互异且含正确答案、clamp 域）；并穷举断言每档合法域大小 === 题库规范附录数字。
+- **性质测试**（Vitest，`src/core` 全覆盖）：每档用种子 RNG 生成 500 题断言约束全部成立（操作数 ≥1、和/差/中间结果域、进退位条件、缺数 `?`≥1、选项 3 个互异且含正确答案、clamp 域）；穷举断言合法域大小——附录给出精确值的 42 个档（1–27、31–45）逐一相等，混合池档 28–30 断言 ≥ 其成分档之和；混合档另断言整关配比（如 band 15 五题为 3 缺数 + 2 进位）。
 - **边界用例**：题库规范 §4 表格逐条成测试（correct=1 / 19 / 100、弄反与十位偏差越界丢弃等）。
 - **进度/模式单测**：starsFor、解锁、endlessBand（起始/爬档/封顶）、timedPool（跨章边界）、storage（v1 迁移、损坏重置、降级）。
 - **手动验收**（iPad Safari）：横竖屏、添加到主屏幕、离线断网可玩、TTS 出声、三屏走查 + 两模式各一轮、家长设置长按、v1 原型数据迁移。清单随实现计划给出。
