@@ -7,6 +7,12 @@ const shuffle = <T>(arr: T[], rng: Rng): T[] => {
   return arr;
 };
 
+/**
+ * 3 options = answer + 2 distractors, deduped & shuffled. Candidate priority: at most ONE
+ * special distractor (flipped-op a∓b for add/sub kinds at band≥7, else chapter-3 tens-shift
+ * ±10, each at 50%), then distance candidates answer±d, then fallback widening d until 2 found.
+ * All distractors clamped to [1, 20] (bands ≤30) / [1, 100] (bands ≥31), never == answer.
+ */
 export function makeOptions(item: Item, answer: number, band: number, rng: Rng): number[] {
   const maxV = band <= 30 ? 20 : 100;
   const isTens = band >= 31 && item.operands.every(n => n % 10 === 0);
