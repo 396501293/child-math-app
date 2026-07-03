@@ -45,3 +45,297 @@ body {
   --color-white-50: rgba(255, 255, 255, 0.5);
   --color-white-40: rgba(255, 255, 255, 0.4);
 }
+
+body {
+  font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, 'PingFang SC',
+    'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+  background: #0e2831;
+}
+
+/* ── 动画（直译自原型 Design Tokens） ── */
+@keyframes mn-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.07);
+  }
+}
+@keyframes mn-floaty {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+/* ── Stage 缩放容器 ── */
+.mn-viewport {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(180deg, var(--color-bg-start), var(--color-bg-end));
+}
+.mn-stage {
+  position: relative;
+  flex: none;
+  width: 1024px;
+  height: 768px;
+  transform-origin: center center;
+  overflow: hidden;
+  background: linear-gradient(180deg, var(--color-bg-start), var(--color-bg-end));
+  color: #fff;
+}
+
+/* ── 竖屏遮罩 ── */
+.mn-rotate {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 28px;
+  background: linear-gradient(180deg, var(--color-bg-start), var(--color-bg-end));
+  color: #fff;
+  text-align: center;
+  padding: 0 40px;
+}
+.mn-rotate-icon {
+  font-size: 92px;
+  animation: mn-pulse 1.6s ease-in-out infinite;
+}
+.mn-rotate-text {
+  font-size: 40px;
+  font-weight: 900;
+}
+
+/* ── 通用按钮硬阴影范式 ── */
+.mn-cta {
+  width: 100%;
+  border: none;
+  border-radius: 22px;
+  padding: 22px 0;
+  font-family: inherit;
+  font-size: 29px;
+  font-weight: 900;
+  color: #fff;
+  background: var(--color-coral);
+  box-shadow: 0 6px 0 rgba(0, 0, 0, 0.25);
+  cursor: pointer;
+  user-select: none;
+}
+.mn-cta:active {
+  transform: translateY(4px);
+  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.25);
+}
+
+.mn-mode-btn {
+  position: relative;
+  width: 100%;
+  border: none;
+  border-radius: 22px;
+  padding: 18px 0;
+  font-family: inherit;
+  font-size: 22px;
+  font-weight: 900;
+  color: #fff;
+  background: var(--panel-10);
+  box-shadow: 0 6px 0 rgba(0, 0, 0, 0.25);
+  cursor: pointer;
+  user-select: none;
+}
+.mn-mode-btn:not(.is-locked):active {
+  transform: translateY(4px);
+  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.25);
+}
+.mn-mode-btn.is-locked {
+  color: var(--color-white-40);
+  background: var(--panel-06);
+  box-shadow: none;
+  cursor: default;
+}
+.mn-badge {
+  position: absolute;
+  top: -12px;
+  right: -8px;
+  background: var(--color-coral);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 900;
+  border-radius: 12px;
+  padding: 3px 10px;
+  box-shadow: 0 3px 0 rgba(0, 0, 0, 0.25);
+}
+
+/* ── 章节切换 / 返回键样式 ── */
+.mn-arrow {
+  width: 68px;
+  height: 68px;
+  flex: none;
+  border: none;
+  border-radius: 20px;
+  background: var(--panel-10);
+  color: var(--color-white-60);
+  font-family: inherit;
+  font-size: 34px;
+  font-weight: 900;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  user-select: none;
+}
+.mn-arrow:not(.is-disabled):hover {
+  background: var(--panel-12);
+}
+.mn-arrow.is-disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+/* ── 关卡节点 ── */
+.mn-node {
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 900;
+  font-size: 30px;
+  user-select: none;
+  box-sizing: border-box;
+}
+.mn-node--done {
+  width: 76px;
+  height: 76px;
+  background: var(--color-amber);
+  color: var(--color-text-dark);
+  cursor: pointer;
+}
+.mn-node--current {
+  width: 92px;
+  height: 92px;
+  background: #fff;
+  color: var(--color-coral);
+  border: 6px solid var(--color-coral);
+  box-shadow: 0 0 0 10px rgba(232, 93, 93, 0.2);
+  animation: mn-pulse 1.6s ease-in-out infinite;
+  cursor: pointer;
+}
+.mn-node--locked {
+  width: 76px;
+  height: 76px;
+  background: var(--panel-12);
+  color: var(--color-white-40);
+  cursor: default;
+}
+.mn-node-stars {
+  font-size: 15px;
+  color: var(--color-amber);
+  letter-spacing: 2px;
+  height: 18px;
+  margin-top: 6px;
+  line-height: 1;
+}
+
+/* ── 星星胶囊 / 🔊 徽标 ── */
+.mn-star-cap {
+  background: var(--panel-10);
+  border: 2px solid rgba(242, 165, 65, 0.6);
+  border-radius: 50px;
+  padding: 10px 26px;
+  font-size: 28px;
+  font-weight: 900;
+  color: var(--color-amber);
+}
+.mn-tts-badge {
+  background: var(--panel-12);
+  border-radius: 50px;
+  padding: 2px 10px;
+  font-size: 17px;
+}
+
+/* ── 齿轮占位（Task 12 接长按设置） ── */
+.mn-gear {
+  width: 48px;
+  height: 48px;
+  border: none;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.25);
+  color: #fff;
+  font-size: 26px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  user-select: none;
+}
+
+/* ── 吉祥物（几何占位，README §Assets） ── */
+.mn-mascot {
+  transform-origin: center center;
+}
+.mn-mascot-halo {
+  width: 130px;
+  height: 130px;
+  border-radius: 50%;
+  background: rgba(242, 165, 65, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: mn-floaty 3s ease-in-out infinite;
+}
+.mn-mascot-face {
+  position: relative;
+  width: 84px;
+  height: 78px;
+  border-radius: 40px 40px 34px 34px;
+  background: var(--color-amber);
+}
+.mn-mascot-eye {
+  position: absolute;
+  top: 22px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--color-text-dark);
+}
+.mn-mascot-hi {
+  position: absolute;
+  top: 26px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #fff;
+}
+.mn-mascot-mouth {
+  position: absolute;
+  background: var(--color-text-dark);
+}
+
+/* ── 占位屏（Task 10/11 填充） ── */
+.mn-placeholder {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 28px;
+  font-size: 34px;
+  font-weight: 900;
+  color: var(--color-white-85);
+}
+.mn-placeholder-row {
+  display: flex;
+  gap: 20px;
+}
