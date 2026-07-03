@@ -41,13 +41,16 @@ function buildCells(plan: BlocksPlan, on: Toggles, toggle: (i: number) => void):
       break;
     }
     case 'fill-slot': {
+      // 配色由 filledFirst 驱动（题库设计 §5）：true（a+?=c）实心青绿、空槽填琥珀；false（?+b=c）实心琥珀、空槽填青绿。
+      const solidCls = plan.filledFirst ? 'mn-block--teal' : 'mn-block--amber';
+      const slotCls = plan.filledFirst ? '' : ' mn-block--slot-teal';
       const solid = () => {
-        for (let i = 0; i < plan.filled; i++) cells.push({ cls: 'mn-block mn-block--teal mn-block--static', mark: '' });
+        for (let i = 0; i < plan.filled; i++) cells.push({ cls: `mn-block ${solidCls} mn-block--static`, mark: '' });
       };
       const slots = () => {
         for (let i = 0; i < plan.empty; i++) {
           const f = !!on[i];
-          cells.push({ cls: 'mn-block ' + (f ? 'mn-block--slot-filled' : 'mn-block--slot-empty'), mark: '', onTap: () => toggle(i) });
+          cells.push({ cls: 'mn-block ' + (f ? 'mn-block--slot-filled' : 'mn-block--slot-empty') + slotCls, mark: '', onTap: () => toggle(i) });
         }
       };
       if (plan.filledFirst) { solid(); slots(); } else { slots(); solid(); }
