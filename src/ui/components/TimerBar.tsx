@@ -6,7 +6,7 @@ export function TimerBar({ timeLeftMs, maxMs = 90_000 }: { timeLeftMs: number; m
   const low = timeLeftMs <= 10_000;
   const secs = Math.max(0, Math.ceil(timeLeftMs / 1000));
   return (
-    <div class="mn-timerbar">
+    <div class="mn-topbar-slot">
       <div class="mn-timerbar-track">
         <div class={'mn-timerbar-fill' + (low ? ' is-low' : '')} style={{ width: `${frac * 100}%` }} />
       </div>

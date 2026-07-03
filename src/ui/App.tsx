@@ -5,6 +5,8 @@ import { itemKey } from '../core/enumerate';
 import { applyHardMode, generateLevel, generateQuestion } from '../core/generator';
 import { endlessBand, starsFor, timedPool, unlockAfterWin } from '../core/progression';
 import { defaultProgress, loadProgress, saveProgress } from '../core/storage';
+import { currentQuestion, type Mode, type Screen, type Session } from './session';
+import { useCountdown } from './useCountdown';
 import { useStageScale } from './scale';
 import { Map } from './screens/Map';
 import { Quiz } from './screens/Quiz';
@@ -12,38 +14,9 @@ import { Result } from './screens/Result';
 import { RotateOverlay } from './components/RotateOverlay';
 import { SettingsModal } from './components/SettingsModal';
 
-export type Screen = 'map' | 'quiz' | 'result';
-export type Mode = 'campaign' | 'endless' | 'timed';
-
-export interface Session {
-  mode: Mode;
-  level?: number;                     // campaign
-  questions?: Question[];             // campaign 预生成；模式流式
-  qIndex: number;
-  wrongThis: number;
-  wrongTotal: number;
-  excluded: number[];                 // 本题已排除的错误选项
-  lastWrong?: number;                 // 最近一次点错的选项值（仅该项在 wrong 反馈期抖动）
-  feedback: 'right' | 'wrong' | null;
-  correctCount: number;
-  streak: number;
-  runBestStreak: number;
-  timeLeftMs?: number;                // timed 起始值；每帧真值在 timeLeftRef，见计时 effect
-  recentKeys: string[];               // 模式滚动去重（最近 5 题）
-  current?: Question;                 // endless/timed 当前题
-  resultStars?: 1 | 2 | 3;            // campaign 结算星级（进结算前算定并落盘，供结算屏读取）
-  resultBroke?: boolean;              // endless/timed 是否破纪录（进结算瞬间算定，供结算屏庆祝）
-}
-
 const TIMED_START_MS = 60_000;
 const TIMED_MAX_MS = 90_000;
 const TIMED_BONUS_MS = 8_000;
-
-// 当前题选择器：campaign 读预生成数组，endless/timed 读流式 current。
-// （App 与 Quiz 共用，避免两处重复该分支。）
-export function currentQuestion(s: Session): Question {
-  return s.mode === 'campaign' ? s.questions![s.qIndex] : s.current!;
-}
 
 function usePortrait(): boolean {
   const [portrait, setPortrait] = useState(() => window.innerHeight > window.innerWidth);
@@ -69,16 +42,9 @@ export function App() {
 
   // 反馈延迟推进的定时器；退出/卸载时清除，避免离开答题屏后仍触发。
   const timerRef = useRef<number | undefined>(undefined);
-  // 供定时器/rAF 回调读取最新 session（避免闭包读到旧值）。
+  // 供定时器/倒计时回调读取最新 session（避免闭包读到旧值）。
   const sessionRef = useRef<Session | null>(session);
   sessionRef.current = session;
-
-  // 限时计时（spec §5）：真值在 timeLeftRef，rAF 以 performance.now() 差值递减；
-  // displayTimeLeft 仅驱动 TimerBar（节流 ~100ms），刻意不每帧重建整个 session。
-  const timeLeftRef = useRef(TIMED_START_MS);
-  const [displayTimeLeft, setDisplayTimeLeft] = useState(TIMED_START_MS);
-  // rAF 回调捕获于 effect 创建那一刻，用 ref 指向最新 finishTimed，避免闭包读到旧 progress。
-  const finishTimedRef = useRef<() => void>(() => {});
 
   const clearTimer = () => {
     if (timerRef.current !== undefined) {
@@ -132,9 +98,8 @@ export function App() {
   };
 
   const startTimed = () => {
-    timeLeftRef.current = TIMED_START_MS; // 计时真值复位（rAF effect 会随 mode/screen 变化启动）
-    setDisplayTimeLeft(TIMED_START_MS);
-    setSession({ ...blankRun('timed'), timeLeftMs: TIMED_START_MS, current: nextModeQuestion('timed', 0, []) });
+    countdown.reset(TIMED_START_MS);
+    setSession({ ...blankRun('timed'), current: nextModeQuestion('timed', 0, []) });
     setScreen('quiz');
   };
 
@@ -160,11 +125,8 @@ export function App() {
     const correctCount = s.correctCount + 1;
     const streak = s.streak + 1;
     const recentKeys = [...s.recentKeys, itemKey(s.current!)].slice(-5);
-    if (s.mode === 'timed') {
-      // 答对 +8s，上限 90s。此刻 feedback 刚清除、时间条重新可见，宽度增大触发回弹动画。
-      timeLeftRef.current = Math.min(TIMED_MAX_MS, timeLeftRef.current + TIMED_BONUS_MS);
-      setDisplayTimeLeft(timeLeftRef.current);
-    }
+    // 限时答对 +8s（上限 90s）。此刻反馈刚清除、时间条重新可见，宽度增大触发回弹动画。
+    if (s.mode === 'timed') countdown.addTime(TIMED_BONUS_MS);
     setSession({
       ...s,
       current: nextModeQuestion(s.mode, correctCount, recentKeys),
@@ -224,7 +186,7 @@ export function App() {
     setScreen('result');
   };
 
-  // 限时时间到 → 冲刺结算。进结算瞬间持久化 bestCount。由 rAF（经 finishTimedRef）触发。
+  // 限时时间到 → 冲刺结算。进结算瞬间持久化 bestCount。由 useCountdown 的 onExpire 触发。
   const finishTimed = () => {
     const s = sessionRef.current;
     if (!s || s.mode !== 'timed') return;
@@ -235,51 +197,15 @@ export function App() {
     setSession({ ...s, feedback: null, resultBroke: broke });
     setScreen('result');
   };
-  finishTimedRef.current = finishTimed; // 每次 render 刷新，保证 rAF 调用到最新闭包
 
-  // 限时计时 rAF 循环（spec §5）：仅在 timed + quiz 时运行；退出即 cancel。
-  // performance.now() 差值递减 timeLeftRef；节流写 displayTimeLeft（避免每帧重渲整树）。
-  // visibilitychange 隐藏时不累计（隐藏期间时间不流失），可见时重置基准继续。
-  // 时间到（≤0）时若仍有反馈在展示（答对 1.1s / 答错 0.9s 窗口），等反馈清掉再结算。
-  const timedActive = session?.mode === 'timed' && screen === 'quiz';
-  useEffect(() => {
-    if (!timedActive) return;
-    let raf = 0;
-    let last = performance.now();
-    let hidden = document.hidden;
-
-    const onVis = () => {
-      if (document.hidden) {
-        hidden = true;
-      } else {
-        hidden = false;
-        last = performance.now(); // 丢弃隐藏期间的时长
-      }
-    };
-    document.addEventListener('visibilitychange', onVis);
-
-    const tick = (now: number) => {
-      if (hidden) {
-        last = now; // 隐藏时保持基准新鲜（rAF 一般已被浏览器暂停，双保险）
-      } else {
-        const dt = now - last;
-        last = now;
-        timeLeftRef.current = Math.max(0, timeLeftRef.current - dt);
-        const v = timeLeftRef.current;
-        setDisplayTimeLeft((prev) => (v === 0 || Math.abs(prev - v) >= 100 ? v : prev));
-        if (v <= 0 && sessionRef.current?.feedback == null) {
-          finishTimedRef.current(); // 结算并切屏；不再排下一帧
-          return;
-        }
-      }
-      raf = requestAnimationFrame(tick);
-    };
-    raf = requestAnimationFrame(tick);
-    return () => {
-      cancelAnimationFrame(raf);
-      document.removeEventListener('visibilitychange', onVis);
-    };
-  }, [timedActive]);
+  // 限时倒计时（spec §5，实现见 useCountdown）：仅 timed + quiz 时运转；
+  // 到 0 时若反馈仍在展示（答对 1.1s / 答错 0.9s 窗口），canExpire 拦截，等反馈清掉再结算。
+  const countdown = useCountdown(session?.mode === 'timed' && screen === 'quiz', {
+    startMs: TIMED_START_MS,
+    maxMs: TIMED_MAX_MS,
+    onExpire: finishTimed,
+    canExpire: () => sessionRef.current?.feedback == null,
+  });
 
   // Task 13 接 TTS。
   const replayTts = () => {};
@@ -301,6 +227,7 @@ export function App() {
     updateProgress({ ...progress, settings: { ...progress.settings, ...patch } });
   };
   const resetProgress = () => {
+    clearTimer();
     updateProgress(defaultProgress());
     setSettingsOpen(false);
     setSession(null);
@@ -327,7 +254,7 @@ export function App() {
                 ? progress.settings.showBlocksTimed
                 : progress.settings.showBlocks
             }
-            timeLeftMs={displayTimeLeft}
+            timeLeftMs={countdown.displayMs}
             timeMaxMs={TIMED_MAX_MS}
             onAnswer={answer}
             onExit={onQuizExit}

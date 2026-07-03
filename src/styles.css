@@ -64,8 +64,6 @@ body {
 
   /* 设置面板遮罩（比反馈遮罩更暗，聚焦弹窗） */
   --color-scrim: rgba(9, 26, 32, 0.72);
-  /* 时间条低时间告警描边 */
-  --coral-70: rgba(232, 93, 93, 0.7);
 }
 
 body {
@@ -735,8 +733,8 @@ body {
   background: var(--color-coral);
 }
 
-/* ═══════ 无尽顶栏（StreakBar） ═══════ */
-.mn-streakbar {
+/* ═══════ 模式顶栏共用槽位（StreakBar / TimerBar 的定位与布局） ═══════ */
+.mn-topbar-slot {
   position: absolute;
   top: 30px;
   left: 124px;
@@ -746,6 +744,8 @@ body {
   align-items: center;
   gap: 22px;
 }
+
+/* ═══════ 无尽顶栏（StreakBar） ═══════ */
 .mn-streak-fire {
   flex: none;
   font-size: 26px;
@@ -798,16 +798,6 @@ body {
 }
 
 /* ═══════ 限时顶栏（TimerBar） ═══════ */
-.mn-timerbar {
-  position: absolute;
-  top: 30px;
-  left: 124px;
-  right: 124px;
-  height: 64px;
-  display: flex;
-  align-items: center;
-  gap: 22px;
-}
 .mn-timerbar-track {
   flex: 1;
   height: 22px;

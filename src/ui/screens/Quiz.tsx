@@ -1,4 +1,4 @@
-import { currentQuestion, type Session } from '../App';
+import { currentQuestion, type Session } from '../session';
 import { QuestionRow } from '../components/QuestionRow';
 import { Blocks } from '../components/Blocks';
 import { Options } from '../components/Options';

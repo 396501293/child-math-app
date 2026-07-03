@@ -4,7 +4,7 @@
 export function StreakBar({ streak, voyage }: { streak: number; voyage: number }) {
   const frac = (voyage % 20) / 19; // 0..1 沿虚线；每 20 题一个循环
   return (
-    <div class="mn-streakbar">
+    <div class="mn-topbar-slot">
       {/* streak 为 0 时弱化（is-dim）—— 尚未起连对不喧宾夺主 */}
       <div class={'mn-streak-fire' + (streak === 0 ? ' is-dim' : '')}>🔥 ×{streak}</div>
       <div class="mn-voyage">
