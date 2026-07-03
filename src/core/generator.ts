@@ -40,7 +40,7 @@ function toQuestion(it: Item, cfg: BandConfig, rng: Rng): Question {
     case 'missing-a': { answer = a; missingIndex = 0; ttsText = `几加上 ${b}，等于 ${a + b}？`; break; }
     case 'missing-sub': { answer = b; missingIndex = 1; ttsText = `${a} 减去几，等于 ${a - b}？`; break; }
   }
-  const q: Question = { kind: it.kind, operands: it.operands, ops: it.ops, missingIndex,
+  const q: Question = { kind: it.kind, operands: [...it.operands], ops: [...it.ops], missingIndex,
     answer, options: makeOptions(it, answer, cfg.band, rng), ttsText };
   if (cfg.chapter !== 3) attachBlocks(q);
   return q;
@@ -82,7 +82,7 @@ export function generateLevel(cfg: BandConfig, count: number, rng: Rng): Questio
   const picked: Item[] = [];
   cfg.pools.forEach((pool, pi) => {
     const items = shuffle(enumeratePool(pool).filter(i => !used.has(itemKey(i))), rng);
-    for (let n = 0; n < alloc[pi]; n++) { picked.push(items[n]); used.add(itemKey(items[n])); }
+    for (let n = 0; n < Math.min(alloc[pi], items.length); n++) { picked.push(items[n]); used.add(itemKey(items[n])); }
   });
   return picked.map(i => toQuestion(i, cfg, rng)).sort((x, y) => x.answer - y.answer);
 }
