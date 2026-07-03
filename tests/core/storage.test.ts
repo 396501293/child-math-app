@@ -40,6 +40,28 @@ test('corrupt v2 JSON → copied to backup key, reset to default', () => {
   expect(s.dump().math_nightsail_v2_corrupt).toBe('{oops');
 });
 
+test('partial v2 blob merges over defaults without throwing', () => {
+  const s = fakeStore({ math_nightsail_v2: JSON.stringify({ version: 2 }) });
+  const p = loadProgress(s);
+  expect(p).toEqual(defaultProgress());
+  expect(p.settings.questionCount).toBe(5);
+});
+
+test('v2 blob with wrong shape → backed up to _corrupt and reset to default', () => {
+  const s = fakeStore({ math_nightsail_v2: JSON.stringify({ version: 1, x: 1 }) });
+  const p = loadProgress(s);
+  expect(p).toEqual(defaultProgress());
+  expect(s.dump().math_nightsail_v2_corrupt).toBe(JSON.stringify({ version: 1, x: 1 }));
+});
+
+test('v1 migration sanitizes out-of-range stars and non-numeric unlocked', () => {
+  const s = fakeStore({ math_nightsail_v1: JSON.stringify({ stars: { 1: 9, 2: -1 }, unlocked: 'abc' }) });
+  const p = loadProgress(s);
+  expect(p.stars[1]).toBe(3);
+  expect(p.stars[2]).toBe(0);
+  expect(p.unlocked).toBe(1);
+});
+
 test('storage throwing → in-memory fallback works for the session', () => {
   const boom = { getItem: () => { throw new Error(); }, setItem: () => { throw new Error(); },
     removeItem: () => {} };
