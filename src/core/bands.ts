@@ -107,4 +107,7 @@ export const BANDS: BandConfig[] = [
     add2d1dC(), sub2d1dB(), add2d2dNC(), sub2d2dNB(), add2d2dC(), sub2d2dB()]),
 ];
 
-export const bandOf = (band: number): BandConfig => BANDS[band - 1];
+export const bandOf = (band: number): BandConfig => {
+  if (band < 1 || band > 45) throw new RangeError(`band out of range [1,45]: ${band}`);
+  return BANDS[band - 1];
+};

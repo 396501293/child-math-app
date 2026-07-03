@@ -1,11 +1,5 @@
 import type { Item, Rng } from './types';
-
-const shuffle = <T>(arr: T[], rng: Rng): T[] => {
-  for (let i = arr.length - 1; i > 0; i--) {
-    const j = Math.floor(rng() * (i + 1)); [arr[i], arr[j]] = [arr[j], arr[i]];
-  }
-  return arr;
-};
+import { shuffle } from './rand';
 
 /**
  * 3 options = answer + 2 distractors, deduped & shuffled. Candidate priority: at most ONE

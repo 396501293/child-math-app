@@ -16,6 +16,11 @@ const EXACT: Record<number, number> = {
   45: 9693,   // 12 个子池合计（含跨池重复题面），见题库规范附录
 };
 
+test('bandOf throws RangeError outside 1..45', () => {
+  expect(() => bandOf(0)).toThrow();
+  expect(() => bandOf(46)).toThrow();
+});
+
 test('all 45 bands exist with correct chapter', () => {
   expect(BANDS).toHaveLength(45);
   BANDS.forEach((b, i) => {
