@@ -84,7 +84,6 @@ export function App() {
   const blankRun = (mode: Mode): Session => ({
     mode,
     qIndex: 0,
-    wrongThis: 0,
     wrongTotal: 0,
     excluded: [],
     feedback: null,
@@ -148,7 +147,7 @@ export function App() {
     } else {
       const next = s.questions![s.qIndex + 1];
       speak(next.ttsText, { interrupt: true }); // 进新题自动朗读
-      setSession({ ...s, qIndex: s.qIndex + 1, feedback: null, excluded: [], lastWrong: undefined, wrongThis: 0 });
+      setSession({ ...s, qIndex: s.qIndex + 1, feedback: null, excluded: [], lastWrong: undefined });
     }
   };
   const advanceModeCorrect = () => {
@@ -192,7 +191,6 @@ export function App() {
       setSession({
         ...s,
         feedback: 'wrong',
-        wrongThis: s.wrongThis + 1,
         wrongTotal: s.wrongTotal + 1,
         streak: 0, // 答错中断连对（模式用；主线不读）
         excluded: [...s.excluded, option],

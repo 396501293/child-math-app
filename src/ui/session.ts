@@ -11,7 +11,6 @@ export interface Session {
   level?: number;                     // campaign
   questions?: Question[];             // campaign 预生成；模式流式
   qIndex: number;
-  wrongThis: number;
   wrongTotal: number;
   excluded: number[];                 // 本题已排除的错误选项
   lastWrong?: number;                 // 最近一次点错的选项值（仅该项在 wrong 反馈期抖动）
