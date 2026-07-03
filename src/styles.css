@@ -23,6 +23,12 @@ body {
   --color-bg-start: #12333e;
   --color-bg-end: #174552;
 
+  /* 视口留边（stage 之外的 letterbox 底色） */
+  --color-letterbox: #0e2831;
+
+  /* 蛇形路径虚线描边 */
+  --path-dash: rgba(255, 255, 255, 0.18);
+
   /* 面板（白色透明层级） */
   --panel-06: rgba(255, 255, 255, 0.06);
   --panel-07: rgba(255, 255, 255, 0.07);
@@ -49,7 +55,7 @@ body {
 body {
   font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, 'PingFang SC',
     'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
-  background: #0e2831;
+  background: var(--color-letterbox);
 }
 
 /* ── 动画（直译自原型 Design Tokens） ── */

@@ -16,8 +16,8 @@ const CHAPTER_NAME = ['启航', '深海', '远洋'];
 const MASCOT_LINES = ['准备好出发了吗？', '这一关有点挑战，加油！', '你越来越厉害了！', '星星快集满一排啦！'];
 
 // 蛇形路径几何（面板内坐标，面板 660×598）：5 列节点 × 3 行，第 2 行反向。
-const COL_X = [92, 211, 330, 449, 568];
 const ROW_Y = [175, 325, 475];
+// PATH_D 的坐标与 ROW_Y 及节点行 flex 布局（left/right:52、space-between、格宽 80）手工耦合——改动需同步。
 const PATH_D = 'M 92 175 H 568 C 620 175 620 325 568 325 H 92 C 40 325 40 475 92 475 H 568';
 
 const SEEN_KEY = 'math_nightsail_seen_modes';
@@ -110,15 +110,15 @@ export function Map({ progress, onStartLevel, onStartEndless, onStartTimed, onOp
     <>
       {/* ─── 顶栏 ─── */}
       <div style={{ position: 'absolute', top: 32, left: 40, right: 40, display: 'flex', alignItems: 'center', gap: 20 }}>
-        <div style={{ fontSize: 38, fontWeight: 900, color: '#fff' }}>
+        <div style={{ fontSize: 38, fontWeight: 900, color: 'var(--color-white-100)' }}>
           数学夜航 · 第{cnNum}章 · {chapterName}
         </div>
-        <div style={{ fontSize: 22, fontWeight: 500, color: 'rgba(255,255,255,.55)' }}>{doneCount} / 15 关</div>
+        <div style={{ fontSize: 22, fontWeight: 500, color: 'var(--color-white-55)' }}>{doneCount} / 15 关</div>
         <div class="mn-star-cap" style={{ marginLeft: 'auto' }}>★ {chapterStars}</div>
       </div>
 
       {/* ─── 左路径面板 ─── */}
-      <div style={{ position: 'absolute', top: 130, left: 40, width: 660, bottom: 40, background: 'rgba(255,255,255,.06)', borderRadius: 28, overflow: 'hidden' }}>
+      <div style={{ position: 'absolute', top: 130, left: 40, width: 660, bottom: 40, background: 'var(--panel-06)', borderRadius: 28, overflow: 'hidden' }}>
         {/* 章节切换行 */}
         <div style={{ position: 'absolute', top: 16, left: 24, right: 24, height: 68, display: 'flex', alignItems: 'center', gap: 12 }}>
           <button
@@ -129,7 +129,7 @@ export function Map({ progress, onStartLevel, onStartEndless, onStartTimed, onOp
           >
             ‹
           </button>
-          <div style={{ flex: 1, textAlign: 'center', fontSize: 24, fontWeight: 900, color: '#fff' }}>
+          <div style={{ flex: 1, textAlign: 'center', fontSize: 24, fontWeight: 900, color: 'var(--color-white-100)' }}>
             第{cnNum}章 · {chapterName}
           </div>
           <button
@@ -144,14 +144,14 @@ export function Map({ progress, onStartLevel, onStartEndless, onStartTimed, onOp
 
         {/* 蛇形虚线路径 */}
         <svg width="660" height="598" style={{ position: 'absolute', top: 0, left: 0 }}>
-          <path d={PATH_D} fill="none" stroke="rgba(255,255,255,.18)" strokeWidth={10} strokeLinecap="round" strokeDasharray="1 24" />
+          <path d={PATH_D} fill="none" style={{ stroke: 'var(--path-dash)' }} strokeWidth={10} strokeLinecap="round" strokeDasharray="1 24" />
         </svg>
 
         {/* 节点三行 */}
         {rows.map((row, r) => (
-          <div style={{ position: 'absolute', left: 52, right: 52, top: ROW_Y[r] - 46, display: 'flex', justifyContent: 'space-between' }}>
+          <div key={r} style={{ position: 'absolute', left: 52, right: 52, top: ROW_Y[r] - 46, display: 'flex', justifyContent: 'space-between' }}>
             {row.map((n) => (
-              <NodeCell level={n} state={stateOf(n)} stars={progress.stars[n] ?? 0} onTap={() => onStartLevel(n)} />
+              <NodeCell key={n} level={n} state={stateOf(n)} stars={progress.stars[n] ?? 0} onTap={() => onStartLevel(n)} />
             ))}
           </div>
         ))}
@@ -159,9 +159,9 @@ export function Map({ progress, onStartLevel, onStartEndless, onStartTimed, onOp
 
       {/* ─── 右面板 ─── */}
       <div style={{ position: 'absolute', top: 130, right: 40, width: 280, bottom: 40, display: 'flex', flexDirection: 'column', gap: 24 }}>
-        <div style={{ flex: 1, background: 'rgba(255,255,255,.06)', borderRadius: 28, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 14 }}>
+        <div style={{ flex: 1, background: 'var(--panel-06)', borderRadius: 28, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 14 }}>
           <Mascot pose="idle" />
-          <div style={{ fontSize: 23, color: 'rgba(255,255,255,.85)', textAlign: 'center', lineHeight: 1.5, padding: '0 18px' }}>
+          <div style={{ fontSize: 23, color: 'var(--color-white-85)', textAlign: 'center', lineHeight: 1.5, padding: '0 18px' }}>
             {mascotLine} <span class="mn-tts-badge">🔊</span>
           </div>
         </div>
