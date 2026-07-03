@@ -3,11 +3,12 @@ import type { BandConfig, Progress, Question } from '../core/types';
 import { bandOf } from '../core/bands';
 import { itemKey } from '../core/enumerate';
 import { applyHardMode, generateLevel, generateQuestion } from '../core/generator';
-import { endlessBand, timedPool } from '../core/progression';
+import { endlessBand, starsFor, timedPool, unlockAfterWin } from '../core/progression';
 import { loadProgress, saveProgress } from '../core/storage';
 import { useStageScale } from './scale';
 import { Map } from './screens/Map';
 import { Quiz } from './screens/Quiz';
+import { Result } from './screens/Result';
 import { RotateOverlay } from './components/RotateOverlay';
 
 export type Screen = 'map' | 'quiz' | 'result';
@@ -28,6 +29,7 @@ export interface Session {
   timeLeftMs?: number;                // timed
   recentKeys: string[];               // 模式滚动去重（最近 5 题）
   current?: Question;                 // endless/timed 当前题
+  resultStars?: 1 | 2 | 3;            // campaign 结算星级（进结算前算定并落盘，供结算屏读取）
 }
 
 const TIMED_START_MS = 60_000;
@@ -44,19 +46,6 @@ function usePortrait(): boolean {
     };
   }, []);
   return portrait;
-}
-
-// 占位屏（Task 10 答题 / Task 11 结算填充）
-function Placeholder({ label, onExit, onReplay }: { label: string; onExit: () => void; onReplay: () => void }) {
-  return (
-    <div class="mn-placeholder">
-      <div>{label}</div>
-      <div class="mn-placeholder-row">
-        <button class="mn-mode-btn" style={{ width: 'auto', padding: '18px 40px' }} onClick={onExit}>← 返回地图</button>
-        <button class="mn-mode-btn" style={{ width: 'auto', padding: '18px 40px' }} onClick={onReplay}>🔊 重播</button>
-      </div>
-    </div>
-  );
 }
 
 export function App() {
@@ -134,7 +123,14 @@ export function App() {
     if (!s || s.mode !== 'campaign') return;
     const last = s.qIndex + 1 >= s.questions!.length;
     if (last) {
-      setSession({ ...s, feedback: null }); // 结算由 Task 11 计算，先保留 session 供其读取
+      // 结算：星级一次算定并立即落盘（不在结算 render / 按钮点击时算），
+      // 这样即便玩家在结算屏退出 App，本次胜利与解锁也已保存。
+      // `progress` 此刻是当前值（关内不改 progress），unlockAfterWin 基于它即可，
+      // 不依赖 setState 后的 re-render 时序。「下一关」按钮点击已是后续 render，
+      // 那时 startLevel 读到的是更新后的 progress，无陈旧闭包风险。
+      const stars = starsFor(s.wrongTotal);
+      updateProgress(unlockAfterWin(progress, s.level!, stars));
+      setSession({ ...s, feedback: null, resultStars: stars });
       setScreen('result');
     } else {
       setSession({ ...s, qIndex: s.qIndex + 1, feedback: null, excluded: [], wrongThis: 0 });
@@ -221,8 +217,14 @@ export function App() {
             onReplay={replayTts}
           />
         )}
-        {screen === 'result' && (
-          <Placeholder label="result 屏（Task 11）" onExit={exitToMap} onReplay={replayTts} />
+        {/* 结算屏仅服务 campaign；endless/timed 结算变体于 Task 12 接入（届时按 mode 分支）。 */}
+        {screen === 'result' && session && session.mode === 'campaign' && (
+          <Result
+            level={session.level!}
+            stars={session.resultStars ?? starsFor(session.wrongTotal)}
+            onBackToMap={exitToMap}
+            onNextLevel={session.level! < 45 ? () => startLevel(session.level! + 1) : undefined}
+          />
         )}
       </div>
       {portrait && <RotateOverlay />}
