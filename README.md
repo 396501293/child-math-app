@@ -24,10 +24,9 @@ npm run build   # 类型检查 + 生产构建 → dist/
 本项目通过 GitHub Actions 自动部署到 GitHub Pages，配置见 [`.github/workflows/deploy.yml`](./.github/workflows/deploy.yml)。
 
 1. 在 GitHub 上新建仓库，**仓库名必须为 `child-math-app`**（需与 `vite.config.ts` 中的 `base: '/child-math-app/'` 一致，否则静态资源路径会 404）。
-2. 将本地代码推送到该仓库的 `main` 分支。
-3. 进入仓库 **Settings → Pages**，将 **Source** 设置为 **GitHub Actions**。
-4. 推送到 `main` 后工作流会自动构建并发布，完成后访问：
-   `https://<你的用户名>.github.io/child-math-app/`
+2. 进入仓库 **Settings → Pages**，将 **Source** 设置为 **GitHub Actions**（先设置，避免首次推送时部署 Job 失败）。
+3. 将本地代码推送到该仓库的 `main` 分支，工作流会自动构建并发布（也可在 Actions 页手动触发 `Deploy to GitHub Pages`）。
+4. 完成后访问：`https://<你的用户名>.github.io/child-math-app/`
 
 工作流会在上传产物前删除 `dist/` 中未使用的 `.woff` 回退字体文件（PWA 预缓存与实际加载只使用 `.woff2`），以减小部署体积。
 
