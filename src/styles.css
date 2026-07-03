@@ -50,6 +50,15 @@ body {
   --color-white-55: rgba(255, 255, 255, 0.55);
   --color-white-50: rgba(255, 255, 255, 0.5);
   --color-white-40: rgba(255, 255, 255, 0.4);
+
+  /* 强调色透明层级（答题屏教具 / 选项 / 反馈） */
+  --amber-08: rgba(242, 165, 65, 0.08);
+  --amber-20: rgba(242, 165, 65, 0.2);
+  --amber-70: rgba(242, 165, 65, 0.7);
+  --coral-25: rgba(232, 93, 93, 0.25);
+  --coral-30: rgba(232, 93, 93, 0.3);
+  --panel-25: rgba(255, 255, 255, 0.25);
+  --color-mask: rgba(14, 40, 49, 0.55);
 }
 
 body {
@@ -75,6 +84,31 @@ body {
   }
   50% {
     transform: translateY(-10px);
+  }
+}
+@keyframes mn-shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  20%,
+  60% {
+    transform: translateX(-8px);
+  }
+  40%,
+  80% {
+    transform: translateX(8px);
+  }
+}
+@keyframes mn-pop {
+  0% {
+    transform: scale(0.6);
+  }
+  60% {
+    transform: scale(1.08);
+  }
+  100% {
+    transform: scale(1);
   }
 }
 
@@ -344,4 +378,256 @@ body {
 .mn-placeholder-row {
   display: flex;
   gap: 20px;
+}
+
+/* ═══════ 答题屏（Quiz） ═══════ */
+
+/* ── 顶栏 ── */
+.mn-quiz-back,
+.mn-quiz-replay {
+  position: absolute;
+  top: 28px;
+  width: 68px;
+  height: 68px;
+  border: none;
+  border-radius: 20px;
+  font-family: inherit;
+  font-weight: 900;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  user-select: none;
+}
+.mn-quiz-back {
+  left: 36px;
+  background: var(--panel-10);
+  color: var(--color-white-60);
+  font-size: 30px;
+}
+.mn-quiz-back:hover {
+  background: var(--panel-12);
+}
+.mn-quiz-replay {
+  right: 36px;
+  background: var(--amber-20);
+  color: var(--color-white-100);
+  font-size: 28px;
+}
+.mn-quiz-progress {
+  position: absolute;
+  top: 52px;
+  left: 140px;
+  right: 240px;
+  height: 16px;
+  border-radius: 16px;
+  background: var(--panel-12);
+  overflow: hidden;
+}
+.mn-quiz-progress-fill {
+  height: 100%;
+  border-radius: 16px;
+  background: var(--color-amber);
+  transition: width 0.4s;
+}
+.mn-quiz-count {
+  position: absolute;
+  top: 42px;
+  right: 130px;
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--color-white-60);
+}
+
+/* ── 题目行 ── */
+.mn-qrow {
+  position: absolute;
+  top: 120px;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 26px;
+  font-size: 96px;
+  font-weight: 900;
+  color: var(--color-white-100);
+  letter-spacing: 2px;
+}
+.mn-qrow--narrow {
+  font-size: 76px;
+  gap: 20px;
+}
+.mn-qrow-op {
+  color: var(--color-amber);
+}
+.mn-qrow-box {
+  width: 120px;
+  height: 120px;
+  flex: none;
+  border-radius: 26px;
+  border: 6px dashed var(--color-amber);
+  background: var(--amber-08);
+  color: var(--color-amber);
+  font-size: 70px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ── 计数块面板 ── */
+.mn-blocks {
+  position: absolute;
+  top: 300px;
+  left: 0;
+  right: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+}
+.mn-blocks-panel {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  max-width: 676px;
+  padding: 18px 22px;
+  border-radius: 20px;
+  background: var(--panel-07);
+}
+.mn-block {
+  position: relative;
+  width: 56px;
+  height: 56px;
+  flex: none;
+  border-radius: 12px;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 30px;
+  font-weight: 900;
+  user-select: none;
+}
+.mn-block--teal {
+  background: var(--color-teal);
+  color: var(--color-white-100);
+  cursor: pointer;
+}
+.mn-block--amber {
+  background: var(--color-amber);
+  color: var(--color-text-dark);
+  cursor: pointer;
+}
+.mn-block--white {
+  background: var(--color-white-85);
+  color: var(--color-text-dark);
+  cursor: pointer;
+}
+.mn-block--dim {
+  opacity: 0.55;
+}
+.mn-block--cross {
+  background: var(--coral-25);
+  color: var(--color-coral);
+  cursor: pointer;
+}
+.mn-block--slot-empty {
+  background: var(--amber-08);
+  border: 3px dashed var(--amber-70);
+  cursor: pointer;
+}
+.mn-block--slot-filled {
+  background: var(--color-amber);
+  border: 3px dashed var(--amber-70);
+  cursor: pointer;
+}
+.mn-block--static {
+  cursor: default;
+}
+.mn-block-badge {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  background: var(--color-amber);
+  color: var(--color-text-dark);
+  font-size: 15px;
+  font-weight: 900;
+  line-height: 1;
+  border-radius: 8px;
+  padding: 2px 5px;
+}
+.mn-blocks-hint {
+  font-size: 19px;
+  color: var(--color-white-50);
+  cursor: pointer;
+  user-select: none;
+}
+
+/* ── 选项区 ── */
+.mn-opts {
+  position: absolute;
+  bottom: 56px;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: center;
+  gap: 36px;
+}
+.mn-opt {
+  width: 150px;
+  height: 110px;
+  box-sizing: border-box;
+  border-radius: 26px;
+  background: var(--panel-10);
+  border: 3px solid var(--panel-25);
+  color: var(--color-white-100);
+  font-size: 52px;
+  font-weight: 900;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  user-select: none;
+}
+.mn-opt--excluded {
+  background: var(--coral-30);
+  border-color: var(--color-coral);
+  opacity: 0.6;
+  cursor: default;
+}
+.mn-opt--correct {
+  background: var(--color-teal);
+  border-color: var(--color-teal);
+}
+.mn-opt--shake {
+  animation: mn-shake 0.4s;
+}
+
+/* ── 反馈遮罩 ── */
+.mn-feedback-mask {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  background: var(--color-mask);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.mn-feedback-card {
+  border-radius: 32px;
+  padding: 36px 70px;
+  font-size: 56px;
+  font-weight: 900;
+  color: var(--color-white-100);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+  animation: mn-pop 0.35s ease-out;
+}
+.mn-feedback-card--right {
+  background: var(--color-teal);
+}
+.mn-feedback-card--wrong {
+  background: var(--color-coral);
 }
