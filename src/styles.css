@@ -1,0 +1,47 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body,
+h1,
+h2,
+h3,
+p,
+figure {
+  margin: 0;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+:root {
+  /* 背景渐变 */
+  --color-bg-start: #12333e;
+  --color-bg-end: #174552;
+
+  /* 面板（白色透明层级） */
+  --panel-06: rgba(255, 255, 255, 0.06);
+  --panel-07: rgba(255, 255, 255, 0.07);
+  --panel-10: rgba(255, 255, 255, 0.1);
+  --panel-12: rgba(255, 255, 255, 0.12);
+
+  /* 主强调色 */
+  --color-amber: #f2a541;
+  --color-coral: #e85d5d;
+  --color-teal: #2fb29b;
+
+  /* 深字色 */
+  --color-text-dark: #12333e;
+
+  /* 白字层级 */
+  --color-white-100: #fff;
+  --color-white-85: rgba(255, 255, 255, 0.85);
+  --color-white-60: rgba(255, 255, 255, 0.6);
+  --color-white-55: rgba(255, 255, 255, 0.55);
+  --color-white-50: rgba(255, 255, 255, 0.5);
+  --color-white-40: rgba(255, 255, 255, 0.4);
+}
