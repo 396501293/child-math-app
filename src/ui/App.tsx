@@ -101,7 +101,7 @@ export function App() {
   const startTimed = () => {
     const pool = timedPool(progress);
     const band = pool.length ? pool[Math.floor(Math.random() * pool.length)] : progress.unlocked;
-    const current = generateQuestion(bandOf(band), Math.random, []);
+    const current = generateQuestion(applyIfHard(bandOf(band)), Math.random, []);
     setSession({ ...blankRun('timed'), timeLeftMs: TIMED_START_MS, current });
     setScreen('quiz');
   };
