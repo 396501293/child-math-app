@@ -1,5 +1,4 @@
 import { expect, test } from 'vitest';
-import type { Progress } from '../../src/core/types';
 import {
   chapterOf,
   endlessBand,
@@ -9,18 +8,7 @@ import {
   timedUnlocked,
   unlockAfterWin,
 } from '../../src/core/progression';
-
-// NOTE: storage.ts (Task 7) is not yet written. Per task instructions this is a local
-// helper standing in for the future `defaultProgress` export from '../../src/core/storage'.
-// Task 7 implementer should switch this test to import the real one once it exists.
-const defaultProgress = (): Progress => ({
-  version: 2,
-  stars: {},
-  unlocked: 1,
-  endless: { bestStreak: 0, totalAnswered: 0 },
-  timed: { bestCount: 0 },
-  settings: { questionCount: 5, hardMode: false, showBlocks: true, showBlocksTimed: false },
-});
+import { defaultProgress } from '../../src/core/storage';
 
 test('starsFor', () => {
   expect(starsFor(0)).toBe(3);
@@ -76,4 +64,11 @@ test('unlockAfterWin: extends unlocked, keeps best stars', () => {
   expect(p3.stars[1]).toBe(2); // 取历史最高
   const p4 = unlockAfterWin(p3, 45, 3);
   expect(p4.unlocked).toBe(45); // 上限 45
+});
+
+test('timedPool: timed first-use path (chapter 1 fully starred)', () => {
+  const p = defaultProgress();
+  for (let l = 1; l <= 9; l++) p.stars[l] = 1;
+  p.unlocked = 10;
+  expect(timedPool(p)).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9]);
 });
