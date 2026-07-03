@@ -11,6 +11,7 @@ export default defineConfig({
       manifest: {
         name: '数学夜航',
         short_name: '数学夜航',
+        lang: 'zh-CN',
         display: 'fullscreen',
         orientation: 'landscape',
         background_color: '#12333E',

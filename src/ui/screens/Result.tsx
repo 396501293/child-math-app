@@ -3,7 +3,7 @@ import { Mascot } from '../components/Mascot';
 // 结算屏（README §3 + 题库设计 §7-5）。dumb 组件：所有数值由 App 计算后经 props 传入。
 // 三种变体：campaign（星级）/ endless（本轮答对 + 连对纪录）/ timed（时间到 + 个人最佳）。
 type ResultProps =
-  | { variant: 'campaign'; level: number; stars: 1 | 2 | 3; onBackToMap: () => void; onNextLevel?: () => void }
+  | { variant: 'campaign'; level: number; stars: 1 | 2 | 3; onBackToMap: () => void; onNextLevel?: () => void; onReplaySub: () => void }
   | { variant: 'endless'; answered: number; runBestStreak: number; historyBestStreak: number; broke: boolean; onBackToMap: () => void }
   | { variant: 'timed'; answered: number; bestCount: number; broke: boolean; onBackToMap: () => void };
 
@@ -23,7 +23,7 @@ function nextLabel(level: number): string {
 
 export function Result(props: ResultProps) {
   if (props.variant === 'campaign') {
-    const { level, stars, onBackToMap, onNextLevel } = props;
+    const { level, stars, onBackToMap, onNextLevel, onReplaySub } = props;
     const starStr = '★★★'.slice(0, stars) + '☆☆☆'.slice(0, 3 - stars);
     const pose = stars === 3 ? 'cheer' : 'happy';
     return (
@@ -35,8 +35,8 @@ export function Result(props: ResultProps) {
         <div class="mn-result-stars">{starStr}</div>
         <div class="mn-result-sub">
           {CAMPAIGN_SUB[stars]}
-          {/* 🔊 Task 13 接 TTS，此处仅占位不发声 */}
-          <span class="mn-result-sub-tts" aria-hidden="true">🔊</span>
+          {/* 点击重播结算祝贺（App speak 同一句副文案） */}
+          <span class="mn-result-sub-tts" role="button" aria-label="重播祝贺语" onClick={onReplaySub}>🔊</span>
         </div>
         <div class="mn-result-actions">
           <button class="mn-result-btn mn-result-btn--ghost" onClick={onBackToMap}>回地图</button>

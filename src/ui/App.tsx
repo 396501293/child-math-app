@@ -20,14 +20,16 @@ const TIMED_MAX_MS = 90_000;
 const TIMED_BONUS_MS = 8_000;
 
 // 语音文案（简体、短句、5 岁儿童向）。题目/提示句由题库生成（q.ttsText / q.blocksHint）。
+// right 须在答对 1.1s 推进窗口内念完（rate 0.9），保持极短。
 const VOICE = {
-  right: '答对啦！太棒了！',
+  right: '答对啦！',
   wrong: '再试一次！',
   endlessIntro: '无尽夜航！看看你能连对多少题？',
-  timedIntro: '星光冲刺！比一比谁答得又快又对！',
   timedStart: '星光冲刺，开始！',
   unlockChapter: '解锁新章节！',
   record: '新纪录！',
+  endlessResult: (n: number) => `本轮答对 ${n} 题！`,
+  timedResult: (n: number) => `时间到！你答对了 ${n} 题！`,
 } as const;
 
 function usePortrait(): boolean {
@@ -121,9 +123,8 @@ export function App() {
   const startTimed = () => {
     countdown.reset(TIMED_START_MS);
     const current = nextModeQuestion('timed', 0, []);
-    speak(VOICE.timedIntro, { interrupt: true }); // 模式入口介绍
-    speak(VOICE.timedStart);                        // 「星光冲刺，开始！」
-    speak(current.ttsText);                         // 首题
+    speak(VOICE.timedStart, { interrupt: true }); // 单句开场，少吃倒计时
+    speak(current.ttsText);                        // 首题
     setSession({ ...blankRun('timed'), current });
     setScreen('quiz');
   };
@@ -217,7 +218,7 @@ export function App() {
         totalAnswered: progress.endless.totalAnswered + s.correctCount,
       },
     });
-    speak(`本轮答对 ${s.correctCount} 题！`, { interrupt: true }); // 无尽结算祝贺
+    speak(VOICE.endlessResult(s.correctCount), { interrupt: true }); // 无尽结算祝贺
     if (broke) speak(VOICE.record);
     setSession({ ...s, feedback: null, resultBroke: broke });
     setScreen('result');
@@ -231,7 +232,7 @@ export function App() {
     const oldBest = progress.timed.bestCount;
     const broke = s.correctCount > oldBest;
     updateProgress({ ...progress, timed: { bestCount: Math.max(oldBest, s.correctCount) } });
-    speak(`时间到！你答对了 ${s.correctCount} 题！`, { interrupt: true }); // 冲刺结算祝贺
+    speak(VOICE.timedResult(s.correctCount), { interrupt: true }); // 冲刺结算祝贺
     if (broke) speak(VOICE.record);
     setSession({ ...s, feedback: null, resultBroke: broke });
     setScreen('result');
@@ -255,6 +256,11 @@ export function App() {
     const s = sessionRef.current;
     const hint = s && currentQuestion(s).blocksHint;
     if (hint) speak(hint, { interrupt: true });
+  };
+  // 结算屏 🔊：重播进结算时念的那句星级副文案。
+  const replaySubTts = () => {
+    const s = sessionRef.current;
+    if (s?.mode === 'campaign') speak(CAMPAIGN_SUB[s.resultStars ?? starsFor(s.wrongTotal)], { interrupt: true });
   };
 
   const exitToMap = () => {
@@ -319,6 +325,7 @@ export function App() {
               variant="campaign"
               level={session.level!}
               stars={session.resultStars ?? starsFor(session.wrongTotal)}
+              onReplaySub={replaySubTts}
               onBackToMap={exitToMap}
               onNextLevel={session.level! < 45 ? () => startLevel(session.level! + 1) : undefined}
             />

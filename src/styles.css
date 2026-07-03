@@ -421,6 +421,7 @@ body {
   padding: 2px 10px;
   font-size: 18px;
   user-select: none;
+  cursor: pointer; /* 可点击重播祝贺语 */
 }
 .mn-result-actions {
   display: flex;
