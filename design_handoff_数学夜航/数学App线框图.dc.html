@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet data-dc-atomics><meta name="design_doc_mode" content="canvas"><link href="https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&family=Ma+Shan+Zheng&family=ZCOOL+QingKe+HuangYou&family=Noto+Sans+SC:wght@500;700;900&display=swap" rel="stylesheet"><style>@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}</style><style>body{margin:0;background:#f0eee9;font-family:system-ui,sans-serif}.dv-turn{padding:40px 44px 32px;border-bottom:1px solid rgba(0,0,0,.08);scroll-margin-top:16px}.dv-thd{display:flex;align-items:baseline;gap:10px;margin:0 0 20px}.dv-tid{font:600 10px ui-monospace,Menlo,monospace;padding:3px 7px;background:#1a1a1a;color:#fff;border-radius:4px;text-decoration:none}.dv-tname{font:600 13px/1.2 system-ui,sans-serif;color:#1a1a1a}.dv-opts{display:flex;flex-wrap:wrap;gap:28px;align-items:flex-start}.dv-opt{flex:none;display:flex;flex-direction:column;gap:9px;scroll-margin-top:16px}.dv-oid{font:600 10.5px ui-monospace,Menlo,monospace;padding:3px 7px;background:rgba(0,0,0,.08);color:#1a1a1a;border-radius:5px;text-decoration:none}.dv-olabel{display:flex;align-items:baseline;gap:8px;font:400 11px/1.3 system-ui,sans-serif;color:rgba(0,0,0,.55)}.dv-card{max-width:100%;background:#fff;border:1px solid rgba(0,0,0,.08);border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,.06);overflow:hidden}.dv-opt:target .dv-oid{background:#2a78d6;color:#fff}.dv-next{margin:22px 0 0;font:12px/1.5 system-ui,sans-serif;color:rgba(0,0,0,.5)}
+.wf{width:520px;height:390px;position:relative;background:#fff;border-bottom:1px dashed rgba(0,0,0,.15)}
+.wf-label{font:600 11px ui-monospace,Menlo,monospace;color:#1a1a1a;background:#faf8f2;padding:6px 12px;border-bottom:1px solid rgba(0,0,0,.06)}
+.wf-note{position:absolute;font:10.5px/1.4 ui-monospace,Menlo,monospace;color:#b3541e;background:#fff7ee;border:1px dashed #d99a63;border-radius:4px;padding:3px 6px;z-index:5}
+.wf-box{border:1.5px solid #444;border-radius:8px;background:#fff}
+.wf-dash{border:1.5px dashed #999;border-radius:8px;background:#fafafa}
+.wf-circ{border:1.5px solid #444;border-radius:50%;display:flex;align-items:center;justify-content:center;background:#fff;font:600 16px system-ui}
+.wf-lock{background:#eee;color:#aaa;border-color:#bbb}
+.wf-cur{background:#ffe28a;border-width:2.5px}
+.wf-mascot{border:1.5px solid #444;border-radius:50%;background:repeating-linear-gradient(45deg,#fff,#fff 4px,#f0f0f0 4px,#f0f0f0 8px);display:flex;align-items:center;justify-content:center;font:10px ui-monospace,monospace;color:#666;text-align:center}
+.wf-bubble{border:1.5px solid #444;border-radius:10px;background:#fff;padding:6px 10px;font:12px system-ui;position:relative}
+.wf-btn{border:2px solid #444;border-radius:14px;background:#fff;display:flex;align-items:center;justify-content:center;font:700 24px system-ui}
+.wf-cap{font:11px/1.5 system-ui;color:rgba(0,0,0,.55);padding:8px 12px;background:#faf8f2}
+</style></helmet>
+
+<section class="dv-turn" id="t3">
+<div class="dv-thd"><a class="dv-tid" href="#t3">3</a><span class="dv-tname">修订：去 emoji（几何计数块/占位插画）· 题目升级到 20 以内与缺数题 · 关卡网格化更紧凑 · 视觉去低龄</span></div>
+<div class="dv-opts">
+
+<!-- ══════════ 3a 清爽学院 ══════════ -->
+<div class="dv-opt" id="3a">
+<div class="dv-olabel"><a class="dv-oid" href="#3a">3a</a>清爽学院 — 浅色中性底 + 靛蓝/青绿，紧凑关卡网格，十格阵教具</div>
+<div class="dv-card" style="width:635px">
+<div class="wf-label">地图 · 章节 + 20 关网格</div>
+<div style="width:635px;height:476px;overflow:hidden">
+<div style="width:1024px;height:768px;transform:scale(0.62);transform-origin:0 0;position:relative;background:#F4F5F8;font-family:'Noto Sans SC',sans-serif;overflow:hidden">
+  <!-- 顶栏 -->
+  <div style="position:absolute;top:0;left:0;right:0;height:104px;background:#fff;box-shadow:0 1px 0 rgba(20,30,60,.08);display:flex;align-items:center;padding:0 40px;gap:18px">
+    <div style="font-size:34px;font-weight:900;color:#2A2E3A;margin-right:20px">数学乐园</div>
+    <div style="background:#4A56C8;color:#fff;border-radius:14px;padding:12px 26px;font-size:24px;font-weight:700">第2章 · 20以内加减</div>
+    <div style="background:#EDEFF5;color:#8A90A3;border-radius:14px;padding:12px 26px;font-size:24px;font-weight:700">第3章 · 凑十法 🔒</div>
+    <div style="margin-left:auto;background:#FFF4DC;border-radius:50px;padding:10px 24px;font-size:26px;font-weight:900;color:#E8A13A">★ 36</div>
+  </div>
+  <!-- 关卡网格 -->
+  <div style="position:absolute;top:140px;left:40px;width:640px;bottom:40px;box-sizing:border-box;background:#fff;border-radius:24px;padding:36px;display:grid;grid-template-columns:repeat(5,1fr);gap:26px 18px;align-content:start;box-shadow:0 2px 12px rgba(20,30,60,.06)">
+    <!-- 完成 x11 -->
+    <div style="display:flex;flex-direction:column;align-items:center;gap:6px"><div style="width:82px;height:82px;border-radius:26px;background:#4A56C8;color:#fff;display:flex;align-items:center;justify-content:center;font-size:34px;font-weight:900">1</div><div style="font-size:16px;color:#E8A13A;letter-spacing:2px">★★★</div></div>
+    <div style="display:flex;flex-direction:column;align-items:center;gap:6px"><div style="width:82px;height:82px;border-radius:26px;background:#4A56C8;color:#fff;display:flex;align-items:center;justify-content:center;font-size:34px;font-weight:900">2</div><div style="font-size:16px;color:#E8A13A;letter-spacing:2px">★★☆</div></div>
+    <div style="display:flex;flex-direction:column;align-items:center;gap:6px"><div style="width:82px;height:82px;border-radius:26px;background:#4A56C8;color:#fff;display:flex;align-items:center;justify-content:center;font-size:34px;font-weight:900">3</div><div style="font-size:16px;color:#E8A13A;letter-spacing:2px">★★★</div></div>
+    <div style="display:flex;flex-direction:column;align-items:center;gap:6px"><div style="width:82px;height:82px;border-radius:26px;background:#4A56C8;color:#fff;display:flex;align-items:center;justify-content:center;font-size:34px;font-weight:900">4</div><div style="font-size:16px;color:#E8A13A;letter-spacing:2px">★☆☆</div></div>
+    <div style="display:flex;flex-direction:column;align-items:center;gap:6px"><div style="width:82px;height:82px;border-radius:26px;background:#4A56C8;color:#fff;display:flex;align-items:center;justify-content:center;font-size:34px;font-weight:900">5</div><div style="font-size:16px;color:#E8A13A;letter-spacing:2px">★★★</div></div>
+    <div style="display:flex;flex-direction:column;align-items:center;gap:6px"><div style="width:82px;height:82px;border-radius:26px;background:#4A56C8;color:#fff;display:flex;align-items:center;justify-content:center;font-size:34px;font-weight:900">6</div><div style="font-size:16px;color:#E8A13A;letter-spacing:2px">★★☆</div></div>
+    <div style="display:flex;flex-direction:column;align-items:center;gap:6px"><div style="width:82px;height:82px;border-radius:26px;background:#4A56C8;color:#fff;display:flex;align-items:center;justify-content:center;font-size:34px;font-weight:900">7</div><div style="font-size:16px;color:#E8A13A;letter-spacing:2px">★★★</div></div>
+    <div style="display:flex;flex-direction:column;align-items:center;gap:6px"><div style="width:82px;height:82px;border-radius:26px;background:#4A56C8;color:#fff;display:flex;align-items:center;justify-content:center;font-size:34px;font-weight:900">8</div><div style="font-size:16px;color:#E8A13A;letter-spacing:2px">★★★</div></div>
+    <div style="display:flex;flex-direction:column;align-items:center;gap:6px"><div style="width:82px;height:82px;border-radius:26px;background:#4A56C8;color:#fff;display:flex;align-items:center;justify-content:center;font-size:34px;font-weight:900">9</div><div style="font-size:16px;color:#E8A13A;letter-spacing:2px">★☆☆</div></div>
+    <div style="display:flex;flex-direction:column;align-items:center;gap:6px"><div style="width:82px;height:82px;border-radius:26px;background:#4A56C8;color:#fff;display:flex;align-items:center;justify-content:center;font-size:34px;font-weight:900">10</div><div style="font-size:16px;color:#E8A13A;letter-spacing:2px">★★☆</div></div>
+    <div style="display:flex;flex-direction:column;align-items:center;gap:6px"><div style="width:82px;height:82px;border-radius:26px;background:#4A56C8;color:#fff;display:flex;align-items:center;justify-content:center;font-size:34px;font-weight:900">11</div><div style="font-size:16px;color:#E8A13A;letter-spacing:2px">★★★</div></div>
+    <!-- 当前 -->
+    <div style="display:flex;flex-direction:column;align-items:center;gap:6px"><div style="width:82px;height:82px;border-radius:26px;background:#fff;border:5px solid #2FB29B;color:#2FB29B;display:flex;align-items:center;justify-content:center;font-size:34px;font-weight:900;box-shadow:0 0 0 8px rgba(47,178,155,.15)">12</div><div style="font-size:16px;font-weight:700;color:#2FB29B">进行中</div></div>
+    <!-- 锁定 -->
+    <div style="display:flex;flex-direction:column;align-items:center;gap:6px"><div style="width:82px;height:82px;border-radius:26px;background:#EDEFF5;color:#B4B9C9;display:flex;align-items:center;justify-content:center;font-size:34px;font-weight:900">13</div></div>
+    <div style="display:flex;flex-direction:column;align-items:center;gap:6px"><div style="width:82px;height:82px;border-radius:26px;background:#EDEFF5;color:#B4B9C9;display:flex;align-items:center;justify-content:center;font-size:34px;font-weight:900">14</div></div>
+    <div style="display:flex;flex-direction:column;align-items:center;gap:6px"><div style="width:82px;height:82px;border-radius:26px;background:#EDEFF5;color:#B4B9C9;display:flex;align-items:center;justify-content:center;font-size:34px;font-weight:900">15</div></div>
+    <div style="display:flex;flex-direction:column;align-items:center;gap:6px"><div style="width:82px;height:82px;border-radius:26px;background:#EDEFF5;color:#B4B9C9;display:flex;align-items:center;justify-content:center;font-size:34px;font-weight:900">16</div></div>
+    <div style="display:flex;flex-direction:column;align-items:center;gap:6px"><div style="width:82px;height:82px;border-radius:26px;background:#EDEFF5;color:#B4B9C9;display:flex;align-items:center;justify-content:center;font-size:34px;font-weight:900">17</div></div>
+    <div style="display:flex;flex-direction:column;align-items:center;gap:6px"><div style="width:82px;height:82px;border-radius:26px;background:#EDEFF5;color:#B4B9C9;display:flex;align-items:center;justify-content:center;font-size:34px;font-weight:900">18</div></div>
+    <div style="display:flex;flex-direction:column;align-items:center;gap:6px"><div style="width:82px;height:82px;border-radius:26px;background:#EDEFF5;color:#B4B9C9;display:flex;align-items:center;justify-content:center;font-size:34px;font-weight:900">19</div></div>
+    <div style="display:flex;flex-direction:column;align-items:center;gap:6px"><div style="width:82px;height:82px;border-radius:26px;background:#EDEFF5;color:#B4B9C9;display:flex;align-items:center;justify-content:center;font-size:34px;font-weight:900">20</div></div>
+  </div>
+  <!-- 右侧面板 -->
+  <div style="position:absolute;top:140px;right:40px;width:290px;bottom:40px;box-sizing:border-box;background:#fff;border-radius:24px;padding:32px;display:flex;flex-direction:column;align-items:center;gap:20px;box-shadow:0 2px 12px rgba(20,30,60,.06)">
+    <div style="width:150px;height:150px;border-radius:50%;background:#EEF0FB;display:flex;align-items:center;justify-content:center;position:relative">
+      <div style="width:96px;height:88px;border-radius:44px 44px 38px 38px;background:#4A56C8;position:relative">
+        <div style="position:absolute;top:26px;left:18px;width:22px;height:22px;border-radius:50%;background:#fff"></div>
+        <div style="position:absolute;top:26px;right:18px;width:22px;height:22px;border-radius:50%;background:#fff"></div>
+        <div style="position:absolute;top:32px;left:24px;width:10px;height:10px;border-radius:50%;background:#2A2E3A"></div>
+        <div style="position:absolute;top:32px;right:24px;width:10px;height:10px;border-radius:50%;background:#2A2E3A"></div>
+        <div style="position:absolute;bottom:16px;left:36px;width:24px;height:12px;border-radius:0 0 12px 12px;background:#fff"></div>
+      </div>
+      <div style="position:absolute;bottom:2px;font-size:13px;font-family:ui-monospace,monospace;color:#9AA0B5">吉祥物占位</div>
+    </div>
+    <div style="font-size:26px;font-weight:700;color:#2A2E3A;text-align:center;line-height:1.5">第 12 关<br><span style="font-size:20px;font-weight:500;color:#8A90A3">缺数加法 · 凑到 12</span></div>
+    <div style="background:#2FB29B;color:#fff;border-radius:18px;padding:18px 0;width:100%;text-align:center;font-size:28px;font-weight:900">继续 ▶</div>
+    <div style="display:flex;align-items:center;gap:8px;font-size:18px;color:#8A90A3"><span style="background:#EDEFF5;border-radius:50px;padding:4px 12px">🔊</span>点关卡朗读关名</div>
+  </div>
+</div>
+</div>
+<div class="wf-label">答题 · 缺数题 + 十格阵 + 数字键盘</div>
+<div style="width:635px;height:476px;overflow:hidden;border-top:1px dashed rgba(0,0,0,.12)">
+<div style="width:1024px;height:768px;transform:scale(0.62);transform-origin:0 0;position:relative;background:#F4F5F8;font-family:'Noto Sans SC',sans-serif;overflow:hidden">
+  <!-- 顶栏：细进度条 -->
+  <div style="position:absolute;top:0;left:0;right:0;height:88px;background:#fff;display:flex;align-items:center;padding:0 32px;gap:24px;box-shadow:0 1px 0 rgba(20,30,60,.08)">
+    <div style="width:60px;height:60px;border-radius:18px;background:#EDEFF5;color:#8A90A3;display:flex;align-items:center;justify-content:center;font-size:28px">←</div>
+    <div style="flex:1;height:18px;border-radius:18px;background:#EDEFF5;overflow:hidden"><div style="width:40%;height:100%;border-radius:18px;background:linear-gradient(90deg,#4A56C8,#2FB29B)"></div></div>
+    <div style="font-size:24px;font-weight:700;color:#8A90A3">2/5</div>
+    <div style="width:60px;height:60px;border-radius:18px;background:#FFF4DC;display:flex;align-items:center;justify-content:center;font-size:26px">🔊</div>
+  </div>
+  <!-- 题目 -->
+  <div style="position:absolute;top:130px;left:0;right:0;text-align:center;font-size:92px;font-weight:900;color:#2A2E3A;display:flex;justify-content:center;align-items:center;gap:24px">
+    <span>7</span><span style="color:#4A56C8">+</span>
+    <span style="width:130px;height:130px;border-radius:28px;background:#fff;border:6px dashed #2FB29B;display:flex;align-items:center;justify-content:center;color:#2FB29B;font-size:76px">?</span>
+    <span style="color:#4A56C8">=</span><span>12</span>
+  </div>
+  <!-- 十格阵 -->
+  <div style="position:absolute;top:320px;left:0;right:0;display:flex;justify-content:center;gap:40px">
+    <div style="display:grid;grid-template-columns:repeat(5,64px);grid-template-rows:repeat(2,64px);gap:10px;background:#fff;padding:20px;border-radius:22px;box-shadow:0 2px 10px rgba(20,30,60,.06)">
+      <div style="border-radius:50%;background:#4A56C8"></div><div style="border-radius:50%;background:#4A56C8"></div><div style="border-radius:50%;background:#4A56C8"></div><div style="border-radius:50%;background:#4A56C8"></div><div style="border-radius:50%;background:#4A56C8"></div>
+      <div style="border-radius:50%;background:#4A56C8"></div><div style="border-radius:50%;background:#4A56C8"></div><div style="border-radius:16px;border:3px dashed #2FB29B;background:#EAF7F4"></div><div style="border-radius:16px;border:3px dashed #2FB29B;background:#EAF7F4"></div><div style="border-radius:16px;border:3px dashed #2FB29B;background:#EAF7F4"></div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(5,64px);grid-template-rows:repeat(2,64px);gap:10px;background:#fff;padding:20px;border-radius:22px;box-shadow:0 2px 10px rgba(20,30,60,.06)">
+      <div style="border-radius:16px;border:3px dashed #2FB29B;background:#EAF7F4"></div><div style="border-radius:16px;border:3px dashed #2FB29B;background:#EAF7F4"></div><div style="border-radius:16px;background:#F4F5F8"></div><div style="border-radius:16px;background:#F4F5F8"></div><div style="border-radius:16px;background:#F4F5F8"></div>
+      <div style="border-radius:16px;background:#F4F5F8"></div><div style="border-radius:16px;background:#F4F5F8"></div><div style="border-radius:16px;background:#F4F5F8"></div><div style="border-radius:16px;background:#F4F5F8"></div><div style="border-radius:16px;background:#F4F5F8"></div>
+    </div>
+  </div>
+  <div style="position:absolute;top:530px;left:0;right:0;text-align:center;font-size:20px;color:#9AA0B5;font-family:ui-monospace,monospace">🔊 “7 个再放几个就是 12？” · 点空格可逐个填充点数</div>
+  <!-- 数字键盘 -->
+  <div style="position:absolute;bottom:44px;left:0;right:0;display:flex;justify-content:center;gap:18px">
+    <div style="width:96px;height:96px;border-radius:24px;background:#fff;box-shadow:0 3px 0 rgba(20,30,60,.1);display:flex;align-items:center;justify-content:center;font-size:44px;font-weight:900;color:#2A2E3A">3</div>
+    <div style="width:96px;height:96px;border-radius:24px;background:#fff;box-shadow:0 3px 0 rgba(20,30,60,.1);display:flex;align-items:center;justify-content:center;font-size:44px;font-weight:900;color:#2A2E3A">4</div>
+    <div style="width:96px;height:96px;border-radius:24px;background:#fff;box-shadow:0 3px 0 rgba(20,30,60,.1);display:flex;align-items:center;justify-content:center;font-size:44px;font-weight:900;color:#2A2E3A">5</div>
+    <div style="width:96px;height:96px;border-radius:24px;background:#fff;box-shadow:0 3px 0 rgba(20,30,60,.1);display:flex;align-items:center;justify-content:center;font-size:44px;font-weight:900;color:#2A2E3A">6</div>
+    <div style="width:96px;height:96px;border-radius:24px;background:#fff;box-shadow:0 3px 0 rgba(20,30,60,.1);display:flex;align-items:center;justify-content:center;font-size:44px;font-weight:900;color:#2A2E3A">7</div>
+  </div>
+</div>
+</div>
+<div class="wf-cap">中性浅底、克制用色；关卡一屏 20 关 + 星级评价；题型升级为 20 以内缺数题，十格阵是标准数学教具，孩子可点格辅助点数。所有图形均为几何计数块，无 emoji；吉祥物为几何占位，正式版换插画。</div>
+</div>
+</div>
+
+<!-- ══════════ 3b 探险夜航 ══════════ -->
+<div class="dv-opt" id="3b">
+<div class="dv-olabel"><a class="dv-oid" href="#3b">3b</a>探险夜航 — 深青底 + 琥珀高亮，蛇形紧凑路径，计数条教具</div>
+<div class="dv-card" style="width:635px">
+<div class="wf-label">地图 · 章节内蛇形 15 关</div>
+<div style="width:635px;height:476px;overflow:hidden">
+<div style="width:1024px;height:768px;transform:scale(0.62);transform-origin:0 0;position:relative;background:linear-gradient(180deg,#12333E,#174552);font-family:'Noto Sans SC',sans-serif;overflow:hidden">
+  <div style="position:absolute;top:60px;left:120px;width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.5)"></div>
+  <div style="position:absolute;top:120px;right:200px;width:5px;height:5px;border-radius:50%;background:rgba(255,255,255,.4)"></div>
+  <div style="position:absolute;top:200px;left:400px;width:4px;height:4px;border-radius:50%;background:rgba(255,255,255,.35)"></div>
+  <!-- 顶栏 -->
+  <div style="position:absolute;top:32px;left:40px;right:40px;display:flex;align-items:center;gap:20px">
+    <div style="font-size:38px;font-weight:900;color:#fff">第二章 · 20以内加减</div>
+    <div style="font-size:22px;color:rgba(255,255,255,.55);font-weight:500">11 / 15 关</div>
+    <div style="margin-left:auto;background:rgba(255,255,255,.1);border:2px solid rgba(242,165,65,.6);border-radius:50px;padding:10px 26px;font-size:28px;font-weight:900;color:#F2A541">★ 36</div>
+  </div>
+  <!-- 蛇形路径面板 -->
+  <div style="position:absolute;top:130px;left:40px;width:660px;bottom:40px;box-sizing:border-box;background:rgba(255,255,255,.06);border-radius:28px;padding:40px 30px">
+    <svg width="600" height="500" style="position:absolute;top:40px;left:30px"><path d="M60,60 H540 M540,60 C580,60 580,200 540,200 M540,200 H60 M60,200 C20,200 20,340 60,340 M60,340 H540" fill="none" stroke="rgba(255,255,255,.18)" stroke-width="10" stroke-linecap="round" stroke-dasharray="1 24"></path></svg>
+    <!-- 行1 -->
+    <div style="position:absolute;top:62px;left:60px;display:flex;gap:44px">
+      <div style="width:76px;height:76px;border-radius:50%;background:#F2A541;color:#12333E;display:flex;align-items:center;justify-content:center;font-size:32px;font-weight:900;box-shadow:0 0 20px rgba(242,165,65,.35)">1</div>
+      <div style="width:76px;height:76px;border-radius:50%;background:#F2A541;color:#12333E;display:flex;align-items:center;justify-content:center;font-size:32px;font-weight:900">2</div>
+      <div style="width:76px;height:76px;border-radius:50%;background:#F2A541;color:#12333E;display:flex;align-items:center;justify-content:center;font-size:32px;font-weight:900">3</div>
+      <div style="width:76px;height:76px;border-radius:50%;background:#F2A541;color:#12333E;display:flex;align-items:center;justify-content:center;font-size:32px;font-weight:900">4</div>
+      <div style="width:76px;height:76px;border-radius:50%;background:#F2A541;color:#12333E;display:flex;align-items:center;justify-content:center;font-size:32px;font-weight:900">5</div>
+    </div>
+    <!-- 行2 反向 -->
+    <div style="position:absolute;top:202px;left:60px;display:flex;flex-direction:row-reverse;gap:44px">
+      <div style="width:76px;height:76px;border-radius:50%;background:#F2A541;color:#12333E;display:flex;align-items:center;justify-content:center;font-size:32px;font-weight:900">6</div>
+      <div style="width:76px;height:76px;border-radius:50%;background:#F2A541;color:#12333E;display:flex;align-items:center;justify-content:center;font-size:32px;font-weight:900">7</div>
+      <div style="width:76px;height:76px;border-radius:50%;background:#F2A541;color:#12333E;display:flex;align-items:center;justify-content:center;font-size:32px;font-weight:900">8</div>
+      <div style="width:76px;height:76px;border-radius:50%;background:#F2A541;color:#12333E;display:flex;align-items:center;justify-content:center;font-size:32px;font-weight:900">9</div>
+      <div style="width:76px;height:76px;border-radius:50%;background:#F2A541;color:#12333E;display:flex;align-items:center;justify-content:center;font-size:32px;font-weight:900">10</div>
+    </div>
+    <!-- 行3 -->
+    <div style="position:absolute;top:342px;left:60px;display:flex;gap:44px;align-items:center">
+      <div style="width:76px;height:76px;border-radius:50%;background:#F2A541;color:#12333E;display:flex;align-items:center;justify-content:center;font-size:32px;font-weight:900">11</div>
+      <div style="width:92px;height:92px;margin:-8px;border-radius:50%;background:#fff;border:6px solid #E85D5D;color:#E85D5D;display:flex;align-items:center;justify-content:center;font-size:36px;font-weight:900;box-shadow:0 0 0 10px rgba(232,93,93,.2);animation:pulse 1.6s ease-in-out infinite">12</div>
+      <div style="width:76px;height:76px;border-radius:50%;background:rgba(255,255,255,.12);color:rgba(255,255,255,.4);display:flex;align-items:center;justify-content:center;font-size:32px;font-weight:900">13</div>
+      <div style="width:76px;height:76px;border-radius:50%;background:rgba(255,255,255,.12);color:rgba(255,255,255,.4);display:flex;align-items:center;justify-content:center;font-size:32px;font-weight:900">14</div>
+      <div style="width:76px;height:76px;border-radius:50%;background:rgba(255,255,255,.12);color:rgba(255,255,255,.4);display:flex;align-items:center;justify-content:center;font-size:32px;font-weight:900;position:relative">15<div style="position:absolute;top:-10px;right:-10px;width:30px;height:30px;border-radius:50%;background:#F2A541;display:flex;align-items:center;justify-content:center;font-size:16px">🏆</div></div>
+    </div>
+  </div>
+  <!-- 右侧 -->
+  <div style="position:absolute;top:130px;right:40px;width:280px;bottom:40px;display:flex;flex-direction:column;gap:24px">
+    <div style="flex:1;background:rgba(255,255,255,.06);border-radius:28px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px">
+      <div style="width:130px;height:130px;border-radius:50%;background:rgba(242,165,65,.15);display:flex;align-items:center;justify-content:center;position:relative">
+        <div style="width:84px;height:78px;border-radius:40px 40px 34px 34px;background:#F2A541;position:relative">
+          <div style="position:absolute;top:22px;left:15px;width:20px;height:20px;border-radius:50%;background:#12333E"></div>
+          <div style="position:absolute;top:22px;right:15px;width:20px;height:20px;border-radius:50%;background:#12333E"></div>
+          <div style="position:absolute;top:26px;left:20px;width:8px;height:8px;border-radius:50%;background:#fff"></div>
+          <div style="position:absolute;top:26px;right:20px;width:8px;height:8px;border-radius:50%;background:#fff"></div>
+        </div>
+        <div style="position:absolute;bottom:4px;font-size:12px;font-family:ui-monospace,monospace;color:rgba(255,255,255,.45)">吉祥物占位</div>
+      </div>
+      <div style="font-size:24px;color:rgba(255,255,255,.85);text-align:center;line-height:1.5;padding:0 20px">“第 12 关有点难，<br>准备好了吗？” <span style="background:rgba(255,255,255,.12);border-radius:50px;padding:2px 10px;font-size:18px">🔊</span></div>
+    </div>
+    <div style="background:#E85D5D;border-radius:22px;padding:22px 0;text-align:center;font-size:30px;font-weight:900;color:#fff">挑战第 12 关 ▶</div>
+  </div>
+</div>
+</div>
+<div class="wf-label">答题 · 减法 + 计数条（20 以内）</div>
+<div style="width:635px;height:476px;overflow:hidden;border-top:1px dashed rgba(0,0,0,.12)">
+<div style="width:1024px;height:768px;transform:scale(0.62);transform-origin:0 0;position:relative;background:linear-gradient(180deg,#12333E,#174552);font-family:'Noto Sans SC',sans-serif;overflow:hidden">
+  <div style="position:absolute;top:28px;left:36px;width:68px;height:68px;border-radius:20px;background:rgba(255,255,255,.1);color:rgba(255,255,255,.7);display:flex;align-items:center;justify-content:center;font-size:30px">←</div>
+  <div style="position:absolute;top:48px;left:140px;right:230px;height:16px;border-radius:16px;background:rgba(255,255,255,.12)"><div style="width:60%;height:100%;border-radius:16px;background:#F2A541"></div></div>
+  <div style="position:absolute;top:38px;right:130px;font-size:24px;font-weight:700;color:rgba(255,255,255,.6)">3/5</div>
+  <div style="position:absolute;top:28px;right:36px;width:68px;height:68px;border-radius:20px;background:rgba(242,165,65,.2);display:flex;align-items:center;justify-content:center;font-size:28px">🔊</div>
+  <!-- 题目 -->
+  <div style="position:absolute;top:140px;left:0;right:0;text-align:center;font-size:100px;font-weight:900;color:#fff;letter-spacing:4px">13 − 5 = <span style="color:#F2A541">?</span></div>
+  <!-- 计数条 -->
+  <div style="position:absolute;top:320px;left:0;right:0;display:flex;flex-direction:column;align-items:center;gap:16px">
+    <div style="display:flex;gap:8px;background:rgba(255,255,255,.07);padding:18px 22px;border-radius:20px">
+      <div style="width:64px;height:64px;border-radius:14px;background:#2FB29B"></div><div style="width:64px;height:64px;border-radius:14px;background:#2FB29B"></div><div style="width:64px;height:64px;border-radius:14px;background:#2FB29B"></div><div style="width:64px;height:64px;border-radius:14px;background:#2FB29B"></div><div style="width:64px;height:64px;border-radius:14px;background:#2FB29B"></div><div style="width:64px;height:64px;border-radius:14px;background:#2FB29B"></div><div style="width:64px;height:64px;border-radius:14px;background:#2FB29B"></div><div style="width:64px;height:64px;border-radius:14px;background:#2FB29B"></div>
+      <div style="width:64px;height:64px;border-radius:14px;background:rgba(232,93,93,.25);position:relative"><div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#E85D5D;font-size:40px;font-weight:900">✕</div></div>
+      <div style="width:64px;height:64px;border-radius:14px;background:rgba(232,93,93,.25);position:relative"><div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#E85D5D;font-size:40px;font-weight:900">✕</div></div>
+      <div style="width:64px;height:64px;border-radius:14px;background:rgba(232,93,93,.25);position:relative"><div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#E85D5D;font-size:40px;font-weight:900">✕</div></div>
+      <div style="width:64px;height:64px;border-radius:14px;background:rgba(232,93,93,.25);position:relative"><div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#E85D5D;font-size:40px;font-weight:900">✕</div></div>
+      <div style="width:64px;height:64px;border-radius:14px;background:rgba(232,93,93,.25);position:relative"><div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#E85D5D;font-size:40px;font-weight:900">✕</div></div>
+    </div>
+    <div style="font-size:20px;color:rgba(255,255,255,.45);font-family:ui-monospace,monospace">🔊 “13 个方块，划掉 5 个” · 孩子可逐个点击划掉，剩余的自己数</div>
+  </div>
+  <!-- 答案 -->
+  <div style="position:absolute;bottom:60px;left:0;right:0;display:flex;justify-content:center;gap:36px">
+    <div style="width:150px;height:110px;border-radius:26px;background:rgba(255,255,255,.1);border:3px solid rgba(255,255,255,.25);display:flex;align-items:center;justify-content:center;font-size:52px;font-weight:900;color:#fff">6</div>
+    <div style="width:150px;height:110px;border-radius:26px;background:rgba(255,255,255,.1);border:3px solid rgba(255,255,255,.25);display:flex;align-items:center;justify-content:center;font-size:52px;font-weight:900;color:#fff">7</div>
+    <div style="width:150px;height:110px;border-radius:26px;background:rgba(255,255,255,.1);border:3px solid rgba(255,255,255,.25);display:flex;align-items:center;justify-content:center;font-size:52px;font-weight:900;color:#fff">8</div>
+  </div>
+</div>
+</div>
+<div class="wf-cap">深色“夜航探险”氛围，年龄感明显更高；蛇形路径一屏 15 关 + 章节奖杯；计数条支持点击划掉，把减法过程做成操作而非猜答案。无 emoji 贴图（🔊/🏆 为功能图标，可换线性图标）。</div>
+</div>
+</div>
+
+</div>
+<p class="dv-next">下一步可以说：“选 <a class="dv-oid" href="#3a">3a</a> 做可点击原型” · “<a class="dv-oid" href="#3b">3b</a> 的地图 + <a class="dv-oid" href="#3a">3a</a> 的答题” · “题型再加凑十法拆解”</p>
+</section>
+<section class="dv-turn" id="t2">
+<div class="dv-thd"><a class="dv-tid" href="#t2">2</a><span class="dv-tname">3 个视觉方向 · 玩法混用各线框（地图 + 答题，1024×768 横屏，按 62% 缩放展示）</span></div>
+<div class="dv-opts">
+
+<!-- ══════════ 2a 糖果乐园 ══════════ -->
+<div class="dv-opt" id="2a">
+<div class="dv-olabel"><a class="dv-oid" href="#2a">2a</a>糖果乐园 — 明亮糖果色 + 圆滚滚按钮（地图取自 <a class="dv-oid" href="#1a">1a</a>）</div>
+<div class="dv-card" style="width:635px">
+<div class="wf-label">地图 · 蜿蜒闯关路</div>
+<div style="width:635px;height:476px;overflow:hidden">
+<div style="width:1024px;height:768px;transform:scale(0.62);transform-origin:0 0;position:relative;background:linear-gradient(180deg,#A5DBFF 0%,#C6EFCF 55%,#93DB8F 100%);font-family:'ZCOOL KuaiLe',sans-serif;overflow:hidden">
+  <div style="position:absolute;top:40px;right:120px;width:110px;height:110px;border-radius:50%;background:#FFD95E;box-shadow:0 0 60px 20px rgba(255,217,94,.55)"></div>
+  <div style="position:absolute;top:70px;left:340px;width:150px;height:52px;border-radius:50px;background:rgba(255,255,255,.85)"></div>
+  <div style="position:absolute;top:130px;right:330px;width:110px;height:40px;border-radius:50px;background:rgba(255,255,255,.7)"></div>
+  <!-- 顶栏 -->
+  <div style="position:absolute;top:28px;left:32px;display:flex;align-items:center;gap:16px">
+    <div style="width:96px;height:96px;border-radius:50%;background:#fff;border:6px solid #FF8A5C;display:flex;align-items:center;justify-content:center;font-size:52px;box-shadow:0 6px 0 rgba(0,0,0,.08)">🦊</div>
+    <div style="background:#fff;border-radius:24px;padding:14px 22px;font-size:26px;color:#5B4632;box-shadow:0 6px 0 rgba(0,0,0,.08);display:flex;align-items:center;gap:10px">今天去第 3 关吧！<span style="background:#FFE9A8;border-radius:50px;padding:4px 10px;font-size:20px">🔊</span></div>
+  </div>
+  <div style="position:absolute;top:36px;right:32px;background:#fff;border-radius:50px;padding:12px 26px;font-size:32px;color:#F5A623;box-shadow:0 6px 0 rgba(0,0,0,.08)">⭐ 12</div>
+  <!-- 路径 -->
+  <svg width="1024" height="470" style="position:absolute;top:250px;left:0"><path d="M110,380 C260,220 340,440 500,300 C640,180 720,400 910,220" fill="none" stroke="#FFFDF5" stroke-width="26" stroke-linecap="round" stroke-dasharray="2 44"></path></svg>
+  <!-- 关卡 -->
+  <div style="position:absolute;top:580px;left:62px;width:96px;height:96px;border-radius:50%;background:linear-gradient(180deg,#8ED96E,#5CBF4A);border:7px solid #fff;box-shadow:0 8px 0 rgba(0,0,0,.12);display:flex;align-items:center;justify-content:center;font-size:44px;color:#fff">✓</div>
+  <div style="position:absolute;top:470px;left:270px;width:96px;height:96px;border-radius:50%;background:linear-gradient(180deg,#8ED96E,#5CBF4A);border:7px solid #fff;box-shadow:0 8px 0 rgba(0,0,0,.12);display:flex;align-items:center;justify-content:center;font-size:44px;color:#fff">✓</div>
+  <div style="position:absolute;top:480px;left:452px;width:130px;height:130px;border-radius:50%;background:linear-gradient(180deg,#FFA24C,#FF7043);border:9px solid #fff;box-shadow:0 10px 0 rgba(0,0,0,.15);display:flex;align-items:center;justify-content:center;font-size:62px;color:#fff;animation:pulse 1.6s ease-in-out infinite">3</div>
+  <div style="position:absolute;top:622px;left:462px;background:#FF7043;color:#fff;border-radius:50px;padding:8px 26px;font-size:28px;box-shadow:0 5px 0 rgba(0,0,0,.15)">开始 ▶</div>
+  <div style="position:absolute;top:400px;left:680px;width:96px;height:96px;border-radius:50%;background:#D8D8D8;border:7px solid #fff;display:flex;align-items:center;justify-content:center;font-size:40px">🔒</div>
+  <div style="position:absolute;top:330px;left:868px;width:96px;height:96px;border-radius:50%;background:#D8D8D8;border:7px solid #fff;display:flex;align-items:center;justify-content:center;font-size:40px">🔒</div>
+</div>
+</div>
+<div class="wf-label">答题 · 苹果加法（点选）</div>
+<div style="width:635px;height:476px;overflow:hidden;border-top:1px dashed rgba(0,0,0,.12)">
+<div style="width:1024px;height:768px;transform:scale(0.62);transform-origin:0 0;position:relative;background:linear-gradient(180deg,#BEE6FF 0%,#E3F7E6 100%);font-family:'ZCOOL KuaiLe',sans-serif;overflow:hidden">
+  <div style="position:absolute;top:28px;left:32px;width:80px;height:80px;border-radius:50%;background:#fff;box-shadow:0 6px 0 rgba(0,0,0,.08);display:flex;align-items:center;justify-content:center;font-size:38px;color:#8A99A8">←</div>
+  <div style="position:absolute;top:52px;left:0;right:0;display:flex;justify-content:center;gap:14px">
+    <div style="width:34px;height:34px;border-radius:50%;background:#5CBF4A"></div><div style="width:34px;height:34px;border-radius:50%;background:#5CBF4A"></div><div style="width:34px;height:34px;border-radius:50%;background:#fff;border:4px solid #FF7043"></div><div style="width:34px;height:34px;border-radius:50%;background:#fff"></div><div style="width:34px;height:34px;border-radius:50%;background:#fff"></div>
+  </div>
+  <div style="position:absolute;top:28px;right:32px;width:80px;height:80px;border-radius:50%;background:#FFE9A8;box-shadow:0 6px 0 rgba(0,0,0,.08);display:flex;align-items:center;justify-content:center;font-size:36px">🔊</div>
+  <div style="position:absolute;top:160px;left:112px;width:800px;height:280px;background:#fff;border-radius:44px;box-shadow:0 12px 0 rgba(0,0,0,.07);display:flex;align-items:center;justify-content:center;gap:26px;font-size:76px;color:#5B4632">
+    <span style="letter-spacing:6px">🍎🍎🍎</span><span style="color:#FF7043">+</span><span style="letter-spacing:6px">🍎🍎</span><span style="color:#FF7043">=</span><span style="width:110px;height:110px;border-radius:28px;border:6px dashed #FFB08C;display:flex;align-items:center;justify-content:center;color:#FFB08C">?</span>
+  </div>
+  <div style="position:absolute;bottom:110px;left:0;right:0;display:flex;justify-content:center;gap:44px">
+    <div style="width:170px;height:130px;background:#fff;border-radius:32px;border-bottom:10px solid #6EC6FF;display:flex;align-items:center;justify-content:center;font-size:64px;color:#3E97D1">4</div>
+    <div style="width:170px;height:130px;background:#fff;border-radius:32px;border-bottom:10px solid #FF8A5C;display:flex;align-items:center;justify-content:center;font-size:64px;color:#FF7043">5</div>
+    <div style="width:170px;height:130px;background:#fff;border-radius:32px;border-bottom:10px solid #B79CFF;display:flex;align-items:center;justify-content:center;font-size:64px;color:#8B6FE8">6</div>
+  </div>
+  <div style="position:absolute;bottom:22px;left:32px;display:flex;align-items:center;gap:12px">
+    <div style="width:72px;height:72px;border-radius:50%;background:#fff;border:5px solid #FF8A5C;display:flex;align-items:center;justify-content:center;font-size:38px">🦊</div>
+    <div style="background:#fff;border-radius:20px;padding:10px 18px;font-size:24px;color:#5B4632">把苹果加起来！</div>
+  </div>
+</div>
+</div>
+<div class="wf-cap">糖果色 + 厚底“果冻按钮”，一切都圆滚滚可按压；吉祥物用表情符号占位，正式版换插画小狐狸。</div>
+</div>
+</div>
+
+<!-- ══════════ 2b 奶油绘本 ══════════ -->
+<div class="dv-opt" id="2b">
+<div class="dv-olabel"><a class="dv-oid" href="#2b">2b</a>奶油绘本 — 柔和暖色 + 手写标题（章节取自 <a class="dv-oid" href="#1d">1d</a>，情境题）</div>
+<div class="dv-card" style="width:635px">
+<div class="wf-label">地图 · 故事章节</div>
+<div style="width:635px;height:476px;overflow:hidden">
+<div style="width:1024px;height:768px;transform:scale(0.62);transform-origin:0 0;position:relative;background:repeating-linear-gradient(0deg,#F7F1E5,#F7F1E5 6px,#F4EDDF 6px,#F4EDDF 7px);font-family:'Ma Shan Zheng',serif;overflow:hidden">
+  <div style="position:absolute;top:44px;left:48px;font-size:52px;color:#7A5C42">兔兔的数学之旅</div>
+  <div style="position:absolute;top:52px;right:44px;background:#fff;border-radius:50px;padding:10px 26px;font-size:30px;color:#D98E4A;box-shadow:0 4px 12px rgba(122,92,66,.15)">⭐ 12</div>
+  <div style="position:absolute;top:170px;left:44px;right:44px;display:flex;gap:30px;align-items:flex-end">
+    <div style="flex:1;height:330px;background:#FFFDF7;border-radius:28px;box-shadow:0 8px 24px rgba(122,92,66,.12);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px">
+      <div style="font-size:80px">🌲</div><div style="font-size:38px;color:#6E8B5E">第一章 · 森林</div>
+      <div style="font-family:system-ui;font-size:22px;color:#A99B85">全部完成 ✓</div>
+    </div>
+    <div style="flex:1.15;height:380px;background:#FFFDF7;border:5px solid #E2A26B;border-radius:32px;box-shadow:0 14px 34px rgba(122,92,66,.2);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;position:relative">
+      <div style="position:absolute;top:-24px;background:#E2A26B;color:#fff;border-radius:50px;padding:6px 30px;font-size:26px">继续冒险</div>
+      <div style="font-size:92px">🏞</div><div style="font-size:42px;color:#5E7C8B">第二章 · 小河</div>
+      <div style="display:flex;gap:8px"><div style="width:20px;height:20px;border-radius:50%;background:#E2A26B"></div><div style="width:20px;height:20px;border-radius:50%;background:#E2A26B"></div><div style="width:20px;height:20px;border-radius:50%;background:#EADFCE"></div><div style="width:20px;height:20px;border-radius:50%;background:#EADFCE"></div></div>
+    </div>
+    <div style="flex:1;height:330px;background:#F1E9DA;border-radius:28px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;opacity:.75">
+      <div style="font-size:80px;filter:grayscale(1);opacity:.5">⛰</div><div style="font-size:38px;color:#B0A48F">第三章 · 高山</div>
+      <div style="font-family:system-ui;font-size:22px;color:#B0A48F">🔒 完成小河后解锁</div>
+    </div>
+  </div>
+  <div style="position:absolute;bottom:44px;left:48px;display:flex;align-items:center;gap:16px">
+    <div style="width:96px;height:96px;border-radius:50%;background:#fff;box-shadow:0 6px 18px rgba(122,92,66,.18);display:flex;align-items:center;justify-content:center;font-size:52px">🐰</div>
+    <div style="background:#fff;border-radius:24px;padding:14px 24px;font-size:30px;color:#7A5C42;box-shadow:0 6px 18px rgba(122,92,66,.12);display:flex;align-items:center;gap:12px">小河边的鸭子们需要你！<span style="background:#F3E3C8;border-radius:50px;padding:4px 12px;font-size:22px">🔊</span></div>
+  </div>
+</div>
+</div>
+<div class="wf-label">答题 · 鸭子减法（情境）</div>
+<div style="width:635px;height:476px;overflow:hidden;border-top:1px dashed rgba(0,0,0,.12)">
+<div style="width:1024px;height:768px;transform:scale(0.62);transform-origin:0 0;position:relative;background:repeating-linear-gradient(0deg,#F7F1E5,#F7F1E5 6px,#F4EDDF 6px,#F4EDDF 7px);font-family:'Ma Shan Zheng',serif;overflow:hidden">
+  <div style="position:absolute;top:30px;left:36px;width:76px;height:76px;border-radius:50%;background:#fff;box-shadow:0 4px 14px rgba(122,92,66,.15);display:flex;align-items:center;justify-content:center;font-size:34px;color:#B0A48F;font-family:system-ui">←</div>
+  <div style="position:absolute;top:44px;left:140px;right:140px;text-align:center;font-size:44px;color:#7A5C42;line-height:1.4">河里有 <span style="color:#D9744A;font-size:54px">5</span> 只鸭子，游走了 <span style="color:#D9744A;font-size:54px">2</span> 只，还剩几只？</div>
+  <div style="position:absolute;top:36px;right:36px;width:76px;height:76px;border-radius:50%;background:#F3E3C8;display:flex;align-items:center;justify-content:center;font-size:32px">🔊</div>
+  <div style="position:absolute;top:210px;left:80px;right:80px;height:270px;background:linear-gradient(180deg,#CFE6EA,#B9D9E0);border-radius:40px;overflow:hidden">
+    <div style="position:absolute;top:40px;left:0;right:0;display:flex;justify-content:center;gap:40px;font-size:88px"><span>🦆</span><span>🦆</span><span>🦆</span><span style="opacity:.22;transform:scaleX(-1)">🦆</span><span style="opacity:.22;transform:scaleX(-1)">🦆</span></div>
+    <div style="position:absolute;bottom:26px;left:60px;right:60px;height:4px;border-radius:4px;background:rgba(255,255,255,.7)"></div>
+    <div style="position:absolute;bottom:44px;left:120px;right:200px;height:4px;border-radius:4px;background:rgba(255,255,255,.5)"></div>
+  </div>
+  <div style="position:absolute;bottom:70px;left:0;right:0;display:flex;justify-content:center;gap:40px">
+    <div style="width:160px;height:120px;background:#FFFDF7;border-radius:26px;box-shadow:0 8px 20px rgba(122,92,66,.16);display:flex;align-items:center;justify-content:center;font-size:58px;color:#7A5C42">2</div>
+    <div style="width:160px;height:120px;background:#FFFDF7;border-radius:26px;box-shadow:0 8px 20px rgba(122,92,66,.16);display:flex;align-items:center;justify-content:center;font-size:58px;color:#7A5C42">3</div>
+    <div style="width:160px;height:120px;background:#FFFDF7;border-radius:26px;box-shadow:0 8px 20px rgba(122,92,66,.16);display:flex;align-items:center;justify-content:center;font-size:58px;color:#7A5C42">4</div>
+  </div>
+  <div style="position:absolute;bottom:60px;left:48px;width:84px;height:84px;border-radius:50%;background:#fff;box-shadow:0 4px 14px rgba(122,92,66,.15);display:flex;align-items:center;justify-content:center;font-size:44px">🐰</div>
+</div>
+</div>
+<div class="wf-cap">温柔纸面质感 + 手写体标题，节奏更慢更“绘本”；游走的鸭子半透明可点数，适合睡前学习氛围。</div>
+</div>
+</div>
+
+<!-- ══════════ 2c 活力大色块 ══════════ -->
+<div class="dv-opt" id="2c">
+<div class="dv-olabel"><a class="dv-oid" href="#2c">2c</a>活力大色块 — 扁平高饱和 + 超粗黑体（岛屿取自 <a class="dv-oid" href="#1b">1b</a>，数轴玩法）</div>
+<div class="dv-card" style="width:635px">
+<div class="wf-label">地图 · 主题大方块</div>
+<div style="width:635px;height:476px;overflow:hidden">
+<div style="width:1024px;height:768px;transform:scale(0.62);transform-origin:0 0;position:relative;background:#FFD23F;font-family:'ZCOOL QingKe HuangYou',sans-serif;overflow:hidden">
+  <div style="position:absolute;top:-70px;right:-70px;width:260px;height:260px;border-radius:50%;background:#FF9F1C"></div>
+  <div style="position:absolute;bottom:-90px;left:-60px;width:240px;height:240px;border-radius:50%;background:#FFC300"></div>
+  <div style="position:absolute;top:44px;left:48px;font-size:60px;color:#231F20;letter-spacing:4px">数学乐园</div>
+  <div style="position:absolute;top:56px;right:48px;background:#231F20;color:#FFD23F;border-radius:16px;padding:10px 26px;font-size:34px">⭐ 12</div>
+  <div style="position:absolute;top:160px;left:48px;right:48px;bottom:150px;display:grid;grid-template-columns:1fr 1fr;gap:26px">
+    <div style="background:#2EA8E0;border-radius:24px;border-bottom:12px solid #1E7FB0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;color:#fff"><div style="font-size:74px">🔢</div><div style="font-size:42px">数一数</div><div style="font-family:system-ui;font-size:20px;opacity:.85">●●●○○</div></div>
+    <div style="background:#3ECC71;border-radius:24px;border-bottom:12px solid #2A9D54;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;color:#fff"><div style="font-size:74px">➕</div><div style="font-size:42px">加法岛</div><div style="font-family:system-ui;font-size:20px;opacity:.85">●○○○○</div></div>
+    <div style="background:#BDBDBD;border-radius:24px;border-bottom:12px solid #9A9A9A;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;color:#fff;position:relative"><div style="font-size:74px">➖</div><div style="font-size:42px">减法岛</div><div style="position:absolute;top:18px;right:22px;font-size:40px">🔒</div></div>
+    <div style="background:#B067E8;border-radius:24px;border-bottom:12px solid #8A4BBA;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;color:#fff"><div style="font-size:74px">🎁</div><div style="font-size:42px">贴纸屋</div></div>
+  </div>
+  <div style="position:absolute;bottom:30px;left:48px;display:flex;align-items:center;gap:16px">
+    <div style="width:92px;height:92px;border-radius:50%;background:#fff;border:6px solid #231F20;display:flex;align-items:center;justify-content:center;font-size:50px">🐼</div>
+    <div style="background:#231F20;color:#fff;border-radius:20px;padding:12px 24px;font-size:30px;display:flex;align-items:center;gap:12px">想去哪个岛？<span style="background:#FFD23F;color:#231F20;border-radius:50px;padding:2px 12px;font-size:22px">🔊</span></div>
+  </div>
+</div>
+</div>
+<div class="wf-label">答题 · 数轴跳跳蛙</div>
+<div style="width:635px;height:476px;overflow:hidden;border-top:1px dashed rgba(0,0,0,.12)">
+<div style="width:1024px;height:768px;transform:scale(0.62);transform-origin:0 0;position:relative;background:#2EA8E0;font-family:'ZCOOL QingKe HuangYou',sans-serif;overflow:hidden">
+  <div style="position:absolute;top:-60px;left:-60px;width:220px;height:220px;border-radius:50%;background:#57BCE9"></div>
+  <div style="position:absolute;top:30px;left:36px;width:80px;height:80px;border-radius:18px;background:#231F20;color:#FFD23F;display:flex;align-items:center;justify-content:center;font-size:38px">←</div>
+  <div style="position:absolute;top:36px;right:36px;width:80px;height:80px;border-radius:18px;background:#FFD23F;color:#231F20;display:flex;align-items:center;justify-content:center;font-size:36px">🔊</div>
+  <div style="position:absolute;top:110px;left:0;right:0;text-align:center;font-size:110px;color:#fff;letter-spacing:8px">2 + 3 = <span style="color:#FFD23F">?</span></div>
+  <div style="position:absolute;top:300px;left:200px;font-size:70px;transform:scaleX(-1)">🐸</div>
+  <div style="position:absolute;top:390px;left:80px;right:80px;height:12px;border-radius:12px;background:#fff"></div>
+  <div style="position:absolute;top:430px;left:80px;right:80px;display:flex;justify-content:space-between">
+    <div style="width:82px;height:82px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;font-size:40px;color:#231F20">0</div>
+    <div style="width:82px;height:82px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;font-size:40px;color:#231F20">1</div>
+    <div style="width:82px;height:82px;border-radius:50%;background:#FFD23F;border:6px solid #231F20;display:flex;align-items:center;justify-content:center;font-size:40px;color:#231F20">2</div>
+    <div style="width:82px;height:82px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;font-size:40px;color:#231F20">3</div>
+    <div style="width:82px;height:82px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;font-size:40px;color:#231F20">4</div>
+    <div style="width:82px;height:82px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;font-size:40px;color:#231F20">5</div>
+    <div style="width:82px;height:82px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;font-size:40px;color:#231F20">6</div>
+    <div style="width:82px;height:82px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;font-size:40px;color:#231F20">7</div>
+  </div>
+  <div style="position:absolute;bottom:70px;left:0;right:0;text-align:center;color:#fff;font-family:system-ui;font-size:26px;opacity:.9">点数字格，青蛙一格一格跳过去 · 🔊 “从 2 出发，向前跳 3 步！”</div>
+</div>
+</div>
+<div class="wf-cap">高饱和大色块 + 超粗标题字，视觉冲击最强、目标一眼可见；适合精力旺盛的孩子，弱点是氛围感较少。</div>
+</div>
+</div>
+
+</div>
+<p class="dv-next">下一步可以说：“选 <a class="dv-oid" href="#2a">2a</a>，做成可点击原型” · “<a class="dv-oid" href="#2b">2b</a> 的配色 + <a class="dv-oid" href="#2a">2a</a> 的地图” · “再调亮 <a class="dv-oid" href="#2b">2b</a>”</p>
+</section>
+<section class="dv-turn" id="t1">
+<div class="dv-thd"><a class="dv-tid" href="#t1">1</a><span class="dv-tname">4 个结构方向 · 每个方向 = 关卡地图 + 答题界面（横屏 iPad）</span></div>
+<div class="dv-opts">
+
+<!-- ============ 1a 蜿蜒冒险地图 ============ -->
+<div class="dv-opt" id="1a">
+<div class="dv-olabel"><a class="dv-oid" href="#1a">1a</a>蜿蜒冒险地图 — 经典闯关路径，进度感最强</div>
+<div class="dv-card">
+<div class="wf-label">地图：一条路走到底</div>
+<div class="wf">
+  <div class="wf-mascot" style="position:absolute;top:14px;left:16px;width:52px;height:52px">吉祥物<br>小狐狸</div>
+  <div class="wf-bubble" style="position:absolute;top:20px;left:78px;max-width:180px">你好呀！今天去第 3 关！</div>
+  <div class="wf-note" style="top:70px;left:78px">🔊 自动语音欢迎</div>
+  <div class="wf-box" style="position:absolute;top:16px;right:16px;padding:6px 14px;font:700 15px system-ui">⭐ 12</div>
+  <svg width="520" height="240" style="position:absolute;top:120px;left:0"><path d="M60,190 C140,110 180,220 260,150 C330,90 370,200 460,110" fill="none" stroke="#999" stroke-width="3" stroke-dasharray="8 8"></path></svg>
+  <div class="wf-circ" style="position:absolute;top:280px;left:34px;width:52px;height:52px">1✓</div>
+  <div class="wf-circ" style="position:absolute;top:230px;left:150px;width:52px;height:52px">2✓</div>
+  <div class="wf-circ wf-cur" style="position:absolute;top:240px;left:250px;width:60px;height:60px">3</div>
+  <div class="wf-note" style="top:315px;left:245px">当前关卡放大+跳动</div>
+  <div class="wf-circ wf-lock" style="position:absolute;top:180px;left:360px;width:52px;height:52px">🔒</div>
+  <div class="wf-circ wf-lock" style="position:absolute;top:210px;left:445px;width:52px;height:52px">🔒</div>
+</div>
+<div class="wf-label">答题：加法（点选答案）</div>
+<div class="wf" style="border-bottom:none">
+  <div class="wf-dash" style="position:absolute;top:12px;left:12px;width:44px;height:44px;display:flex;align-items:center;justify-content:center;font-size:20px">←</div>
+  <div style="position:absolute;top:24px;left:0;right:0;display:flex;justify-content:center;gap:8px"><span>●</span><span>●</span><span>○</span><span>○</span><span>○</span></div>
+  <div class="wf-note" style="top:44px;right:16px">进度点：每关 5 题</div>
+  <div style="position:absolute;top:90px;left:0;right:0;text-align:center;font:700 40px system-ui">🍎🍎🍎 + 🍎🍎 = ?</div>
+  <div class="wf-note" style="top:150px;left:150px">🔊 “三个苹果加两个苹果”，苹果可逐个点数</div>
+  <div style="position:absolute;bottom:60px;left:0;right:0;display:flex;justify-content:center;gap:24px">
+    <div class="wf-btn" style="width:90px;height:70px">4</div>
+    <div class="wf-btn" style="width:90px;height:70px">5</div>
+    <div class="wf-btn" style="width:90px;height:70px">6</div>
+  </div>
+  <div class="wf-mascot" style="position:absolute;bottom:14px;left:16px;width:44px;height:44px">狐狸</div>
+  <div class="wf-note" style="bottom:20px;left:70px">答对→狐狸欢呼+撒星星；答错→“再试一次！”不惩罚</div>
+</div>
+<div class="wf-cap">优点：目标感强、天然的解锁激励；缺点：内容一多地图会变长。</div>
+</div>
+</div>
+
+<!-- ============ 1b 小岛乐园 ============ -->
+<div class="dv-opt" id="1b">
+<div class="dv-olabel"><a class="dv-oid" href="#1b">1b</a>小岛乐园 — 按主题分区，自由选择</div>
+<div class="dv-card">
+<div class="wf-label">地图：四个主题岛</div>
+<div class="wf">
+  <div class="wf-mascot" style="position:absolute;top:14px;left:16px;width:52px;height:52px">吉祥物<br>小船长</div>
+  <div class="wf-bubble" style="position:absolute;top:20px;left:78px">想去哪个岛玩？</div>
+  <div class="wf-box" style="position:absolute;top:16px;right:16px;padding:6px 14px;font:700 15px system-ui">⭐ 12</div>
+  <div style="position:absolute;top:100px;left:30px;right:30px;bottom:24px;display:grid;grid-template-columns:1fr 1fr;gap:20px">
+    <div class="wf-box" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;font:700 20px system-ui">🔢 数一数<div style="font:11px monospace;color:#888">进度 ●●●○○</div></div>
+    <div class="wf-box" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;font:700 20px system-ui">➕ 加法岛<div style="font:11px monospace;color:#888">进度 ●○○○○</div></div>
+    <div class="wf-box" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;font:700 20px system-ui">➖ 减法岛<div style="font:11px monospace;color:#888">🔒 完成加法解锁</div></div>
+    <div class="wf-dash" style="display:flex;align-items:center;justify-content:center;font:700 20px system-ui;color:#999">🎁 贴纸屋</div>
+  </div>
+  <div class="wf-note" style="top:74px;left:200px">🔊 点岛朗读岛名</div>
+</div>
+<div class="wf-label">答题：数轴跳跳蛙</div>
+<div class="wf" style="border-bottom:none">
+  <div class="wf-dash" style="position:absolute;top:12px;left:12px;width:44px;height:44px;display:flex;align-items:center;justify-content:center;font-size:20px">←</div>
+  <div style="position:absolute;top:70px;left:0;right:0;text-align:center;font:700 38px system-ui">2 + 3 = ?</div>
+  <div class="wf-note" style="top:130px;left:170px">🔊 “小青蛙从 2 出发，向前跳 3 步”</div>
+  <div style="position:absolute;bottom:110px;left:40px;right:40px;height:3px;background:#444"></div>
+  <div style="position:absolute;bottom:80px;left:40px;right:40px;display:flex;justify-content:space-between">
+    <div class="wf-circ" style="width:40px;height:40px">0</div><div class="wf-circ" style="width:40px;height:40px">1</div><div class="wf-circ wf-cur" style="width:40px;height:40px">2</div><div class="wf-circ" style="width:40px;height:40px">3</div><div class="wf-circ" style="width:40px;height:40px">4</div><div class="wf-circ" style="width:40px;height:40px">5</div><div class="wf-circ" style="width:40px;height:40px">6</div><div class="wf-circ" style="width:40px;height:40px">7</div>
+  </div>
+  <div style="position:absolute;bottom:150px;left:158px;font-size:28px">🐸</div>
+  <div class="wf-note" style="bottom:36px;left:120px">孩子逐格点击数字，青蛙跳过去；落在 5 → 庆祝</div>
+</div>
+<div class="wf-cap">优点：结构清晰、能装下多种玩法；数轴直观教“加=往前跳”。缺点：入口多，5 岁可能选择困难。</div>
+</div>
+</div>
+
+<!-- ============ 1c 大按钮直达 ============ -->
+<div class="dv-opt" id="1c">
+<div class="dv-olabel"><a class="dv-oid" href="#1c">1c</a>大按钮直达 — 极简两键，零迷路</div>
+<div class="dv-card">
+<div class="wf-label">主界面：只有两个选择</div>
+<div class="wf">
+  <div class="wf-mascot" style="position:absolute;top:30px;left:0;right:0;margin:auto;width:80px;height:80px">吉祥物<br>大熊猫</div>
+  <div class="wf-bubble" style="position:absolute;top:118px;left:0;right:0;margin:auto;width:220px;text-align:center">今天想玩什么？</div>
+  <div class="wf-note" style="top:36px;right:20px">🔊 每日不同问候语</div>
+  <div style="position:absolute;bottom:80px;left:60px;right:60px;display:flex;gap:30px">
+    <div class="wf-btn" style="flex:1;height:110px;flex-direction:column;font-size:28px">➕<div style="font-size:18px">加法</div></div>
+    <div class="wf-btn" style="flex:1;height:110px;flex-direction:column;font-size:28px">➖<div style="font-size:18px">减法</div></div>
+  </div>
+  <div class="wf-dash" style="position:absolute;bottom:16px;right:20px;padding:8px 16px;font:600 14px system-ui;color:#888">🎖 我的奖章</div>
+  <div class="wf-note" style="bottom:22px;left:60px">难度自动递进，无关卡概念</div>
+</div>
+<div class="wf-label">答题：天平配平（拖拽）</div>
+<div class="wf" style="border-bottom:none">
+  <div class="wf-dash" style="position:absolute;top:12px;left:12px;width:44px;height:44px;display:flex;align-items:center;justify-content:center;font-size:20px">←</div>
+  <div style="position:absolute;top:30px;left:0;right:0;text-align:center;font:700 30px system-ui">让天平一样重！</div>
+  <div class="wf-note" style="top:70px;right:40px">🔊 朗读任务</div>
+  <div style="position:absolute;top:120px;left:110px;width:300px;height:100px">
+    <div style="position:absolute;bottom:0;left:140px;width:3px;height:60px;background:#444"></div>
+    <div style="position:absolute;top:0;left:0;right:0;height:3px;background:#444;transform:rotate(-6deg)"></div>
+    <div class="wf-box" style="position:absolute;top:-46px;left:-20px;width:100px;height:50px;display:flex;align-items:center;justify-content:center;font:700 20px system-ui">3 + 2</div>
+    <div class="wf-dash" style="position:absolute;top:-20px;right:-20px;width:100px;height:50px;display:flex;align-items:center;justify-content:center;font:700 20px system-ui;color:#999">拖到这</div>
+  </div>
+  <div style="position:absolute;bottom:50px;left:0;right:0;display:flex;justify-content:center;gap:18px">
+    <div class="wf-btn" style="width:70px;height:60px">3</div>
+    <div class="wf-btn" style="width:70px;height:60px">5</div>
+    <div class="wf-btn" style="width:70px;height:60px">7</div>
+  </div>
+  <div class="wf-note" style="bottom:20px;left:110px">拖 5 上去 → 天平缓缓变平 + 熊猫鼓掌</div>
+</div>
+<div class="wf-cap">优点：认知负担最小，适合 5 岁独立操作；缺点：进度感弱，靠奖章页补足。</div>
+</div>
+</div>
+
+<!-- ============ 1d 故事闯关 ============ -->
+<div class="dv-opt" id="1d">
+<div class="dv-olabel"><a class="dv-oid" href="#1d">1d</a>故事闯关 — 帮小动物解决问题，情境化数学</div>
+<div class="dv-card">
+<div class="wf-label">地图：章节横条（森林→小河→高山）</div>
+<div class="wf">
+  <div class="wf-box" style="position:absolute;top:16px;right:16px;padding:6px 14px;font:700 15px system-ui">⭐ 12</div>
+  <div style="position:absolute;top:80px;left:24px;right:24px;display:flex;gap:14px">
+    <div class="wf-box" style="flex:1;height:170px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px">🌲<div style="font:700 17px system-ui">第1章 森林</div><div style="font:11px monospace;color:#888">✓ 完成</div></div>
+    <div class="wf-box wf-cur" style="flex:1.2;height:190px;margin-top:-10px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px">🏞<div style="font:700 18px system-ui">第2章 小河</div><div style="font:11px monospace;color:#666">进行中 ●●○○</div></div>
+    <div class="wf-dash" style="flex:1;height:170px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;color:#999">⛰<div style="font:700 17px system-ui">第3章 高山</div><div style="font:11px monospace">🔒</div></div>
+  </div>
+  <div class="wf-mascot" style="position:absolute;bottom:40px;left:24px;width:52px;height:52px">吉祥物<br>小兔</div>
+  <div class="wf-bubble" style="position:absolute;bottom:48px;left:86px;max-width:300px">小河边的鸭子们需要你的帮助！</div>
+  <div class="wf-note" style="bottom:14px;left:86px">🔊 每章一句故事引导</div>
+</div>
+<div class="wf-label">答题：情境题（拖实物）</div>
+<div class="wf" style="border-bottom:none">
+  <div class="wf-dash" style="position:absolute;top:12px;left:12px;width:44px;height:44px;display:flex;align-items:center;justify-content:center;font-size:20px">←</div>
+  <div style="position:absolute;top:28px;left:0;right:0;text-align:center;font:700 26px system-ui">河里有 5 只鸭子，游走了 2 只，还剩几只？</div>
+  <div class="wf-note" style="top:66px;left:150px">🔊 全程朗读题目，数字重读</div>
+  <div class="wf-dash" style="position:absolute;top:110px;left:60px;right:60px;height:130px;display:flex;align-items:center;justify-content:center;gap:16px;font-size:34px">🦆🦆🦆<span style="opacity:.25">🦆🦆</span></div>
+  <div class="wf-note" style="top:250px;left:170px">游走的 2 只做划走动画，剩余可点数</div>
+  <div style="position:absolute;bottom:36px;left:0;right:0;display:flex;justify-content:center;gap:24px">
+    <div class="wf-btn" style="width:90px;height:66px">2</div>
+    <div class="wf-btn" style="width:90px;height:66px">3</div>
+    <div class="wf-btn" style="width:90px;height:66px">4</div>
+  </div>
+</div>
+<div class="wf-cap">优点：数学有意义（帮助别人），记忆点强；缺点：制作成本最高，每章需新情境。</div>
+</div>
+</div>
+
+</div>
+<p class="dv-next">下一步可以说：“按 <a class="dv-oid" href="#1a">1a</a> 出 2-3 个视觉方向” · “把 <a class="dv-oid" href="#1c">1c</a> 的天平玩法放进 <a class="dv-oid" href="#1a">1a</a>” · “再来几个新结构”</p>
+</section>
+
+</x-dc>
+</body>
+</html>

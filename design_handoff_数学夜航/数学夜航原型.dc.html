@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet data-dc-atomics>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@500;700;900&display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#0E2831}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.07)}}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-10px)}75%{transform:translateX(10px)}}
+@keyframes pop{0%{transform:scale(.6);opacity:0}70%{transform:scale(1.08)}100%{transform:scale(1);opacity:1}}
+@keyframes floaty{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+</style>
+</helmet>
+<div style="position:fixed;inset:0;background:#0E2831;overflow:hidden;font-family:'Noto Sans SC',sans-serif">
+<div style="position:absolute;left:50%;top:50%;width:1024px;height:768px;margin-left:-512px;margin-top:-384px;transform:scale({{ scale }});background:linear-gradient(180deg,#12333E,#174552);border-radius:0;overflow:hidden">
+
+  <!-- 星空点缀 -->
+  <div style="position:absolute;top:60px;left:120px;width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.5)"></div>
+  <div style="position:absolute;top:120px;right:200px;width:5px;height:5px;border-radius:50%;background:rgba(255,255,255,.4)"></div>
+  <div style="position:absolute;top:210px;left:430px;width:4px;height:4px;border-radius:50%;background:rgba(255,255,255,.35)"></div>
+  <div style="position:absolute;top:330px;right:90px;width:4px;height:4px;border-radius:50%;background:rgba(255,255,255,.3)"></div>
+
+  <!-- ═══════ 地图屏 ═══════ -->
+  <sc-if value="{{ onMap }}" hint-placeholder-val="{{ true }}">
+  <div data-screen-label="关卡地图" style="position:absolute;inset:0">
+    <div style="position:absolute;top:32px;left:40px;right:40px;display:flex;align-items:center;gap:20px">
+      <div style="font-size:38px;font-weight:900;color:#fff">数学夜航 · 20以内加减</div>
+      <div style="font-size:22px;color:rgba(255,255,255,.55);font-weight:500">{{ doneCount }} / 15 关</div>
+      <div style="margin-left:auto;background:rgba(255,255,255,.1);border:2px solid rgba(242,165,65,.6);border-radius:50px;padding:10px 26px;font-size:28px;font-weight:900;color:#F2A541">★ {{ totalStars }}</div>
+    </div>
+    <div style="position:absolute;top:130px;left:40px;width:660px;bottom:40px;box-sizing:border-box;background:rgba(255,255,255,.06);border-radius:28px">
+      <svg width="600" height="440" style="position:absolute;top:40px;left:30px"><path d="M60,60 H540 C580,60 580,200 540,200 H60 C20,200 20,340 60,340 H540" fill="none" stroke="rgba(255,255,255,.18)" stroke-width="10" stroke-linecap="round" stroke-dasharray="1 24"></path></svg>
+      <div style="position:absolute;top:62px;left:52px;right:52px;display:flex;flex-direction:column;gap:64px">
+        <sc-for list="{{ rows }}" as="row" hint-placeholder-count="3">
+          <div style="display:flex;justify-content:space-between">
+            <sc-for list="{{ row.cells }}" as="cell" hint-placeholder-count="5">
+              <div style="display:flex;flex-direction:column;align-items:center;gap:6px;width:80px">
+                <div onClick="{{ cell.tap }}" style="{{ cell.style }}">{{ cell.label }}</div>
+                <div style="font-size:15px;color:#F2A541;letter-spacing:2px;height:18px">{{ cell.starStr }}</div>
+              </div>
+            </sc-for>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+    <div style="position:absolute;top:130px;right:40px;width:280px;bottom:40px;display:flex;flex-direction:column;gap:24px">
+      <div style="flex:1;background:rgba(255,255,255,.06);border-radius:28px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px">
+        <div style="width:130px;height:130px;border-radius:50%;background:rgba(242,165,65,.15);display:flex;align-items:center;justify-content:center;animation:floaty 3s ease-in-out infinite">
+          <div style="width:84px;height:78px;border-radius:40px 40px 34px 34px;background:#F2A541;position:relative">
+            <div style="position:absolute;top:22px;left:15px;width:20px;height:20px;border-radius:50%;background:#12333E"></div>
+            <div style="position:absolute;top:22px;right:15px;width:20px;height:20px;border-radius:50%;background:#12333E"></div>
+            <div style="position:absolute;top:26px;left:20px;width:8px;height:8px;border-radius:50%;background:#fff"></div>
+            <div style="position:absolute;top:26px;right:20px;width:8px;height:8px;border-radius:50%;background:#fff"></div>
+            <div style="position:absolute;bottom:14px;left:30px;width:24px;height:10px;border-radius:0 0 10px 10px;background:#12333E"></div>
+          </div>
+        </div>
+        <div style="font-size:23px;color:rgba(255,255,255,.85);text-align:center;line-height:1.5;padding:0 18px">{{ mascotLine }} <span title="此处播放语音" style="background:rgba(255,255,255,.12);border-radius:50px;padding:2px 10px;font-size:17px">🔊</span></div>
+      </div>
+      <div onClick="{{ startCurrent }}" style="background:#E85D5D;border-radius:22px;padding:22px 0;text-align:center;font-size:29px;font-weight:900;color:#fff;cursor:pointer;box-shadow:0 6px 0 rgba(0,0,0,.25)" style-active="transform:translateY(4px);box-shadow:0 2px 0 rgba(0,0,0,.25)">挑战第 {{ currentLevel }} 关 ▶</div>
+    </div>
+  </div>
+  </sc-if>
+
+  <!-- ═══════ 答题屏 ═══════ -->
+  <sc-if value="{{ onQuiz }}" hint-placeholder-val="{{ false }}">
+  <div data-screen-label="答题" style="position:absolute;inset:0">
+    <div onClick="{{ backToMap }}" style="position:absolute;top:28px;left:36px;width:68px;height:68px;border-radius:20px;background:rgba(255,255,255,.1);color:rgba(255,255,255,.7);display:flex;align-items:center;justify-content:center;font-size:30px;cursor:pointer" style-hover="background:rgba(255,255,255,.2)">←</div>
+    <div style="position:absolute;top:52px;left:140px;right:240px;height:16px;border-radius:16px;background:rgba(255,255,255,.12)"><div style="width:{{ progressPct }}%;height:100%;border-radius:16px;background:#F2A541;transition:width .4s"></div></div>
+    <div style="position:absolute;top:42px;right:130px;font-size:24px;font-weight:700;color:rgba(255,255,255,.6)">{{ qNum }}/{{ qTotal }}</div>
+    <div title="此处重播语音读题" style="position:absolute;top:28px;right:36px;width:68px;height:68px;border-radius:20px;background:rgba(242,165,65,.2);display:flex;align-items:center;justify-content:center;font-size:28px;cursor:pointer">🔊</div>
+
+    <div style="position:absolute;top:120px;left:0;right:0;display:flex;justify-content:center;align-items:center;gap:26px;font-size:96px;font-weight:900;color:#fff;letter-spacing:2px">
+      <span>{{ qa }}</span><span style="color:#F2A541">{{ qop }}</span>
+      <sc-if value="{{ isMissing }}" hint-placeholder-val="{{ false }}">
+        <span style="width:120px;height:120px;border-radius:26px;border:6px dashed #F2A541;display:flex;align-items:center;justify-content:center;color:#F2A541;font-size:70px;background:rgba(242,165,65,.08)">?</span>
+        <span style="color:#F2A541">=</span><span>{{ qc }}</span>
+      </sc-if>
+      <sc-if value="{{ isNormal }}" hint-placeholder-val="{{ true }}">
+        <span>{{ qb }}</span><span style="color:#F2A541">=</span>
+        <span style="width:120px;height:120px;border-radius:26px;border:6px dashed #F2A541;display:flex;align-items:center;justify-content:center;color:#F2A541;font-size:70px;background:rgba(242,165,65,.08)">?</span>
+      </sc-if>
+    </div>
+
+    <sc-if value="{{ showBlocksPanel }}" hint-placeholder-val="{{ true }}">
+    <div style="position:absolute;top:300px;left:0;right:0;display:flex;flex-direction:column;align-items:center;gap:14px">
+      <div style="display:flex;flex-wrap:wrap;justify-content:center;gap:8px;background:rgba(255,255,255,.07);padding:18px 22px;border-radius:20px;max-width:820px">
+        <sc-for list="{{ blocks }}" as="blk" hint-placeholder-count="8">
+          <div onClick="{{ blk.tap }}" style="{{ blk.style }}">{{ blk.mark }}</div>
+        </sc-for>
+      </div>
+      <div style="font-size:19px;color:rgba(255,255,255,.5)">🔊 {{ blockHint }}</div>
+    </div>
+    </sc-if>
+
+    <div style="position:absolute;bottom:56px;left:0;right:0;display:flex;justify-content:center;gap:36px">
+      <sc-for list="{{ opts }}" as="o" hint-placeholder-count="3">
+        <div onClick="{{ o.tap }}" style="{{ o.style }}">{{ o.val }}</div>
+      </sc-for>
+    </div>
+
+    <sc-if value="{{ showFeedback }}" hint-placeholder-val="{{ false }}">
+      <div style="position:absolute;inset:0;background:rgba(14,40,49,.55);display:flex;align-items:center;justify-content:center">
+        <div style="{{ feedbackStyle }}">{{ feedbackText }}</div>
+      </div>
+    </sc-if>
+  </div>
+  </sc-if>
+
+  <!-- ═══════ 结算屏 ═══════ -->
+  <sc-if value="{{ onResult }}" hint-placeholder-val="{{ false }}">
+  <div data-screen-label="结算" style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:28px">
+    <div style="width:150px;height:140px;border-radius:70px 70px 60px 60px;background:#F2A541;position:relative;animation:floaty 3s ease-in-out infinite">
+      <div style="position:absolute;top:40px;left:28px;width:34px;height:34px;border-radius:50%;background:#12333E"></div>
+      <div style="position:absolute;top:40px;right:28px;width:34px;height:34px;border-radius:50%;background:#12333E"></div>
+      <div style="position:absolute;top:47px;left:37px;width:14px;height:14px;border-radius:50%;background:#fff"></div>
+      <div style="position:absolute;top:47px;right:37px;width:14px;height:14px;border-radius:50%;background:#fff"></div>
+      <div style="position:absolute;bottom:22px;left:55px;width:40px;height:18px;border-radius:0 0 18px 18px;background:#12333E"></div>
+    </div>
+    <div style="font-size:52px;font-weight:900;color:#fff">{{ resultTitle }}</div>
+    <div style="font-size:72px;color:#F2A541;letter-spacing:12px;animation:pop .5s ease-out">{{ resultStars }}</div>
+    <div style="font-size:24px;color:rgba(255,255,255,.6)">{{ resultSub }} <span title="此处播放语音" style="background:rgba(255,255,255,.12);border-radius:50px;padding:2px 10px;font-size:18px">🔊</span></div>
+    <div style="display:flex;gap:28px;margin-top:16px">
+      <div onClick="{{ backToMap }}" style="background:rgba(255,255,255,.12);border-radius:20px;padding:20px 46px;font-size:28px;font-weight:900;color:#fff;cursor:pointer" style-hover="background:rgba(255,255,255,.22)">回地图</div>
+      <sc-if value="{{ hasNext }}" hint-placeholder-val="{{ true }}">
+        <div onClick="{{ startNext }}" style="background:#E85D5D;border-radius:20px;padding:20px 46px;font-size:28px;font-weight:900;color:#fff;cursor:pointer;box-shadow:0 6px 0 rgba(0,0,0,.25)" style-active="transform:translateY(4px);box-shadow:0 2px 0 rgba(0,0,0,.25)">下一关 ▶</div>
+      </sc-if>
+    </div>
+  </div>
+  </sc-if>
+
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;hardMode&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;玩法&quot;},&quot;questionCount&quot;:{&quot;editor&quot;:&quot;range&quot;,&quot;default&quot;:5,&quot;min&quot;:3,&quot;max&quot;:10,&quot;step&quot;:1,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;玩法&quot;},&quot;showBlocks&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;玩法&quot;}}">
+class Component extends DCLogic {
+  state = {
+    scale: 1, screen: 'map',
+    level: 1, qIndex: 0, questions: [], wrongTotal: 0, wrongThis: 0,
+    blockStates: [], pickedWrong: [], feedback: null, // 'good'|'bad'
+    earnedStars: 0,
+    progress: { stars: {}, unlocked: 1 }
+  };
+
+  componentDidMount() {
+    try {
+      const saved = JSON.parse(localStorage.getItem('math_nightsail_v1') || 'null');
+      if (saved && saved.stars) this.setState({ progress: saved });
+    } catch (e) {}
+    this._onR = () => this.setState({ scale: Math.min(window.innerWidth / 1024, window.innerHeight / 768) });
+    window.addEventListener('resize', this._onR);
+    this._onR();
+  }
+  componentWillUnmount() { window.removeEventListener('resize', this._onR); }
+
+  save(p) { this.setState({ progress: p }); try { localStorage.setItem('math_nightsail_v1', JSON.stringify(p)); } catch (e) {} }
+
+  qCount() { const n = parseInt(this.props.questionCount, 10); return (n >= 3 && n <= 10) ? n : 5; }
+
+  genQuestion(level) {
+    const hard = this.props.hardMode === true;
+    const r = (n) => Math.floor(Math.random() * n);
+    let type;
+    if (hard || level > 10) type = 'missing';
+    else if (level > 5) type = r(2) ? 'sub' : 'add';
+    else type = 'add';
+    const max = level <= 5 ? 10 : 20;
+    if (type === 'add') {
+      const a = 2 + r(max - 3), b = 1 + r(max - a - 1);
+      return { type, a, b, op: '+', ans: a + b };
+    }
+    if (type === 'sub') {
+      const a = 5 + r(max - 5), b = 1 + r(a - 2);
+      return { type, a, b, op: '−', ans: a - b };
+    }
+    const c = 6 + r(15), a = 1 + r(c - 2);
+    return { type: 'missing', a, c, op: '+', ans: c - a };
+  }
+
+  makeOpts(ans) {
+    const set = new Set([ans]);
+    while (set.size < 3) {
+      const d = ans + (Math.floor(Math.random() * 5) - 2);
+      if (d >= 0 && d !== ans) set.add(d);
+    }
+    return [...set].sort(() => Math.random() - 0.5);
+  }
+
+  startLevel(n) {
+    const qs = [];
+    for (let i = 0; i < this.qCount(); i++) {
+      const q = this.genQuestion(n);
+      q.opts = this.makeOpts(q.ans);
+      qs.push(q);
+    }
+    this.setState({ screen: 'quiz', level: n, qIndex: 0, questions: qs, wrongTotal: 0, wrongThis: 0, pickedWrong: [], feedback: null, blockStates: [] });
+  }
+
+  pick(v) {
+    if (this.state.feedback === 'good') return;
+    const q = this.state.questions[this.state.qIndex];
+    if (v === q.ans) {
+      this.setState({ feedback: 'good' });
+      setTimeout(() => {
+        const i = this.state.qIndex + 1;
+        if (i >= this.state.questions.length) {
+          const w = this.state.wrongTotal;
+          const stars = w === 0 ? 3 : (w <= 2 ? 2 : 1);
+          const p = { ...this.state.progress, stars: { ...this.state.progress.stars } };
+          p.stars[this.state.level] = Math.max(p.stars[this.state.level] || 0, stars);
+          p.unlocked = Math.max(p.unlocked, Math.min(15, this.state.level + 1));
+          this.save(p);
+          this.setState({ screen: 'result', earnedStars: stars, feedback: null });
+        } else {
+          this.setState({ qIndex: i, feedback: null, wrongThis: 0, pickedWrong: [], blockStates: [] });
+        }
+      }, 1100);
+    } else {
+      this.setState({ feedback: 'bad', wrongTotal: this.state.wrongTotal + 1, wrongThis: this.state.wrongThis + 1, pickedWrong: [...this.state.pickedWrong, v] });
+      setTimeout(() => { if (this.state.feedback === 'bad') this.setState({ feedback: null }); }, 900);
+    }
+  }
+
+  buildBlocks(q) {
+    const bs = this.state.blockStates;
+    const toggle = (i) => () => {
+      const next = bs.slice();
+      next[i] = !next[i];
+      this.setState({ blockStates: next });
+    };
+    const base = { width: 56, height: 56, borderRadius: 12, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 30, fontWeight: 900, userSelect: 'none' };
+    const out = [];
+    if (q.type === 'sub') {
+      for (let i = 0; i < q.a; i++) {
+        const on = !!bs[i];
+        out.push({ tap: toggle(i), mark: on ? '✕' : '', style: { ...base, background: on ? 'rgba(232,93,93,.25)' : '#2FB29B', color: '#E85D5D' } });
+      }
+      return { blocks: out, hint: '“' + q.a + ' 个方块，划掉 ' + q.b + ' 个，剩下几个？”（点方块划掉）' };
+    }
+    if (q.type === 'add') {
+      for (let i = 0; i < q.a; i++) out.push({ tap: toggle(i), mark: bs[i] ? '·' : '', style: { ...base, background: '#2FB29B', color: '#fff', opacity: bs[i] ? .55 : 1 } });
+      for (let i = 0; i < q.b; i++) { const k = q.a + i; out.push({ tap: toggle(k), mark: bs[k] ? '·' : '', style: { ...base, background: '#F2A541', color: '#12333E', opacity: bs[k] ? .55 : 1 } }); }
+      return { blocks: out, hint: '“绿色 ' + q.a + ' 个，黄色 ' + q.b + ' 个，一共几个？”（点过的会变暗，方便点数）' };
+    }
+    for (let i = 0; i < q.a; i++) out.push({ tap: () => {}, mark: '', style: { ...base, background: '#2FB29B', cursor: 'default' } });
+    for (let i = 0; i < q.c - q.a; i++) {
+      const k = q.a + i, on = !!bs[k];
+      out.push({ tap: toggle(k), mark: '', style: { ...base, background: on ? '#F2A541' : 'rgba(242,165,65,.08)', border: '3px dashed rgba(242,165,65,.7)', boxSizing: 'border-box' } });
+    }
+    return { blocks: out, hint: '“已有 ' + q.a + ' 个，填满到 ' + q.c + ' 个，要再放几个？”（点空格放方块）' };
+  }
+
+  renderVals() {
+    const s = this.state, p = s.progress;
+    const current = Math.min(p.unlocked, 15);
+    // 地图
+    const cells = [];
+    for (let n = 1; n <= 15; n++) {
+      const done = n < p.unlocked || (p.stars[n] > 0 && n !== current);
+      const isCur = n === current && !(p.stars[15] > 0 && p.unlocked >= 15 && n === 15 && false);
+      const locked = n > p.unlocked;
+      const base = { width: 76, height: 76, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 30, fontWeight: 900, userSelect: 'none' };
+      let style, tap = null;
+      if (locked) style = { ...base, background: 'rgba(255,255,255,.12)', color: 'rgba(255,255,255,.4)' };
+      else if (n === current && !p.stars[n]) { style = { ...base, background: '#fff', border: '6px solid #E85D5D', color: '#E85D5D', boxShadow: '0 0 0 10px rgba(232,93,93,.2)', animation: 'pulse 1.6s ease-in-out infinite', cursor: 'pointer', boxSizing: 'border-box' }; tap = () => this.startLevel(n); }
+      else { style = { ...base, background: '#F2A541', color: '#12333E', cursor: 'pointer' }; tap = () => this.startLevel(n); }
+      const st = p.stars[n] || 0;
+      cells.push({ label: String(n), style, tap: tap || (() => {}), starStr: st ? '★★★'.slice(0, st) : '' });
+    }
+    const rows = [
+      { cells: cells.slice(0, 5) },
+      { cells: cells.slice(5, 10).reverse() },
+      { cells: cells.slice(10, 15) }
+    ];
+    const doneCount = Object.keys(p.stars).length;
+    const totalStars = Object.values(p.stars).reduce((a, b) => a + b, 0);
+
+    // 答题
+    const q = s.questions[s.qIndex] || null;
+    let blocksData = { blocks: [], hint: '' };
+    if (q && s.screen === 'quiz') blocksData = this.buildBlocks(q);
+    const optBase = { width: 150, height: 110, borderRadius: 26, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 52, fontWeight: 900, color: '#fff', cursor: 'pointer', background: 'rgba(255,255,255,.1)', border: '3px solid rgba(255,255,255,.25)', userSelect: 'none', boxSizing: 'border-box' };
+    const opts = (q ? q.opts : []).map((v) => {
+      let style = { ...optBase };
+      if (s.pickedWrong.includes(v)) style = { ...optBase, background: 'rgba(232,93,93,.3)', border: '3px solid #E85D5D', animation: s.feedback === 'bad' ? 'shake .4s' : 'none', opacity: .6 };
+      if (s.feedback === 'good' && q && v === q.ans) style = { ...optBase, background: '#2FB29B', border: '3px solid #2FB29B' };
+      return { val: String(v), tap: () => this.pick(v), style };
+    });
+
+    const fbGood = s.feedback === 'good';
+    const feedbackStyle = {
+      background: fbGood ? '#2FB29B' : '#E85D5D', color: '#fff', borderRadius: 32,
+      padding: '36px 70px', fontSize: 56, fontWeight: 900, animation: 'pop .35s ease-out',
+      boxShadow: '0 20px 60px rgba(0,0,0,.4)'
+    };
+
+    const mascotLines = ['准备好出发了吗？', '这一关有点难，加油！', '你越来越厉害了！', '星星快集满一排啦！'];
+
+    return {
+      scale: s.scale,
+      onMap: s.screen === 'map', onQuiz: s.screen === 'quiz', onResult: s.screen === 'result',
+      rows, doneCount, totalStars, currentLevel: current,
+      mascotLine: mascotLines[current % mascotLines.length],
+      startCurrent: () => this.startLevel(current),
+      backToMap: () => this.setState({ screen: 'map', feedback: null }),
+      startNext: () => this.startLevel(Math.min(15, s.level + 1)),
+      hasNext: s.level < 15,
+      qNum: Math.min(s.qIndex + 1, s.questions.length), qTotal: s.questions.length || this.qCount(),
+      progressPct: s.questions.length ? Math.round((s.qIndex) / s.questions.length * 100) : 0,
+      qa: q ? q.a : '', qb: q ? q.b : '', qc: q ? q.c : '', qop: q ? q.op : '+',
+      isMissing: !!q && q.type === 'missing', isNormal: !!q && q.type !== 'missing',
+      showBlocksPanel: this.props.showBlocks !== false && !!q,
+      blocks: blocksData.blocks, blockHint: blocksData.hint,
+      opts,
+      showFeedback: !!s.feedback, feedbackText: fbGood ? '太棒了！ ★' : '再试一次！', feedbackStyle,
+      resultTitle: '第 ' + s.level + ' 关完成！',
+      resultStars: '★★★'.slice(0, s.earnedStars) + '☆☆☆'.slice(0, 3 - s.earnedStars),
+      resultSub: s.earnedStars === 3 ? '全对！一颗星都没丢！' : '答对啦，下次挑战满星！'
+    };
+  }
+}
+</script>
+</body>
+</html>
