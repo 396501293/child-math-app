@@ -221,7 +221,8 @@ const EXACT: Record<number, number> = {
   16: 26, 17: 36, 18: 72, 19: 45, 20: 145, 21: 380, 22: 45, 23: 145,
   24: 570, 25: 120, 26: 2280, 27: 4940,
   31: 45, 32: 36, 33: 81, 34: 405, 35: 405, 36: 810, 37: 360, 38: 441,
-  39: 801, 40: 360, 41: 396, 42: 756, 43: 4365, 44: 2880, 45: 7245,
+  39: 801, 40: 360, 41: 396, 42: 756, 43: 4365, 44: 2880,
+  45: 9693,   // 12 个子池合计（含跨池重复题面），见题库规范附录
 };
 
 test('all 45 bands exist with correct chapter', () => {
@@ -359,7 +360,7 @@ export const BANDS: BandConfig[] = [
   B(29, '综合挑战II', [missB([2, 20]), missA([2, 20]), missSub([2, 20])]),
   B(30, '深海大挑战', [add([2, 10]), sub([2, 10]), addNoCarry10(), subNoBorrow10(),
     addCarry20(), subBorrow([11, 18]), missB([2, 20]), missA([2, 20]), missSub([2, 20]),
-    chain(['+', '+'], 20), chain(['-', '-'], 20), chain(['+', '-'], 20)]),
+    chain(['+', '+'], 20), chain(['-', '-'], 20), chain(['+', '-'], 20), chain(['-', '+'], 20)]),
   B(31, '整十加法', [tensAdd()]),
   B(32, '整十减法', [tensSub()]),
   B(33, '整十混合', [tensAdd(), tensSub()]),
@@ -888,6 +889,8 @@ export function speak(text: string, opts: { interrupt?: boolean } = {}): void {
 export const stopTTS = (): void => { if ('speechSynthesis' in globalThis) speechSynthesis.cancel(); };
 ```
 
+`initTTS()` 在 `src/main.tsx` 顶部、`render()` 之前调用一次。
+
 - [ ] **Step 4: `npm test` 转绿；Commit**（`feat: tts wrapper + stage scaling`）
 
 ---
@@ -1033,7 +1036,7 @@ Expected: 全部符合题库规范 §2。
 
 - [ ] **Step 1: 语音接入点走查**（题库规范 §7 + README Interactions）：进地图欢迎语（首次交互后）、切题自动朗读、计数块提示行、答对/答错反馈、结算祝贺、模式入口介绍（点入口时）、冲刺开始/时间到、破纪录祝贺、章节解锁祝贺。全部经 `speak()`；🔊 图标在 `!ttsAvailable()` 时置灰。
 
-- [ ] **Step 2: 字体**：`import '@fontsource/noto-sans-sc/500.css'`（+700/900）于 main.tsx；styles.css `font-family: 'Noto Sans SC', 'PingFang SC', sans-serif`。
+- [ ] **Step 2: 字体**：`import '@fontsource/noto-sans-sc/500.css'`（+700/900）于 main.tsx；styles.css `font-family: 'Noto Sans SC', 'PingFang SC', sans-serif`。构建后检查 `dist/` 体积：CJK 分片全预缓存可能达 10–20MB，若超过 ~8MB 则改为只打包 700/900 两档（500 落到 PingFang SC 系统字体），或在验收后追加真子集化任务。
 
 - [ ] **Step 3: 图标**：`scripts/gen-icons.mjs` 用 sharp 把手写的吉祥物 SVG（琥珀圆角方脸 #F2A541、深色眼 #12333E、白高光，背景 #12333E）渲染为 192/512/apple-touch-icon 180；`index.html` 加 `<link rel="apple-touch-icon">`。
 
@@ -1089,7 +1092,9 @@ jobs:
   deploy:
     needs: build
     runs-on: ubuntu-latest
-    environment: { name: github-pages, url: ${{ steps.deployment.outputs.page_url }} }
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}   # 注意：${{ }} 不能放在 { } flow mapping 里，必须块式写法
     steps:
       - id: deployment
         uses: actions/deploy-pages@v4
