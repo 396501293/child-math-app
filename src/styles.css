@@ -308,6 +308,14 @@ body {
   font-size: 17px;
 }
 
+/* 无可用中文语音时全局置灰所有 🔊 标记（stage 挂 .mn-tts-off，见 App）。 */
+.mn-tts-off .mn-tts-badge,
+.mn-tts-off .mn-quiz-replay,
+.mn-tts-off .mn-blocks-hint,
+.mn-tts-off .mn-result-sub-tts {
+  opacity: 0.35;
+}
+
 /* ── 齿轮（长按 1.5s 开设置） ── */
 .mn-gear {
   width: 48px;

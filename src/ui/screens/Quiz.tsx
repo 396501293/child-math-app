@@ -13,12 +13,13 @@ interface QuizProps {
   timeMaxMs: number; // 时间条满值（90s）
   onAnswer: (value: number) => void;
   onExit: () => void; // campaign/timed 中途退出=放弃本轮；endless=结束本轮进结算
-  onReplay: () => void; // 重播读题（Task 13 接 TTS）
+  onReplay: () => void; // 顶栏 🔊 重播读题（App speak(q.ttsText)）
+  onHint: () => void; // 计数块提示行点击（App speak(q.blocksHint)）
 }
 
 // 答题屏。dumb 组件：题目 / 教具 / 选项 / 反馈全部由 session 与回调驱动。
 // 顶栏三变体：campaign=进度条+n/N；endless=StreakBar（🔥连对+航行小船）；timed=TimerBar。
-export function Quiz({ session, showBlocks, timeLeftMs, timeMaxMs, onAnswer, onExit, onReplay }: QuizProps) {
+export function Quiz({ session, showBlocks, timeLeftMs, timeMaxMs, onAnswer, onExit, onReplay, onHint }: QuizProps) {
   const campaign = session.mode === 'campaign';
   const q = currentQuestion(session);
   const total = campaign ? session.questions!.length : 0;
@@ -45,7 +46,7 @@ export function Quiz({ session, showBlocks, timeLeftMs, timeMaxMs, onAnswer, onE
       <QuestionRow q={q} />
 
       {q.blocksPlan && (
-        <Blocks key={blockKey} plan={q.blocksPlan} hint={q.blocksHint ?? ''} show={showBlocks} onHintClick={onReplay} />
+        <Blocks key={blockKey} plan={q.blocksPlan} hint={q.blocksHint ?? ''} show={showBlocks} onHintClick={onHint} />
       )}
 
       <Options

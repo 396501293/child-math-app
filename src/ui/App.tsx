@@ -3,20 +3,32 @@ import type { BandConfig, Progress, Question } from '../core/types';
 import { bandOf } from '../core/bands';
 import { itemKey } from '../core/enumerate';
 import { applyHardMode, generateLevel, generateQuestion } from '../core/generator';
-import { endlessBand, starsFor, timedPool, unlockAfterWin } from '../core/progression';
+import { chapterOf, endlessBand, starsFor, timedPool, unlockAfterWin } from '../core/progression';
 import { defaultProgress, loadProgress, saveProgress } from '../core/storage';
+import { onAvailabilityChange, speak, stopTTS, ttsAvailable } from '../audio/tts';
 import { currentQuestion, type Mode, type Screen, type Session } from './session';
 import { useCountdown } from './useCountdown';
 import { useStageScale } from './scale';
 import { Map } from './screens/Map';
 import { Quiz } from './screens/Quiz';
-import { Result } from './screens/Result';
+import { CAMPAIGN_SUB, Result } from './screens/Result';
 import { RotateOverlay } from './components/RotateOverlay';
 import { SettingsModal } from './components/SettingsModal';
 
 const TIMED_START_MS = 60_000;
 const TIMED_MAX_MS = 90_000;
 const TIMED_BONUS_MS = 8_000;
+
+// 语音文案（简体、短句、5 岁儿童向）。题目/提示句由题库生成（q.ttsText / q.blocksHint）。
+const VOICE = {
+  right: '答对啦！太棒了！',
+  wrong: '再试一次！',
+  endlessIntro: '无尽夜航！看看你能连对多少题？',
+  timedIntro: '星光冲刺！比一比谁答得又快又对！',
+  timedStart: '星光冲刺，开始！',
+  unlockChapter: '解锁新章节！',
+  record: '新纪录！',
+} as const;
 
 function usePortrait(): boolean {
   const [portrait, setPortrait] = useState(() => window.innerHeight > window.innerWidth);
@@ -39,6 +51,11 @@ export function App() {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const scale = useStageScale();
   const portrait = usePortrait();
+
+  // 🔊 全局灰态：无中文语音时置灰（voiceschanged 后由 tts 订阅刷新）。切屏时停读。
+  const [ttsReady, setTtsReady] = useState(() => ttsAvailable());
+  useEffect(() => onAvailabilityChange(() => setTtsReady(ttsAvailable())), []);
+  useEffect(() => () => stopTTS(), []);
 
   // 反馈延迟推进的定时器；退出/卸载时清除，避免离开答题屏后仍触发。
   const timerRef = useRef<number | undefined>(undefined);
@@ -77,6 +94,7 @@ export function App() {
 
   const startLevel = (level: number) => {
     const questions = generateLevel(applyIfHard(bandOf(level)), progress.settings.questionCount, Math.random);
+    speak(questions[0].ttsText, { interrupt: true }); // 进新题自动朗读
     setSession({ ...blankRun('campaign'), level, questions });
     setScreen('quiz');
   };
@@ -93,13 +111,20 @@ export function App() {
   };
 
   const startEndless = () => {
-    setSession({ ...blankRun('endless'), current: nextModeQuestion('endless', 0, []) });
+    const current = nextModeQuestion('endless', 0, []);
+    speak(VOICE.endlessIntro, { interrupt: true }); // 模式入口介绍（进入前一句）
+    speak(current.ttsText);                           // 队列在介绍之后朗读首题
+    setSession({ ...blankRun('endless'), current });
     setScreen('quiz');
   };
 
   const startTimed = () => {
     countdown.reset(TIMED_START_MS);
-    setSession({ ...blankRun('timed'), current: nextModeQuestion('timed', 0, []) });
+    const current = nextModeQuestion('timed', 0, []);
+    speak(VOICE.timedIntro, { interrupt: true }); // 模式入口介绍
+    speak(VOICE.timedStart);                        // 「星光冲刺，开始！」
+    speak(current.ttsText);                         // 首题
+    setSession({ ...blankRun('timed'), current });
     setScreen('quiz');
   };
 
@@ -112,10 +137,16 @@ export function App() {
       // 结算：星级一次算定并立即落盘（不在结算 render / 按钮点击时算），
       // 这样即便玩家在结算屏退出 App，本次胜利与解锁也已保存。
       const stars = starsFor(s.wrongTotal);
-      updateProgress(unlockAfterWin(progress, s.level!, stars));
+      const next = unlockAfterWin(progress, s.level!, stars);
+      const chapterUp = chapterOf(next.unlocked) > chapterOf(progress.unlocked); // 完成 15/30 关跨章
+      updateProgress(next);
+      speak(CAMPAIGN_SUB[stars], { interrupt: true }); // 结算祝贺（按星级副文案）
+      if (chapterUp) speak(VOICE.unlockChapter);        // 章节解锁祝贺
       setSession({ ...s, feedback: null, resultStars: stars });
       setScreen('result');
     } else {
+      const next = s.questions![s.qIndex + 1];
+      speak(next.ttsText, { interrupt: true }); // 进新题自动朗读
       setSession({ ...s, qIndex: s.qIndex + 1, feedback: null, excluded: [], lastWrong: undefined, wrongThis: 0 });
     }
   };
@@ -127,9 +158,11 @@ export function App() {
     const recentKeys = [...s.recentKeys, itemKey(s.current!)].slice(-5);
     // 限时答对 +8s（上限 90s）。此刻反馈刚清除、时间条重新可见，宽度增大触发回弹动画。
     if (s.mode === 'timed') countdown.addTime(TIMED_BONUS_MS);
+    const next = nextModeQuestion(s.mode, correctCount, recentKeys);
+    speak(next.ttsText, { interrupt: true }); // 进新题自动朗读
     setSession({
       ...s,
-      current: nextModeQuestion(s.mode, correctCount, recentKeys),
+      current: next,
       recentKeys,
       correctCount,
       streak,
@@ -147,12 +180,14 @@ export function App() {
     const q = currentQuestion(s);
     clearTimer();
     if (option === q.answer) {
+      speak(VOICE.right, { interrupt: true }); // 答对反馈
       setSession({ ...s, feedback: 'right' });
       timerRef.current = window.setTimeout(
         s.mode === 'campaign' ? advanceCampaign : advanceModeCorrect,
         1100,
       );
     } else {
+      speak(VOICE.wrong, { interrupt: true }); // 答错反馈
       setSession({
         ...s,
         feedback: 'wrong',
@@ -182,6 +217,8 @@ export function App() {
         totalAnswered: progress.endless.totalAnswered + s.correctCount,
       },
     });
+    speak(`本轮答对 ${s.correctCount} 题！`, { interrupt: true }); // 无尽结算祝贺
+    if (broke) speak(VOICE.record);
     setSession({ ...s, feedback: null, resultBroke: broke });
     setScreen('result');
   };
@@ -194,6 +231,8 @@ export function App() {
     const oldBest = progress.timed.bestCount;
     const broke = s.correctCount > oldBest;
     updateProgress({ ...progress, timed: { bestCount: Math.max(oldBest, s.correctCount) } });
+    speak(`时间到！你答对了 ${s.correctCount} 题！`, { interrupt: true }); // 冲刺结算祝贺
+    if (broke) speak(VOICE.record);
     setSession({ ...s, feedback: null, resultBroke: broke });
     setScreen('result');
   };
@@ -207,11 +246,20 @@ export function App() {
     canExpire: () => sessionRef.current?.feedback == null,
   });
 
-  // Task 13 接 TTS。
-  const replayTts = () => {};
+  // 顶栏 🔊 = 同句重播当前题；计数块提示行 = 念 blocksHint。均读 sessionRef 最新题。
+  const replayTts = () => {
+    const s = sessionRef.current;
+    if (s) speak(currentQuestion(s).ttsText, { interrupt: true });
+  };
+  const hintTts = () => {
+    const s = sessionRef.current;
+    const hint = s && currentQuestion(s).blocksHint;
+    if (hint) speak(hint, { interrupt: true });
+  };
 
   const exitToMap = () => {
     clearTimer();
+    stopTTS(); // 切屏停读
     setSession(null);
     setScreen('map');
   };
@@ -228,6 +276,7 @@ export function App() {
   };
   const resetProgress = () => {
     clearTimer();
+    stopTTS();
     updateProgress(defaultProgress());
     setSettingsOpen(false);
     setSession(null);
@@ -236,7 +285,7 @@ export function App() {
 
   return (
     <div class="mn-viewport">
-      <div class="mn-stage" style={{ transform: `scale(${scale})` }}>
+      <div class={ttsReady ? 'mn-stage' : 'mn-stage mn-tts-off'} style={{ transform: `scale(${scale})` }}>
         {screen === 'map' && (
           <Map
             progress={progress}
@@ -244,6 +293,7 @@ export function App() {
             onStartEndless={startEndless}
             onStartTimed={startTimed}
             onOpenSettings={openSettings}
+            onWelcome={(line) => speak(line, { interrupt: true })}
           />
         )}
         {screen === 'quiz' && session && (
@@ -259,6 +309,7 @@ export function App() {
             onAnswer={answer}
             onExit={onQuizExit}
             onReplay={replayTts}
+            onHint={hintTts}
           />
         )}
         {/* 结算屏对三种 mode 穷举，无静默空屏。 */}

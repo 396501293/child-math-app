@@ -9,6 +9,7 @@ interface MapProps {
   onStartEndless: () => void;
   onStartTimed: () => void;
   onOpenSettings: () => void;
+  onWelcome: (line: string) => void; // 点击 mascot 卡片/🔊 徽标念欢迎语（首次交互后发声，无自动播）
 }
 
 const CN_NUM = ['一', '二', '三'];
@@ -66,7 +67,7 @@ function NodeCell({ level, state, stars, onTap }: {
   );
 }
 
-export function Map({ progress, onStartLevel, onStartEndless, onStartTimed, onOpenSettings }: MapProps) {
+export function Map({ progress, onStartLevel, onStartEndless, onStartTimed, onOpenSettings, onWelcome }: MapProps) {
   const maxChapter = chapterOf(progress.unlocked);
   const [viewChapter, setViewChapter] = useState<number>(maxChapter);
   const [seen, setSeen] = useState<Record<string, boolean>>(loadSeen);
@@ -170,7 +171,10 @@ export function Map({ progress, onStartLevel, onStartEndless, onStartTimed, onOp
 
       {/* ─── 右面板 ─── */}
       <div style={{ position: 'absolute', top: 130, right: 40, width: 280, bottom: 40, display: 'flex', flexDirection: 'column', gap: 24 }}>
-        <div style={{ flex: 1, background: 'var(--panel-06)', borderRadius: 28, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 14 }}>
+        <div
+          style={{ flex: 1, background: 'var(--panel-06)', borderRadius: 28, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 14, cursor: 'pointer' }}
+          onClick={() => onWelcome(mascotLine)}
+        >
           <Mascot pose="idle" />
           <div style={{ fontSize: 23, color: 'var(--color-white-85)', textAlign: 'center', lineHeight: 1.5, padding: '0 18px' }}>
             {mascotLine} <span class="mn-tts-badge">🔊</span>

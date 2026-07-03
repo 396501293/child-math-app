@@ -7,8 +7,8 @@ type ResultProps =
   | { variant: 'endless'; answered: number; runBestStreak: number; historyBestStreak: number; broke: boolean; onBackToMap: () => void }
   | { variant: 'timed'; answered: number; bestCount: number; broke: boolean; onBackToMap: () => void };
 
-// campaign 副文案常量表（按星级）。
-const CAMPAIGN_SUB: Record<1 | 2 | 3, string> = {
+// campaign 副文案常量表（按星级）。App 结算时读同一份文案朗读（Task 13）。
+export const CAMPAIGN_SUB: Record<1 | 2 | 3, string> = {
   3: '太厉害了，一次全对！',
   2: '很棒，继续加油！',
   1: '完成啦，再练一遍更棒！',
