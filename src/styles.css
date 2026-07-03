@@ -61,6 +61,11 @@ body {
   --coral-30: rgba(232, 93, 93, 0.3);
   --panel-25: rgba(255, 255, 255, 0.25);
   --color-mask: rgba(14, 40, 49, 0.55);
+
+  /* 设置面板遮罩（比反馈遮罩更暗，聚焦弹窗） */
+  --color-scrim: rgba(9, 26, 32, 0.72);
+  /* 时间条低时间告警描边 */
+  --coral-70: rgba(232, 93, 93, 0.7);
 }
 
 body {
@@ -305,7 +310,7 @@ body {
   font-size: 17px;
 }
 
-/* ── 齿轮占位（Task 12 接长按设置） ── */
+/* ── 齿轮（长按 1.5s 开设置） ── */
 .mn-gear {
   width: 48px;
   height: 48px;
@@ -320,6 +325,10 @@ body {
   justify-content: center;
   cursor: pointer;
   user-select: none;
+  touch-action: none; /* 长按不触发页面滚动/文本选择手势 */
+}
+.mn-gear:active {
+  background: rgba(255, 255, 255, 0.38);
 }
 
 /* ── 吉祥物（几何占位，README §Assets） ── */
@@ -436,6 +445,33 @@ body {
 .mn-result-btn--next:active {
   transform: translateY(4px);
   box-shadow: 0 2px 0 rgba(0, 0, 0, 0.25);
+}
+/* 无尽/限时结算：破纪录庆祝 + 纪录统计 */
+.mn-result-record {
+  font-size: 36px;
+  font-weight: 900;
+  color: var(--color-amber);
+  animation: mn-pop 0.5s ease-out;
+}
+.mn-result-stats {
+  display: flex;
+  gap: 60px;
+}
+.mn-result-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+.mn-result-stat-num {
+  font-size: 46px;
+  font-weight: 900;
+  color: var(--color-white-100);
+  line-height: 1;
+}
+.mn-result-stat-label {
+  font-size: 20px;
+  color: var(--color-white-60);
 }
 
 /* ═══════ 答题屏（Quiz） ═══════ */
@@ -697,4 +733,264 @@ body {
 }
 .mn-feedback-card--wrong {
   background: var(--color-coral);
+}
+
+/* ═══════ 无尽顶栏（StreakBar） ═══════ */
+.mn-streakbar {
+  position: absolute;
+  top: 30px;
+  left: 124px;
+  right: 124px;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  gap: 22px;
+}
+.mn-streak-fire {
+  flex: none;
+  font-size: 26px;
+  font-weight: 900;
+  color: var(--color-amber);
+  background: var(--amber-20);
+  border-radius: 50px;
+  padding: 9px 22px;
+  white-space: nowrap;
+}
+.mn-streak-fire.is-dim {
+  color: var(--color-white-40);
+  background: var(--panel-10);
+}
+.mn-voyage {
+  position: relative;
+  flex: 1;
+  height: 44px;
+}
+.mn-voyage-track {
+  position: absolute;
+  left: 22px;
+  right: 22px;
+  top: 0;
+  bottom: 0;
+}
+.mn-voyage-line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  border-top: 4px dashed var(--path-dash);
+}
+.mn-voyage-boat {
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 34px;
+  line-height: 1;
+  transition: left 0.5s ease;
+}
+.mn-voyage-count {
+  flex: none;
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--color-white-60);
+  white-space: nowrap;
+  min-width: 96px;
+  text-align: right;
+}
+
+/* ═══════ 限时顶栏（TimerBar） ═══════ */
+.mn-timerbar {
+  position: absolute;
+  top: 30px;
+  left: 124px;
+  right: 124px;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  gap: 22px;
+}
+.mn-timerbar-track {
+  flex: 1;
+  height: 22px;
+  border-radius: 16px;
+  background: var(--panel-12);
+  overflow: hidden;
+}
+.mn-timerbar-fill {
+  height: 100%;
+  border-radius: 16px;
+  background: var(--color-amber);
+  /* 答对 +8s 宽度增大 → transition 形成回弹；≤10s 变色也平滑过渡 */
+  transition: width 0.4s ease, background-color 0.3s ease;
+}
+.mn-timerbar-fill.is-low {
+  background: var(--color-coral);
+}
+.mn-timerbar-secs {
+  flex: none;
+  font-size: 26px;
+  font-weight: 900;
+  color: var(--color-white-85);
+  min-width: 74px;
+  text-align: right;
+}
+.mn-timerbar-secs.is-low {
+  color: var(--color-coral);
+}
+
+/* ═══════ 家长设置面板（SettingsModal） ═══════ */
+.mn-set-mask {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  background: var(--color-scrim);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.mn-set-card {
+  position: relative;
+  width: 580px;
+  max-width: calc(100% - 80px);
+  background: var(--panel-12);
+  backdrop-filter: blur(2px);
+  border-radius: 28px;
+  padding: 40px 44px 44px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.45);
+}
+.mn-set-close {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  width: 68px;
+  height: 68px;
+  border: none;
+  border-radius: 20px;
+  background: var(--panel-12);
+  color: var(--color-white-60);
+  font-family: inherit;
+  font-size: 26px;
+  font-weight: 900;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  user-select: none;
+}
+.mn-set-close:hover {
+  background: var(--panel-25);
+}
+.mn-set-title {
+  font-size: 30px;
+  font-weight: 900;
+  color: var(--color-white-100);
+  margin-bottom: 6px;
+}
+.mn-set-row {
+  min-height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+}
+.mn-set-label {
+  font-size: 22px;
+  font-weight: 500;
+  color: var(--color-white-85);
+}
+/* 题数步进器 */
+.mn-stepper {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--panel-10);
+  border-radius: 16px;
+  padding: 6px;
+}
+.mn-step-btn {
+  width: 48px;
+  height: 48px;
+  border: none;
+  border-radius: 12px;
+  background: var(--panel-12);
+  color: var(--color-white-100);
+  font-family: inherit;
+  font-size: 28px;
+  font-weight: 900;
+  line-height: 1;
+  cursor: pointer;
+  user-select: none;
+}
+.mn-step-btn:not(:disabled):active {
+  background: var(--panel-25);
+}
+.mn-step-btn:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+.mn-step-num {
+  min-width: 52px;
+  text-align: center;
+  font-size: 26px;
+  font-weight: 900;
+  color: var(--color-white-100);
+}
+/* 开关 toggle */
+.mn-toggle {
+  flex: none;
+  position: relative;
+  width: 92px;
+  height: 52px;
+  border: none;
+  border-radius: 26px;
+  background: var(--panel-25);
+  cursor: pointer;
+  padding: 0;
+  transition: background-color 0.2s ease;
+}
+.mn-toggle.is-on {
+  background: var(--color-teal);
+}
+.mn-toggle-knob {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--color-white-100);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  transition: left 0.2s ease;
+}
+.mn-toggle.is-on .mn-toggle-knob {
+  left: 44px;
+}
+/* 重置进度：二次确认变红 */
+.mn-set-reset {
+  margin-top: 12px;
+  width: 100%;
+  border: none;
+  border-radius: 18px;
+  padding: 16px 0;
+  font-family: inherit;
+  font-size: 22px;
+  font-weight: 900;
+  color: var(--color-white-85);
+  background: var(--panel-10);
+  cursor: pointer;
+  user-select: none;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+.mn-set-reset:active {
+  transform: translateY(2px);
+}
+.mn-set-reset.is-confirm {
+  background: var(--color-coral);
+  color: var(--color-white-100);
+  box-shadow: 0 4px 0 rgba(0, 0, 0, 0.25);
+  animation: mn-pop 0.3s ease-out;
 }

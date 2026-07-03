@@ -1,4 +1,4 @@
-import { useState } from 'preact/hooks';
+import { useEffect, useRef, useState } from 'preact/hooks';
 import type { Progress } from '../../core/types';
 import { chapterOf, chapterStart, endlessUnlocked, timedUnlocked } from '../../core/progression';
 import { Mascot } from '../components/Mascot';
@@ -106,6 +106,17 @@ export function Map({ progress, onStartLevel, onStartEndless, onStartTimed, onOp
     run();
   };
 
+  // 齿轮长按 1.5s 才打开设置（防误触）：pointerdown 起计时，抬起/移出取消；普通点击无效。
+  const gearTimer = useRef<number | undefined>(undefined);
+  const startHold = () => {
+    gearTimer.current = window.setTimeout(onOpenSettings, 1500);
+  };
+  const cancelHold = () => {
+    window.clearTimeout(gearTimer.current);
+    gearTimer.current = undefined;
+  };
+  useEffect(() => () => window.clearTimeout(gearTimer.current), []);
+
   return (
     <>
       {/* ─── 顶栏 ─── */}
@@ -187,8 +198,17 @@ export function Map({ progress, onStartLevel, onStartEndless, onStartTimed, onOp
         </button>
       </div>
 
-      {/* ─── 右下角齿轮占位（Task 12 接长按设置） ─── */}
-      <button class="mn-gear" style={{ position: 'absolute', right: 16, bottom: 16 }} onClick={onOpenSettings} aria-label="设置">
+      {/* ─── 右下角齿轮：长按 1.5s 打开家长设置 ─── */}
+      <button
+        class="mn-gear"
+        style={{ position: 'absolute', right: 16, bottom: 16 }}
+        onPointerDown={startHold}
+        onPointerUp={cancelHold}
+        onPointerLeave={cancelHold}
+        onPointerCancel={cancelHold}
+        onContextMenu={(e) => e.preventDefault()}
+        aria-label="家长设置（长按打开）"
+      >
         ⚙
       </button>
     </>
