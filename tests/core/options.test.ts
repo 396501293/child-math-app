@@ -78,6 +78,14 @@ test('missing-* kinds never get a flipped distractor', () => {
   }
 });
 
+test('missing-mul kinds never get the tens-shift distractor (3×?=12 → 14 never appears)', () => {
+  const item = { kind: 'missing-mul-b' as const, operands: [3, 4], ops: ['×' as const] };
+  for (let s = 1; s <= 500; s++) {
+    const opts = makeOptions(item, 4, 52, seeded(s));
+    expect(opts).not.toContain(14);   // 距离干扰只会给 2,3,5,6；14 只能来自 answer+10 十位偏差
+  }
+});
+
 test('mul distractors prioritize 口诀邻位 candidates (7×8=56, band 51)', () => {
   const item = { kind: 'mul' as const, operands: [7, 8], ops: ['×' as const] };
   let neighborSeen = false;

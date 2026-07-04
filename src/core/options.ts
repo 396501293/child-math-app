@@ -4,9 +4,10 @@ import { shuffle } from './rand';
 /**
  * 3 options = answer + 2 distractors, deduped & shuffled. Candidate priority: for 纯乘法题
  * (kind 'mul') up to TWO 口诀邻位 candidates (a±1)×b / a×(b±1); else at most ONE special
- * distractor (flipped-op a∓b for add/sub kinds at band≥7, else chapter-3 tens-shift ±10, each
- * at 50%); then distance candidates answer±d, then fallback widening d until 2 found. All
- * distractors clamped to [1, 20] (bands ≤30) / [1, 100] (bands ≥31), never == answer.
+ * distractor (flipped-op a∓b for add/sub kinds at band≥7, else tens-shift ±10 — 加减/连算题在
+ * 档 31+ 适用，mul/missing-mul 一律不出 — each at 50%); then distance candidates answer±d,
+ * then fallback widening d until 2 found. All distractors clamped to [1, 20] (bands ≤30) /
+ * [1, 100] (bands ≥31), never == answer.
  */
 export function makeOptions(item: Item, answer: number, band: number, rng: Rng): number[] {
   const maxV = band <= 30 ? 20 : 100;
@@ -30,7 +31,8 @@ export function makeOptions(item: Item, answer: number, band: number, rng: Rng):
     const flipped = item.kind === 'add' ? a - b : a + b;
     if (ok(flipped)) cands.push(flipped);
   }
-  if (band >= 31 && !isTens && cands.length === 0 && rng() < 0.5) {
+  const additive = item.kind === 'add' || item.kind === 'sub' || item.kind === 'chain3';
+  if (band >= 31 && additive && !isTens && cands.length === 0 && rng() < 0.5) {
     const shifted = answer + (rng() < 0.5 ? 10 : -10);
     if (ok(shifted)) cands.push(shifted);
   }
