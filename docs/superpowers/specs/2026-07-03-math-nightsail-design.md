@@ -187,3 +187,7 @@ timedPool(progress: Progress): number[]
 - 干扰项新增乘法「口诀邻位」候选 `(a±1)×b`、`a×(b±1)`，优先级同弄反；clamp [1,100]。
 - 家长设置新增「解锁全部关卡」（二次确认，unlocked=60）。
 - 测试：EXACT 表扩展档 46–60（数值见题库文档附录，已脚本验算）；不变量循环扩至 60 档（乘法/两步题的逐步结果 ∈ [1,100]）。
+
+## 增补 v1.2（2026-07-04）：模式难度锚点（修复 P0-1）
+
+上线评估发现「解锁全部关卡」污染练习模式难度：`endlessBand`/`timedPool` 原锚在 `progress.unlocked`，而该按钮把 `unlocked` 直接拉满到 60，导致无尽模式恒从第四章（乘法）起步、限时模式题池锚在最高章、为空时甚至回落到全书最难档。修复方案：`src/core/progression.ts` 新增 `effectiveLevel(p) = clamp(min(p.unlocked, maxStarredLevel(p) + 1), 1, 60)`（`maxStarredLevel` 为最高得星关，无则 0）；`endlessBand`/`timedPool` 的调用方一律改用 `effectiveLevel(progress)` 作为锚点入参，取代原始 `progress.unlocked`。正常推进时 `unlocked` 恒等于「最高得星关 + 1」，`effectiveLevel` 与旧行为**逐位一致**（对普通玩家零变化）；解锁全部关卡后，锚点仍跟随孩子真实掌握度的最高关 + 1，不再被家长开关污染。限时题池的空池兜底同时从「回落 `progress.unlocked`」改为「回落最温和的档 1」，避免任何异常状态下退化为最高难度。规则权威定义见 `题库难度与模式设计.md` §二「难度锚点（两模式共用）」。

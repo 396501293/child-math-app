@@ -3,7 +3,7 @@ import type { BandConfig, Progress, Question } from '../core/types';
 import { bandOf } from '../core/bands';
 import { itemKey } from '../core/enumerate';
 import { applyHardMode, generateLevel, generateQuestion } from '../core/generator';
-import { chapterOf, endlessBand, starsFor, timedPool, unlockAfterWin } from '../core/progression';
+import { chapterOf, effectiveLevel, endlessBand, starsFor, timedPool, unlockAfterWin } from '../core/progression';
 import { defaultProgress, loadProgress, saveProgress } from '../core/storage';
 import { onAvailabilityChange, speak, stopTTS, ttsAvailable } from '../audio/tts';
 import { currentQuestion, type Mode, type Screen, type Session } from './session';
@@ -103,11 +103,13 @@ export function App() {
   // 模式流式出题：无尽档位随连对爬升；限时从已完成档均匀混抽。滚动去重（最近 5 题）。
   const nextModeQuestion = (mode: Mode, correctCount: number, recentKeys: string[]): Question => {
     if (mode === 'endless') {
-      const band = endlessBand(correctCount, progress.unlocked);
+      const band = endlessBand(correctCount, effectiveLevel(progress));
       return generateQuestion(applyIfHard(bandOf(band)), Math.random, recentKeys);
     }
     const pool = timedPool(progress);
-    const band = pool.length ? pool[Math.floor(Math.random() * pool.length)] : progress.unlocked;
+    // 兜底：正常状态下 timedUnlocked 时题池必非空（锚点恒含最高得星档所在章）；
+    // 万一异常数据导致为空，回落最温和的档 1，而非家长可能拉满的 unlocked。
+    const band = pool.length ? pool[Math.floor(Math.random() * pool.length)] : 1;
     return generateQuestion(applyIfHard(bandOf(band)), Math.random, recentKeys);
   };
 

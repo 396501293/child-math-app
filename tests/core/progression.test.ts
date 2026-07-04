@@ -1,6 +1,7 @@
 import { expect, test } from 'vitest';
 import {
   chapterOf,
+  effectiveLevel,
   endlessBand,
   endlessUnlocked,
   starsFor,
@@ -83,4 +84,43 @@ test('timedPool: timed first-use path (chapter 1 fully starred)', () => {
   for (let l = 1; l <= 9; l++) p.stars[l] = 1;
   p.unlocked = 10;
   expect(timedPool(p)).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9]);
+});
+
+test('effectiveLevel: default progress has no stars → 1', () => {
+  const p = defaultProgress();
+  expect(effectiveLevel(p)).toBe(1);
+});
+
+test('effectiveLevel: normal play tracks unlocked (unlocked === maxStarred+1)', () => {
+  const p = defaultProgress();
+  for (let l = 1; l <= 12; l++) p.stars[l] = 1;
+  p.unlocked = 13;
+  expect(effectiveLevel(p)).toBe(13);
+});
+
+test('effectiveLevel: unlock-all does not pollute anchor beyond real mastery', () => {
+  const p = defaultProgress();
+  for (let l = 1; l <= 12; l++) p.stars[l] = 1;
+  p.unlocked = 60; // 家长「解锁全部关卡」
+  expect(effectiveLevel(p)).toBe(13);
+});
+
+test('effectiveLevel: unlock-all with zero stars falls back to 1', () => {
+  const p = defaultProgress();
+  p.unlocked = 60;
+  expect(effectiveLevel(p)).toBe(1);
+});
+
+test('effectiveLevel: full mastery clamps at 60', () => {
+  const p = defaultProgress();
+  for (let l = 1; l <= 60; l++) p.stars[l] = 3;
+  p.unlocked = 60;
+  expect(effectiveLevel(p)).toBe(60);
+});
+
+test('timedPool: unlock-all does not empty the pool — anchors on real mastery', () => {
+  const p = defaultProgress();
+  for (let l = 1; l <= 16; l++) p.stars[l] = 1;
+  p.unlocked = 60; // 家长「解锁全部关卡」：不应把限时锚定到章 4
+  expect(timedPool(p)).toEqual([...Array(16)].map((_, i) => i + 1));
 });
