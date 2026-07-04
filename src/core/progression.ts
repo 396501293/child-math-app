@@ -9,6 +9,8 @@ export const endlessBand = (correct: number, maxUnlocked: number): number =>
 
 export const endlessUnlocked = (p: Progress): boolean => (p.stars[3] ?? 0) >= 1;
 export const timedUnlocked = (p: Progress): boolean => (p.stars[9] ?? 0) >= 1;
+// 九九星图：完成第 46 关（首次遇 ×，L={2,5}）后解锁（spec §7）。
+export const timesTableUnlocked = (p: Progress): boolean => (p.stars[46] ?? 0) >= 1;
 
 // 练习模式（无尽/限时）的难度锚点：已解锁 与 「最高得星关+1」中取更小者。
 // 正常推进时 unlocked === maxStarred+1，锚点与旧行为完全一致；

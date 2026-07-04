@@ -5,7 +5,8 @@ import { Mascot } from '../components/Mascot';
 type ResultProps =
   | { variant: 'campaign'; level: number; stars: 1 | 2 | 3; onBackToMap: () => void; onNextLevel?: () => void; onReplaySub: () => void }
   | { variant: 'endless'; answered: number; runBestStreak: number; historyBestStreak: number; broke: boolean; onBackToMap: () => void }
-  | { variant: 'timed'; answered: number; bestCount: number; broke: boolean; onBackToMap: () => void };
+  | { variant: 'timed'; answered: number; bestCount: number; broke: boolean; onBackToMap: () => void }
+  | { variant: 'timestable'; answered: number; newLit: number; lit: number; onBackToStarChart: () => void; onBackToMap: () => void; onReplaySub: () => void };
 
 // campaign 副文案常量表（按星级）。App 结算时读同一份文案朗读（Task 13）。
 export const CAMPAIGN_SUB: Record<1 | 2 | 3, string> = {
@@ -72,6 +73,32 @@ export function Result(props: ResultProps) {
         </div>
         <div class="mn-result-actions">
           <button class="mn-result-btn mn-result-btn--next" onClick={onBackToMap}>回地图</button>
+        </div>
+      </div>
+    );
+  }
+
+  if (props.variant === 'timestable') {
+    const { answered, newLit, lit, onBackToStarChart, onBackToMap, onReplaySub } = props;
+    const cleared = lit >= 36;
+    return (
+      <div class="mn-result">
+        <div class="mn-result-mascot">
+          <Mascot pose={newLit > 0 ? 'cheer' : 'happy'} scale={1.15} />
+        </div>
+        <div class="mn-result-title">本轮答对 {answered} 题！</div>
+        {cleared ? (
+          <div class="mn-result-record">🎉 星图点亮！全会啦！</div>
+        ) : newLit > 0 ? (
+          <div class="mn-result-record">✨ 新点亮 {newLit} 格！</div>
+        ) : null}
+        <div class="mn-result-sub">
+          已点亮 {lit} / 36
+          <span class="mn-result-sub-tts" role="button" aria-label="重播祝贺语" onClick={onReplaySub}>🔊</span>
+        </div>
+        <div class="mn-result-actions">
+          <button class="mn-result-btn mn-result-btn--ghost" onClick={onBackToMap}>回地图</button>
+          <button class="mn-result-btn mn-result-btn--next" onClick={onBackToStarChart}>回星图</button>
         </div>
       </div>
     );

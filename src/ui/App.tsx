@@ -5,12 +5,14 @@ import { itemKey } from '../core/enumerate';
 import { applyHardMode, generateLevel, generateQuestion } from '../core/generator';
 import { chapterOf, effectiveLevel, endlessBand, starsFor, timedPool, unlockAfterWin } from '../core/progression';
 import { defaultProgress, loadProgress, saveProgress } from '../core/storage';
+import { koujue, TimesTableSession } from '../core/timesTable';
 import { onAvailabilityChange, speak, stopTTS, ttsAvailable } from '../audio/tts';
 import { currentQuestion, type Mode, type Screen, type Session } from './session';
 import { useCountdown } from './useCountdown';
 import { useStageScale } from './scale';
 import { Map } from './screens/Map';
 import { Quiz } from './screens/Quiz';
+import { StarChart } from './screens/StarChart';
 import { CAMPAIGN_SUB, Result } from './screens/Result';
 import { RotateOverlay } from './components/RotateOverlay';
 import { SettingsModal } from './components/SettingsModal';
@@ -30,7 +32,14 @@ const VOICE = {
   record: '新纪录！',
   endlessResult: (n: number) => `本轮答对 ${n} 题！`,
   timedResult: (n: number) => `时间到！你答对了 ${n} 题！`,
+  ttResult: (n: number) => `本轮答对 ${n} 题！`,
+  ttResultLit: (n: number, lit: number) => `本轮答对 ${n} 题，新点亮 ${lit} 句口诀！`,
+  ttComplete: '星图点亮！九九口诀你全会了！',
 } as const;
+
+// 九九星图结算祝贺语（集齐 > 有新点亮 > 普通完成）。结算与重播读同一句。
+const ttResultLine = (correct: number, newLit: number, lit: number): string =>
+  lit >= 36 ? VOICE.ttComplete : newLit > 0 ? VOICE.ttResultLit(correct, newLit) : VOICE.ttResult(correct);
 
 function usePortrait(): boolean {
   const [portrait, setPortrait] = useState(() => window.innerHeight > window.innerWidth);
@@ -64,6 +73,10 @@ export function App() {
   // 供定时器/倒计时回调读取最新 session（避免闭包读到旧值）。
   const sessionRef = useRef<Session | null>(session);
   sessionRef.current = session;
+
+  // 九九星图会话对象：有状态、活在 Preact state 之外（ref-truth），
+  // Session 只镜像顶栏/揭示/结算所需最小字段（同 useCountdown 的 ref+display 范式）。
+  const ttSessionRef = useRef<TimesTableSession | null>(null);
 
   const clearTimer = () => {
     if (timerRef.current !== undefined) {
@@ -130,6 +143,104 @@ export function App() {
     setScreen('quiz');
   };
 
+  // ── 九九星图（timestable）会话流 ──────────────────────────────────────────────
+  // 会话对象存 ttSessionRef（ref-truth）；下面把其当前态镜像进 Session 供 Quiz 渲染。
+  const mirrorNextTt = (s: Session, tt: TimesTableSession): Session => ({
+    ...s,
+    current: tt.currentQuestion(),
+    qIndex: tt.index,
+    ttTotal: tt.length,
+    ttLit: tt.litCount(),
+    feedback: null,
+    excluded: [],
+    lastWrong: undefined,
+    ttReveal: null,
+  });
+
+  // 结算：commit() 恰一次 → 落盘；算「新点亮」格数（s 由非 3 升到 3）；按结果祝贺。
+  const finishTimesTable = (correctCount: number) => {
+    const s = sessionRef.current;
+    const tt = ttSessionRef.current;
+    if (!s || !tt) return;
+    clearTimer();
+    const before = progress.timesTable.facts;
+    const committed = tt.commit();
+    const after = committed.timesTable.facts;
+    let newLit = 0;
+    for (const [k, st] of Object.entries(after))
+      if (st.s === 3 && (before[k]?.s ?? 0) !== 3) newLit++;
+    const lit = Object.values(after).filter((f) => f.s === 3).length;
+    updateProgress(committed);
+    speak(ttResultLine(correctCount, newLit, lit), { interrupt: true }); // 结算祝贺
+    setSession({ ...s, feedback: null, ttReveal: null, resultTimes: { correct: correctCount, newLit, lit } });
+    setScreen('result');
+  };
+
+  // 答对 1.1s 后推进：记账（内部 idx++、rebuild）→ 结算 or 下一题。
+  const advanceTimesTable = () => {
+    const s = sessionRef.current;
+    const tt = ttSessionRef.current;
+    if (!s || s.mode !== 'timestable' || !tt) return;
+    tt.answer(true);
+    const correctCount = s.correctCount + 1;
+    if (tt.isDone()) { finishTimesTable(correctCount); return; }
+    speak(tt.currentQuestion().ttsText, { interrupt: true }); // 进新题自动朗读
+    setSession({ ...mirrorNextTt(s, tt), correctCount });
+  };
+
+  // 揭示阶段点击继续：记账答错（内部已排「再见面」、idx++）→ 结算 or 下一题。
+  const continueFromReveal = () => {
+    const s = sessionRef.current;
+    const tt = ttSessionRef.current;
+    if (!s || s.mode !== 'timestable' || !tt || !s.ttReveal) return;
+    clearTimer();
+    tt.answer(false);
+    if (tt.isDone()) { finishTimesTable(s.correctCount); return; }
+    speak(tt.currentQuestion().ttsText, { interrupt: true }); // 进新题自动朗读
+    setSession(mirrorNextTt(s, tt));
+  };
+
+  // 批改（星图）：答对念口诀（庆祝，替代 VOICE.right）+ 'right' 遮罩，1.1s 后推进；
+  // 答错念口诀 + 进入揭示阶段（口诀+阵列常显），不原地重试——等点击继续（spec 再见面机制）。
+  const answerTimesTable = (option: number) => {
+    const s = sessionRef.current;
+    const tt = ttSessionRef.current;
+    if (!s || !tt || s.feedback !== null || s.ttReveal) return;
+    const q = tt.currentQuestion();
+    const fact = tt.currentFact();
+    clearTimer();
+    speak(koujue(fact.a, fact.b), { interrupt: true }); // 答对=庆祝口诀 / 答错=揭示口诀（同句）
+    if (option === q.answer) {
+      setSession({ ...s, feedback: 'right' });
+      timerRef.current = window.setTimeout(advanceTimesTable, 1100);
+    } else {
+      setSession({
+        ...s,
+        wrongTotal: s.wrongTotal + 1,
+        excluded: [...s.excluded, option],
+        lastWrong: option,
+        ttReveal: { a: fact.a, b: fact.b, koujue: koujue(fact.a, fact.b) },
+      });
+    }
+  };
+
+  const startTimesTable = () => {
+    const tt = new TimesTableSession(progress, Math.random);
+    ttSessionRef.current = tt;
+    if (tt.isDone()) { setScreen('starchart'); return; } // 活跃池为空兜底（CTA 已禁用，理论不触发）
+    const q = tt.currentQuestion();
+    speak(q.ttsText, { interrupt: true }); // 进新题自动朗读
+    setSession({
+      ...blankRun('timestable'),
+      current: q,
+      qIndex: tt.index,
+      ttTotal: tt.length,
+      ttLit: tt.litCount(),
+      ttReveal: null,
+    });
+    setScreen('quiz');
+  };
+
   // 答对 1.1s 后推进：主线到下一题或结算；模式生成下一题（滚动去重 + 计数/连对）。
   const advanceCampaign = () => {
     const s = sessionRef.current;
@@ -178,7 +289,9 @@ export function App() {
   // 批改选项。答对：闪青绿 + 遮罩，延迟推进。答错：排除该项 + shake，0.9s 后清除反馈原地重试。
   const answer = (option: number) => {
     const s = sessionRef.current;
-    if (!s || s.feedback !== null) return; // 反馈展示期间忽略（含答对 1.1s 窗口，防止二次触发）
+    if (!s) return;
+    if (s.mode === 'timestable') { answerTimesTable(option); return; } // 星图独立批改（口诀庆祝/答错揭示）
+    if (s.feedback !== null) return; // 反馈展示期间忽略（含答对 1.1s 窗口，防止二次触发）
     const q = currentQuestion(s);
     clearTimer();
     if (option === q.answer) {
@@ -257,22 +370,46 @@ export function App() {
     const hint = s && currentQuestion(s).blocksHint;
     if (hint) speak(hint, { interrupt: true });
   };
-  // 结算屏 🔊：重播进结算时念的那句星级副文案。
+  // 结算屏 🔊：重播进结算时念的那句副文案（campaign 星级副文案 / 星图祝贺语）。
   const replaySubTts = () => {
     const s = sessionRef.current;
     if (s?.mode === 'campaign') speak(CAMPAIGN_SUB[s.resultStars ?? starsFor(s.wrongTotal)], { interrupt: true });
+    else if (s?.mode === 'timestable' && s.resultTimes) {
+      const rt = s.resultTimes;
+      speak(ttResultLine(rt.correct, rt.newLit, rt.lit), { interrupt: true });
+    }
   };
 
   const exitToMap = () => {
     clearTimer();
     stopTTS(); // 切屏停读
     setSession(null);
+    ttSessionRef.current = null;
     setScreen('map');
   };
 
-  // 答题屏返回键：无尽 = 结束本轮进结算；campaign / timed = 放弃本轮直接回地图（不结算不记录）。
+  const openStarChart = () => {
+    stopTTS();
+    setSession(null);
+    ttSessionRef.current = null;
+    setScreen('starchart');
+  };
+
+  // 星图结算「回星图」：进度已 commit 落盘，只需清会话回模式主页。
+  const backToStarChart = () => {
+    clearTimer();
+    stopTTS();
+    setSession(null);
+    ttSessionRef.current = null;
+    setScreen('starchart');
+  };
+
+  // 答题屏返回键：无尽 = 结束本轮进结算；星图 = 提前结算落盘（spec §1 中途返回提前结算）；
+  // campaign / timed = 放弃本轮直接回地图（不结算不记录）。
   const onQuizExit = () => {
-    if (sessionRef.current?.mode === 'endless') finishEndless();
+    const s = sessionRef.current;
+    if (s?.mode === 'endless') finishEndless();
+    else if (s?.mode === 'timestable') finishTimesTable(s.correctCount);
     else exitToMap();
   };
 
@@ -286,6 +423,7 @@ export function App() {
     updateProgress(defaultProgress());
     setSettingsOpen(false);
     setSession(null);
+    ttSessionRef.current = null;
     setScreen('map');
   };
   // 解锁全部关卡（家长设置）：拉满 unlocked，不动星星；关面板回地图。
@@ -303,15 +441,26 @@ export function App() {
             onStartLevel={startLevel}
             onStartEndless={startEndless}
             onStartTimed={startTimed}
+            onOpenStarChart={openStarChart}
             onOpenSettings={openSettings}
             onWelcome={(line) => speak(line, { interrupt: true })}
+          />
+        )}
+        {screen === 'starchart' && (
+          <StarChart
+            progress={progress}
+            onStartSession={startTimesTable}
+            onBack={exitToMap}
+            onSpeak={(line) => speak(line, { interrupt: true })}
           />
         )}
         {screen === 'quiz' && session && (
           <Quiz
             session={session}
             showBlocks={
-              session.mode === 'timed'
+              session.mode === 'timestable'
+                ? true // 星图：阵列教具恒显（spec §5，missing 变体自身不带 blocksPlan）
+                : session.mode === 'timed'
                 ? progress.settings.showBlocksTimed
                 : progress.settings.showBlocks
             }
@@ -321,6 +470,7 @@ export function App() {
             onExit={onQuizExit}
             onReplay={replayTts}
             onHint={hintTts}
+            onContinueReveal={continueFromReveal}
           />
         )}
         {/* 结算屏对三种 mode 穷举，无静默空屏。 */}
@@ -342,6 +492,16 @@ export function App() {
               historyBestStreak={progress.endless.bestStreak}
               broke={!!session.resultBroke}
               onBackToMap={exitToMap}
+            />
+          ) : session.mode === 'timestable' ? (
+            <Result
+              variant="timestable"
+              answered={session.resultTimes?.correct ?? session.correctCount}
+              newLit={session.resultTimes?.newLit ?? 0}
+              lit={session.resultTimes?.lit ?? 0}
+              onBackToStarChart={backToStarChart}
+              onBackToMap={exitToMap}
+              onReplaySub={replaySubTts}
             />
           ) : (
             <Result

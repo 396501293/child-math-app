@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'preact/hooks';
 import type { Progress } from '../../core/types';
-import { chapterOf, chapterStart, endlessUnlocked, timedUnlocked } from '../../core/progression';
+import { chapterOf, chapterStart, endlessUnlocked, timedUnlocked, timesTableUnlocked } from '../../core/progression';
 import { Mascot } from '../components/Mascot';
 
 interface MapProps {
@@ -8,6 +8,7 @@ interface MapProps {
   onStartLevel: (level: number) => void;
   onStartEndless: () => void;
   onStartTimed: () => void;
+  onOpenStarChart: () => void; // 进九九星图模式主页
   onOpenSettings: () => void;
   onWelcome: (line: string) => void; // 点击 mascot 卡片/🔊 徽标念欢迎语（首次交互后发声，无自动播）
 }
@@ -67,7 +68,7 @@ function NodeCell({ level, state, stars, onTap }: {
   );
 }
 
-export function Map({ progress, onStartLevel, onStartEndless, onStartTimed, onOpenSettings, onWelcome }: MapProps) {
+export function Map({ progress, onStartLevel, onStartEndless, onStartTimed, onOpenStarChart, onOpenSettings, onWelcome }: MapProps) {
   const maxChapter = chapterOf(progress.unlocked);
   const [viewChapter, setViewChapter] = useState<number>(maxChapter);
   const [seen, setSeen] = useState<Record<string, boolean>>(loadSeen);
@@ -97,8 +98,9 @@ export function Map({ progress, onStartLevel, onStartEndless, onStartTimed, onOp
 
   const endlessOn = endlessUnlocked(progress);
   const timedOn = timedUnlocked(progress);
+  const starChartOn = timesTableUnlocked(progress);
 
-  const openMode = (key: 'endless' | 'timed', run: () => void) => {
+  const openMode = (key: 'endless' | 'timed' | 'starchart', run: () => void) => {
     if (!seen[key]) {
       const next = { ...seen, [key]: true };
       saveSeen(next);
@@ -199,6 +201,15 @@ export function Map({ progress, onStartLevel, onStartEndless, onStartTimed, onOp
         >
           {!timedOn && '🔒 '}星光冲刺
           {timedOn && !seen.timed && <span class="mn-badge">新玩法！</span>}
+        </button>
+
+        <button
+          class={starChartOn ? 'mn-mode-btn' : 'mn-mode-btn is-locked'}
+          disabled={!starChartOn}
+          onClick={starChartOn ? () => openMode('starchart', onOpenStarChart) : undefined}
+        >
+          {!starChartOn && '🔒 '}九九星图
+          {starChartOn && !seen.starchart && <span class="mn-badge">新玩法！</span>}
         </button>
       </div>
 

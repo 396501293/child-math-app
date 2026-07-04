@@ -312,8 +312,17 @@ body {
 .mn-tts-off .mn-tts-badge,
 .mn-tts-off .mn-quiz-replay,
 .mn-tts-off .mn-blocks-hint,
-.mn-tts-off .mn-result-sub-tts {
+.mn-tts-off .mn-result-sub-tts,
+.mn-tts-off .mn-sc-card-tts {
   opacity: 0.35;
+}
+
+/* CTA 禁用态（星图活跃池为空时的「开始练习」） */
+.mn-cta.is-disabled {
+  background: var(--panel-10);
+  color: var(--color-white-40);
+  box-shadow: none;
+  cursor: default;
 }
 
 /* ── 齿轮（长按 1.5s 开设置） ── */
@@ -972,6 +981,218 @@ body {
 .mn-toggle.is-on .mn-toggle-knob {
   left: 44px;
 }
+/* ═══════ 九九星图（StarChart 星图盘 + 答题屏 timestable 变体） ═══════ */
+
+/* ── 星图盘（10×10：1 行 + 1 列表头，格 54 圆角 12 gap 6，spec UI 估算） ── */
+.mn-sc-grid {
+  position: absolute;
+  top: 130px;
+  left: 40px;
+  display: grid;
+  grid-template-columns: repeat(10, 54px);
+  grid-auto-rows: 54px;
+  gap: 6px;
+}
+.mn-sc-corner,
+.mn-sc-head,
+.mn-sc-cell {
+  width: 54px;
+  height: 54px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 900;
+  user-select: none;
+  box-sizing: border-box;
+}
+.mn-sc-corner {
+  color: var(--color-amber);
+  font-size: 26px;
+}
+.mn-sc-head {
+  color: var(--color-amber);
+  font-size: 24px;
+}
+.mn-sc-head.is-locked {
+  color: var(--color-white-40);
+  font-size: 20px;
+}
+.mn-sc-cell {
+  font-size: 18px;
+  cursor: pointer;
+}
+/* 掌握度色阶：s0 暗 → 青绿弱 → 青绿亮 → 琥珀金（点亮，pop） */
+.mn-sc-cell--s0 {
+  background: var(--panel-06);
+  color: var(--color-white-40);
+}
+.mn-sc-cell--s1 {
+  background: rgba(47, 178, 155, 0.32);
+  color: var(--color-white-85);
+}
+.mn-sc-cell--s2 {
+  background: rgba(47, 178, 155, 0.72);
+  color: var(--color-white-100);
+}
+.mn-sc-cell--s3 {
+  background: var(--color-amber);
+  color: var(--color-text-dark);
+  animation: mn-pop 0.35s ease-out;
+}
+/* ×1 预点亮（平凡、不计入 36）：弱琥珀，区别于「挣来的」金 */
+.mn-sc-cell--free {
+  background: var(--amber-20);
+  color: var(--amber-70);
+}
+/* 未学（a、b 均未学）：更暗，仍可点预览 */
+.mn-sc-cell--locked {
+  background: var(--panel-06);
+  color: var(--color-white-40);
+  opacity: 0.5;
+}
+.mn-sc-cell.is-sel {
+  outline: 3px solid var(--color-white-85);
+  outline-offset: -3px;
+}
+
+/* ── 右面板：点亮计数 + 点格弹卡 + CTA ── */
+.mn-sc-counter {
+  flex: none;
+  background: var(--panel-10);
+  border: 2px solid rgba(242, 165, 65, 0.6);
+  border-radius: 16px;
+  padding: 14px 0;
+  text-align: center;
+  font-size: 24px;
+  font-weight: 900;
+  color: var(--color-amber);
+}
+.mn-sc-card {
+  flex: 1;
+  background: var(--panel-07);
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  overflow: hidden;
+}
+.mn-sc-card-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+}
+.mn-sc-card-eq {
+  font-size: 30px;
+  font-weight: 900;
+  color: var(--color-white-100);
+}
+.mn-sc-card-koujue {
+  font-size: 40px;
+  font-weight: 900;
+  color: var(--color-amber);
+  letter-spacing: 2px;
+  animation: mn-pop 0.35s ease-out;
+}
+.mn-sc-card-tts {
+  margin-top: 4px;
+  background: var(--panel-12);
+  border-radius: 50px;
+  padding: 6px 16px;
+  font-size: 18px;
+  color: var(--color-white-85);
+  cursor: pointer;
+  user-select: none;
+}
+.mn-sc-card-hint {
+  font-size: 22px;
+  color: var(--color-white-50);
+  text-align: center;
+  line-height: 1.6;
+}
+.mn-sc-hint {
+  font-size: 17px;
+  color: var(--color-white-50);
+  text-align: center;
+}
+
+/* ── 阵列点阵（ArrayGrid，星图预览卡 / 答错揭示卡共用） ── */
+.mn-arraygrid {
+  justify-content: center;
+}
+.mn-arraygrid-dot {
+  border-radius: 4px;
+  background: var(--color-teal);
+}
+
+/* ── 答题屏 timestable 顶栏：第 n 题 / 共 X + 已点亮 Y/36 ── */
+.mn-tt-topbar {
+  position: absolute;
+  top: 30px;
+  left: 124px;
+  right: 124px;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 22px;
+}
+.mn-tt-pill {
+  font-size: 22px;
+  font-weight: 900;
+  color: var(--color-white-85);
+  background: var(--panel-12);
+  border-radius: 50px;
+  padding: 10px 24px;
+  white-space: nowrap;
+}
+.mn-tt-pill--lit {
+  color: var(--color-amber);
+  background: var(--amber-20);
+}
+
+/* ── 答错揭示卡（口诀 + 阵列 + 点一下继续）：全屏遮罩天然挡住选项点击 ── */
+.mn-tt-reveal-mask {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  background: var(--color-mask);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+.mn-tt-reveal-card {
+  background: var(--panel-12);
+  border-radius: 32px;
+  padding: 34px 56px 28px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+  animation: mn-pop 0.35s ease-out;
+}
+.mn-tt-reveal-koujue {
+  font-size: 62px;
+  font-weight: 900;
+  color: var(--color-amber);
+  letter-spacing: 4px;
+}
+.mn-tt-reveal-eq {
+  font-size: 36px;
+  font-weight: 900;
+  color: var(--color-white-100);
+}
+.mn-tt-reveal-hint {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--color-white-60);
+  margin-top: 4px;
+}
+
 /* 重置进度：二次确认变红 */
 .mn-set-reset {
   margin-top: 12px;

@@ -186,6 +186,8 @@ export class TimesTableSession {
   get length(): number { return this.queue.length; }
   get index(): number { return this.idx; }
   isDone(): boolean { return this.idx >= this.queue.length; }
+  // 当前工作副本中已点亮（s===3）的口诀数——供答题屏「已点亮 X/36」实时展示。
+  litCount(): number { return Object.values(this.states).filter((st) => st.s === 3).length; }
   currentFact(): Fact {
     if (this.isDone()) throw new Error('session is done');
     return this.queue[this.idx];
