@@ -12,6 +12,8 @@
 
 要求 **Node.js ≥ 20**（CI 使用 Node 22）。
 
+> 注：本仓库**不提交 `package-lock.json`**——开发机的 npm 配置了私有镜像（且为旧版 npm），生成的 lockfile 带有 CI 无法访问的镜像地址或缺少解析信息；CI 部署时由官方源现场解析安装，并以全量测试作为部署门槛。
+
 ```bash
 npm install     # 安装依赖
 npm run dev     # 本地开发服务器（Vite）

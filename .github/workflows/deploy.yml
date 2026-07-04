@@ -10,8 +10,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
-        with: { node-version: 22, cache: npm }
-      - run: npm ci
+        with: { node-version: 22 }
+      # 本仓库不提交 lockfile（开发机 npm 受私有镜像与旧版本限制，生成的 lockfile 缺少
+      # CI 可用的 resolved 地址）；CI 直接从官方源解析安装，部署前有全量测试兜底。
+      - run: npm install --no-audit --no-fund
       - run: npm test
       - run: npm run build
       - run: find dist -name '*.woff' -delete   # 剔除未预缓存的 .woff 死重（仅 woff2 被使用）
