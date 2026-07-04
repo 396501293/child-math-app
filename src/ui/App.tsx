@@ -286,6 +286,11 @@ export function App() {
     setSession(null);
     setScreen('map');
   };
+  // 解锁全部关卡（家长设置）：拉满 unlocked，不动星星；关面板回地图。
+  const unlockAll = () => {
+    updateProgress({ ...progress, unlocked: 60 });
+    setSettingsOpen(false);
+  };
 
   return (
     <div class="mn-viewport">
@@ -325,7 +330,7 @@ export function App() {
               stars={session.resultStars ?? starsFor(session.wrongTotal)}
               onReplaySub={replaySubTts}
               onBackToMap={exitToMap}
-              onNextLevel={session.level! < 45 ? () => startLevel(session.level! + 1) : undefined}
+              onNextLevel={session.level! < 60 ? () => startLevel(session.level! + 1) : undefined}
             />
           ) : session.mode === 'endless' ? (
             <Result
@@ -351,6 +356,7 @@ export function App() {
             settings={progress.settings}
             onUpdateSettings={updateSettings}
             onResetProgress={resetProgress}
+            onUnlockAll={unlockAll}
             onClose={() => setSettingsOpen(false)}
           />
         )}

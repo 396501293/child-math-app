@@ -5,7 +5,11 @@ import type { Question } from '../../core/types';
 
 type Tok = { t: 'num'; v: number } | { t: 'op'; v: string } | { t: 'box' };
 
-const opChar = (op: string): string => (op === '-' ? '−' : '+'); // 减号用 U+2212
+const opChar = (op: string): string => (op === '-' ? '−' : op === '×' ? '×' : '+'); // 减号 U+2212、乘号 U+00D7
+
+// 按实际运算符求值（缺数题显示结果 / 字号判断复用）。
+const evalOp = (a: number, b: number, op: string): number =>
+  op === '-' ? a - b : op === '×' ? a * b : a + b;
 
 function buildTokens(q: Question): Tok[] {
   const toks: Tok[] = [];
@@ -20,8 +24,8 @@ function buildTokens(q: Question): Tok[] {
     toks.push({ t: 'box' });
     return toks;
   }
-  // 缺数题：两操作数一运算符，结果 = a op b
-  const result = q.ops[0] === '+' ? q.operands[0] + q.operands[1] : q.operands[0] - q.operands[1];
+  // 缺数题：两操作数一运算符，结果 = a op b（+/−/×）
+  const result = evalOp(q.operands[0], q.operands[1], q.ops[0]);
   toks.push(q.missingIndex === 0 ? { t: 'box' } : { t: 'num', v: q.operands[0] });
   toks.push({ t: 'op', v: opChar(q.ops[0]) });
   toks.push(q.missingIndex === 1 ? { t: 'box' } : { t: 'num', v: q.operands[1] });
@@ -34,7 +38,7 @@ function buildTokens(q: Question): Tok[] {
 function isNarrow(q: Question): boolean {
   if (q.kind === 'chain3') return true;
   if (q.missingIndex === undefined) return q.operands.some((n) => n >= 10);
-  const result = q.ops[0] === '+' ? q.operands[0] + q.operands[1] : q.operands[0] - q.operands[1];
+  const result = evalOp(q.operands[0], q.operands[1], q.ops[0]);
   const shown = q.operands[1 - q.missingIndex];
   return shown >= 10 || result >= 10;
 }

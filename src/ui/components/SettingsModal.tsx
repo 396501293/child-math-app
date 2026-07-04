@@ -5,6 +5,7 @@ interface SettingsModalProps {
   settings: Progress['settings'];
   onUpdateSettings: (patch: Partial<Progress['settings']>) => void;
   onResetProgress: () => void;
+  onUnlockAll: () => void;
   onClose: () => void;
 }
 
@@ -27,7 +28,7 @@ function Toggle({ on, label, onToggle }: { on: boolean; label: string; onToggle:
   );
 }
 
-export function SettingsModal({ settings, onUpdateSettings, onResetProgress, onClose }: SettingsModalProps) {
+export function SettingsModal({ settings, onUpdateSettings, onResetProgress, onUnlockAll, onClose }: SettingsModalProps) {
   // 重置进度二次确认：首点变红提示，5s 内再点执行，超时还原。
   const [confirmReset, setConfirmReset] = useState(false);
   const resetTimer = useRef<number | undefined>(undefined);
@@ -40,6 +41,21 @@ export function SettingsModal({ settings, onUpdateSettings, onResetProgress, onC
     } else {
       window.clearTimeout(resetTimer.current);
       onResetProgress();
+    }
+  };
+
+  // 解锁全部关卡：与重置进度同款二次确认（首点变红，5s 内再点执行，超时还原）。
+  const [confirmUnlock, setConfirmUnlock] = useState(false);
+  const unlockTimer = useRef<number | undefined>(undefined);
+  useEffect(() => () => window.clearTimeout(unlockTimer.current), []);
+
+  const clickUnlock = () => {
+    if (!confirmUnlock) {
+      setConfirmUnlock(true);
+      unlockTimer.current = window.setTimeout(() => setConfirmUnlock(false), 5000);
+    } else {
+      window.clearTimeout(unlockTimer.current);
+      onUnlockAll();
     }
   };
 
@@ -78,6 +94,13 @@ export function SettingsModal({ settings, onUpdateSettings, onResetProgress, onC
           on={settings.showBlocksTimed}
           onToggle={() => onUpdateSettings({ showBlocksTimed: !settings.showBlocksTimed })}
         />
+
+        <button
+          class={'mn-set-reset' + (confirmUnlock ? ' is-confirm' : '')}
+          onClick={clickUnlock}
+        >
+          {confirmUnlock ? '再点一次确认解锁' : '解锁全部关卡'}
+        </button>
 
         <button
           class={'mn-set-reset' + (confirmReset ? ' is-confirm' : '')}

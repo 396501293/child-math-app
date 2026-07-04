@@ -86,16 +86,16 @@ test('missing-mul kinds never get the tens-shift distractor (3×?=12 → 14 neve
   }
 });
 
-test('mul distractors prioritize 口诀邻位 candidates (7×8=56, band 51)', () => {
+test('mul distractors are ALWAYS both 口诀邻位 for 7×8=56 (band 51)', () => {
+  // 7×8 的四个邻位候选 (7±1)×8=48/64、7×(8±1)=49/63 各不相同且均 ∈[1,100]≠56，
+  // makeOptions 先填满两个名额才轮到距离/兜底，故每个 seed 的两个干扰项必是邻位子集。
   const item = { kind: 'mul' as const, operands: [7, 8], ops: ['×' as const] };
-  let neighborSeen = false;
-  for (let s = 1; s <= 200; s++) {
+  const allowed = new Set([56, 48, 64, 49, 63]);
+  for (let s = 1; s <= 300; s++) {
     const opts = makeOptions(item, 56, 51, seeded(s));
     expect(new Set(opts).size).toBe(3);
     expect(opts).toContain(56);
-    for (const o of opts) { expect(o).toBeGreaterThanOrEqual(1); expect(o).toBeLessThanOrEqual(100); }
-    // 邻位候选：(7±1)×8=48/64，7×(8±1)=49/63
-    if (opts.some((o) => [48, 64, 49, 63].includes(o))) neighborSeen = true;
+    for (const o of opts) expect(allowed.has(o)).toBe(true); // 每个 seed 的选项 ⊆ {56,48,64,49,63}
+    expect(opts.filter((o) => o !== 56).length).toBe(2);     // 恰两个邻位干扰
   }
-  expect(neighborSeen).toBe(true);
 });

@@ -12,8 +12,8 @@ interface MapProps {
   onWelcome: (line: string) => void; // 点击 mascot 卡片/🔊 徽标念欢迎语（首次交互后发声，无自动播）
 }
 
-const CN_NUM = ['一', '二', '三'];
-const CHAPTER_NAME = ['启航', '深海', '远洋'];
+const CN_NUM = ['一', '二', '三', '四'];
+const CHAPTER_NAME = ['启航', '深海', '远洋', '银河'];
 const MASCOT_LINES = ['准备好出发了吗？', '这一关有点挑战，加油！', '你越来越厉害了！', '星星快集满一排啦！'];
 
 // 蛇形路径几何（面板内坐标，面板 660×598）：5 列节点 × 3 行，第 2 行反向。
@@ -88,12 +88,12 @@ export function Map({ progress, onStartLevel, onStartEndless, onStartTimed, onOp
 
   const rows = [levels.slice(0, 5), levels.slice(5, 10).reverse(), levels.slice(10, 15)];
 
-  const current = Math.min(progress.unlocked, 45);
+  const current = Math.min(progress.unlocked, 60);
   const mascotLine = MASCOT_LINES[current % MASCOT_LINES.length];
 
   const leftDisabled = viewChapter <= 1;
-  const rightLocked = viewChapter < 3 && viewChapter + 1 > maxChapter;
-  const rightDisabled = viewChapter >= 3 || rightLocked;
+  const rightLocked = viewChapter < 4 && viewChapter + 1 > maxChapter;
+  const rightDisabled = viewChapter >= 4 || rightLocked;
 
   const endlessOn = endlessUnlocked(progress);
   const timedOn = timedUnlocked(progress);

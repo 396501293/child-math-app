@@ -54,6 +54,13 @@ test('v2 blob with wrong shape → backed up to _corrupt and reset to default', 
   expect(s.dump().math_nightsail_v2_corrupt).toBe(JSON.stringify({ version: 1, x: 1 }));
 });
 
+test('v1 blob {unlocked: 99} migrates and clamps unlocked to 60', () => {
+  const s = fakeStore({ math_nightsail_v1: JSON.stringify({ unlocked: 99 }) });
+  const p = loadProgress(s);
+  expect(p.version).toBe(2);
+  expect(p.unlocked).toBe(60);   // 上限拉回 60（第四章满级）
+});
+
 test('v1 migration sanitizes out-of-range stars and non-numeric unlocked', () => {
   const s = fakeStore({ math_nightsail_v1: JSON.stringify({ stars: { 1: 9, 2: -1 }, unlocked: 'abc' }) });
   const p = loadProgress(s);

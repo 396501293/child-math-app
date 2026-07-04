@@ -588,6 +588,10 @@ body {
   align-items: center;
   gap: 14px;
 }
+/* 阵列网格（第四章乘法教具）上移，为最多 9 行方块让出竖向空间、避免压到选项区 */
+.mn-blocks--grid {
+  top: 240px;
+}
 .mn-blocks-panel {
   display: flex;
   flex-wrap: wrap;

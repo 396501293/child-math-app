@@ -18,6 +18,7 @@ export const CAMPAIGN_SUB: Record<1 | 2 | 3, string> = {
 function nextLabel(level: number): string {
   if (level === 15) return '进入第二章 ▶';
   if (level === 30) return '进入第三章 ▶';
+  if (level === 45) return '进入第四章 ▶';
   return '下一关 ▶';
 }
 
