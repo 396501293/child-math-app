@@ -139,8 +139,9 @@ const MUL_BAND = 51; // 九九全口诀：干扰项用「口诀邻位」、clamp
 
 // 由 fact + 当前掌握度出一道题。s≥2 有 30% 出翻面缺数 a×?=c（区分真会背 vs 顺口溜蒙）；
 // 翻面变体不带阵列教具（否则数格子即泄漏被隐藏的因子，破坏反向验证）。
+// 平方口诀（5×5 等）恒用乘积回忆：翻面时可见因子 == 被隐藏的答案，题面直接泄底。
 export function buildQuestion(fact: Fact, st: FactState, rng: Rng): Question {
-  const useMissing = st.s >= 2 && rng() < 0.3;
+  const useMissing = fact.a !== fact.b && st.s >= 2 && rng() < 0.3;
   const swap = rng() < 0.5; // 两向都可出
   const a = swap ? fact.b : fact.a;
   const b = swap ? fact.a : fact.b;
@@ -185,7 +186,10 @@ export class TimesTableSession {
   get length(): number { return this.queue.length; }
   get index(): number { return this.idx; }
   isDone(): boolean { return this.idx >= this.queue.length; }
-  currentFact(): Fact { return this.queue[this.idx]; }
+  currentFact(): Fact {
+    if (this.isDone()) throw new Error('session is done');
+    return this.queue[this.idx];
+  }
   currentState(): FactState { return this.states[this.currentFact().key] ?? S0; }
   currentQuestion(): Question {
     if (!this.q) throw new Error('session is done');
@@ -225,6 +229,9 @@ export class TimesTableSession {
   }
 
   // 结算落盘：合并掌握度、会话钟 +1、所有已落盘 fact cd−1（floor 0）、更新 litBest。
+  // 返回的 Progress 与源浅共享兄弟切片（stars/endless/timed/settings）——在本 app
+  // 「整体替换不就地改 + saveProgress 深拷贝」的约定下安全。幂等（纯读内部状态，
+  // 重复调用返回相同结果）；每会话应恰好调用一次并将结果 saveProgress 落盘。
   commit(): Progress {
     const facts: Record<string, FactState> = {};
     for (const [k, st] of Object.entries(this.states))

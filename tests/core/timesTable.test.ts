@@ -151,6 +151,30 @@ test('planSession: gating respected — only active facts appear', () => {
     for (const f of planSession(p, seeded(s))) expect(active.has(f.key)).toBe(true);
 });
 
+test('planSession: mixed state — distinct NEW facts ≤4 while non-new facts widen the session', () => {
+  const p = learned(51);
+  const facts = allFacts();
+  for (let i = 0; i < 20; i++) p.timesTable.facts[facts[i].key] = { s: 1, cd: 0 }; // 20 known, 16 new
+  const isNewKey = new Set(facts.slice(20).map((f) => f.key));
+  let sawWiderThan4 = false;
+  for (let s = 1; s <= 40; s++) {
+    const plan = planSession(p, seeded(s));
+    const distinct = new Set(plan.map((f) => f.key));
+    const distinctNew = [...distinct].filter((k) => isNewKey.has(k));
+    expect(distinctNew.length).toBeLessThanOrEqual(MAX_NEW_PER_SESSION); // cap on NEW only
+    if (distinct.size > MAX_NEW_PER_SESSION) sawWiderThan4 = true;       // non-new repeats allowed
+  }
+  expect(sawWiderThan4).toBe(true);
+});
+
+test('planSession: band-46 first session (15 all-new facts) → at most 4 distinct facts', () => {
+  for (let s = 1; s <= 40; s++) {
+    const plan = planSession(learned(46), seeded(s));
+    expect(plan).toHaveLength(SESSION_SIZE);
+    expect(new Set(plan.map((f) => f.key)).size).toBeLessThanOrEqual(MAX_NEW_PER_SESSION);
+  }
+});
+
 test('planSession: weak-first — a lonely s1 fact is drawn far more than a resting s3 fact', () => {
   const p = withStates(learned(51), { s: 3, cd: 3 }); // all resting/lit
   const weakKey = '2×3';
@@ -213,10 +237,20 @@ test('buildQuestion: s≥2 sometimes flips to missing-mul-b (a×?=c), which carr
       expect(q.blocksPlan).toBeUndefined(); // grid would reveal the hidden factor
       expect(new Set(q.options).size).toBe(3);
       expect(q.options).toContain(q.answer);
-      expect(q.ttsText).not.toContain(String(q.answer));
+      expect(q.operands[0]).not.toBe(q.answer); // visible multiplicand never equals the answer
     }
   }
   expect(sawMissing).toBe(true);
+});
+
+test('buildQuestion: square facts (a==b) NEVER use the missing variant — the shown factor IS the answer', () => {
+  for (const key of ['2×2', '5×5', '9×9']) {
+    const f = factOf(key);
+    for (let s = 1; s <= 200; s++) {
+      expect(buildQuestion(f, { s: 2, cd: 0 }, seeded(s)).kind).toBe('mul');
+      expect(buildQuestion(f, { s: 3, cd: 0 }, seeded(s)).kind).toBe('mul');
+    }
+  }
 });
 
 test('buildQuestion: s<2 never flips to the missing variant', () => {
@@ -314,4 +348,24 @@ test('session commit: never mutates the source Progress', () => {
   while (!sess.isDone()) sess.answer(false);
   sess.commit();
   expect(JSON.stringify(p)).toBe(snapshot);
+});
+
+test('session commit: idempotent — calling twice yields identical results (call once, persist once)', () => {
+  const p = learned(46);
+  p.timesTable.sessions = 7;
+  const sess = new TimesTableSession(p, seeded(11));
+  while (!sess.isDone()) sess.answer(true);
+  const first = sess.commit();
+  const second = sess.commit();
+  expect(first.timesTable.sessions).toBe(8); // original + 1, NOT cumulative
+  expect(second).toEqual(first);             // pure w.r.t. session state: no double-decay, no double-count
+});
+
+test('session accessors throw a clean error once the session is done', () => {
+  const p = withStates(learned(51), { s: 1, cd: 0 });
+  const sess = new TimesTableSession(p, seeded(2));
+  while (!sess.isDone()) sess.answer(true);
+  expect(() => sess.currentQuestion()).toThrow('session is done');
+  expect(() => sess.currentFact()).toThrow('session is done');
+  expect(() => sess.currentState()).toThrow('session is done');
 });
