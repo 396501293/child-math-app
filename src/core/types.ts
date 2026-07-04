@@ -44,5 +44,11 @@ export interface Progress {
   unlocked: number;                                   // 1..60
   endless: { bestStreak: number; totalAnswered: number };
   timed: { bestCount: number };
+  // 九九星图：跨会话持久的 per-口诀 掌握度切片（key = `${min}×${max}`，稀疏存）
+  timesTable: {
+    facts: Record<string, { s: 0 | 1 | 2 | 3; cd: number }>;
+    sessions: number;                                 // 已完成会话数（间隔重复时钟）
+    litBest?: number;                                 // 历史最多点亮数（结算展示，可选）
+  };
   settings: { questionCount: number; hardMode: boolean; showBlocks: boolean; showBlocksTimed: boolean };
 }

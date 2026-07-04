@@ -17,6 +17,7 @@ export function defaultProgress(): Progress {
     unlocked: 1,
     endless: { bestStreak: 0, totalAnswered: 0 },
     timed: { bestCount: 0 },
+    timesTable: { facts: {}, sessions: 0 },
     settings: { questionCount: 5, hardMode: false, showBlocks: true, showBlocksTimed: false },
   };
 }
@@ -115,6 +116,7 @@ export function loadProgress(store: StorageLike = safeStore()): Progress {
       settings: { ...d.settings, ...parsed.settings },
       endless: { ...d.endless, ...parsed.endless },
       timed: { ...d.timed, ...parsed.timed },
+      timesTable: { ...d.timesTable, ...parsed.timesTable },
       version: 2,
     };
   }

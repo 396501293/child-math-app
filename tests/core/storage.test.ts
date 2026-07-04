@@ -15,7 +15,30 @@ test('default progress shape', () => {
   const p = defaultProgress();
   expect(p).toMatchObject({ version: 2, unlocked: 1,
     endless: { bestStreak: 0, totalAnswered: 0 }, timed: { bestCount: 0 },
+    timesTable: { facts: {}, sessions: 0 },
     settings: { questionCount: 5, hardMode: false, showBlocks: true, showBlocksTimed: false } });
+});
+
+test('timesTable slice round-trips', () => {
+  const s = fakeStore();
+  const p = defaultProgress();
+  p.timesTable = { facts: { '2×3': { s: 3, cd: 2 }, '7×8': { s: 1, cd: 0 } }, sessions: 4, litBest: 5 };
+  saveProgress(p, s);
+  expect(loadProgress(s)).toEqual(p);
+});
+
+test('legacy v2 blob missing timesTable slice merges to the default slice', () => {
+  const s = fakeStore({ math_nightsail_v2: JSON.stringify({ version: 2, unlocked: 46, stars: { 1: 3 } }) });
+  const p = loadProgress(s);
+  expect(p.timesTable).toEqual({ facts: {}, sessions: 0 });
+  expect(p.unlocked).toBe(46); // rest of the blob preserved
+});
+
+test('partial timesTable blob (facts only) fills sessions default', () => {
+  const s = fakeStore({ math_nightsail_v2: JSON.stringify({ version: 2, timesTable: { facts: { '2×2': { s: 2, cd: 1 } } } }) });
+  const p = loadProgress(s);
+  expect(p.timesTable.facts['2×2']).toEqual({ s: 2, cd: 1 });
+  expect(p.timesTable.sessions).toBe(0);
 });
 
 test('save/load round-trip', () => {
