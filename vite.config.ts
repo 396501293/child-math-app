@@ -1,11 +1,9 @@
-import { defineConfig } from 'vitest/config';
+import { defineConfig } from 'vite';
 import preact from '@preact/preset-vite';
 import { VitePWA } from 'vite-plugin-pwa';
 
 export default defineConfig({
   base: '/child-math-app/',
-  // 性质测试（45 档 × 500 次生成的全量遍历）在 CI 慢跑器上会超过默认 5s 单测超时。
-  test: { testTimeout: 60_000 },
   plugins: [
     preact(),
     VitePWA({
