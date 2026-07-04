@@ -158,10 +158,12 @@ export function App() {
   });
 
   // 结算：commit() 恰一次 → 落盘；算「新点亮」格数（s 由非 3 升到 3）；按结果祝贺。
+  // 注意：「答题中途退出不会丢在途作答」依赖 FeedbackOverlay/揭示卡遮罩（z-index:10, 无 onClick）
+  // 在 1.1s 反馈窗内盖住返回键——若改动遮罩的可点性/层级，需同步改这里的结算时序。
   const finishTimesTable = (correctCount: number) => {
     const s = sessionRef.current;
     const tt = ttSessionRef.current;
-    if (!s || !tt) return;
+    if (!s || s.mode !== 'timestable' || !tt) return;
     clearTimer();
     const before = progress.timesTable.facts;
     const committed = tt.commit();
@@ -227,7 +229,7 @@ export function App() {
   const startTimesTable = () => {
     const tt = new TimesTableSession(progress, Math.random);
     ttSessionRef.current = tt;
-    if (tt.isDone()) { setScreen('starchart'); return; } // 活跃池为空兜底（CTA 已禁用，理论不触发）
+    if (tt.isDone()) { ttSessionRef.current = null; setScreen('starchart'); return; } // 活跃池为空兜底（CTA 已禁用，理论不触发）
     const q = tt.currentQuestion();
     speak(q.ttsText, { interrupt: true }); // 进新题自动朗读
     setSession({
