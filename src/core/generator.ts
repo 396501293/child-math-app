@@ -4,7 +4,10 @@ import { makeOptions } from './options';
 import { shuffle } from './rand';
 
 const evalItem = (it: Item): number =>
-  it.ops.reduce((acc, op, k) => op === '+' ? acc + it.operands[k + 1] : acc - it.operands[k + 1], it.operands[0]);
+  it.ops.reduce((acc, op, k) => {
+    const operand = it.operands[k + 1];
+    return op === '+' ? acc + operand : op === '-' ? acc - operand : acc * operand;
+  }, it.operands[0]);
 
 // 加权选池
 function pickPool(cfg: BandConfig, rng: Rng) {
@@ -23,13 +26,13 @@ export function allocate(cfg: BandConfig, count: number, rng: Rng): number[] {
   return alloc;
 }
 
-const opWord = (op: Op) => (op === '+' ? '加' : '减');
+const opWord = (op: Op) => (op === '+' ? '加' : op === '-' ? '减' : '乘');
 
 function toQuestion(it: Item, cfg: BandConfig, rng: Rng): Question {
   const [a, b] = it.operands;
   let answer: number, missingIndex: number | undefined, ttsText: string;
   switch (it.kind) {
-    case 'add': case 'sub': case 'chain3': {
+    case 'add': case 'sub': case 'mul': case 'chain3': {
       answer = evalItem(it);
       ttsText = it.kind === 'chain3'
         ? `${a} ${opWord(it.ops[0])} ${b} 再${opWord(it.ops[1])} ${it.operands[2]}，等于几？`
@@ -39,10 +42,17 @@ function toQuestion(it: Item, cfg: BandConfig, rng: Rng): Question {
     case 'missing-b': { answer = b; missingIndex = 1; ttsText = `${a} 加上几，等于 ${a + b}？`; break; }
     case 'missing-a': { answer = a; missingIndex = 0; ttsText = `几加上 ${b}，等于 ${a + b}？`; break; }
     case 'missing-sub': { answer = b; missingIndex = 1; ttsText = `${a} 减去几，等于 ${a - b}？`; break; }
+    case 'missing-mul-b': { answer = b; missingIndex = 1; ttsText = `${a} 乘几，等于 ${a * b}？`; break; }
+    case 'missing-mul-a': { answer = a; missingIndex = 0; ttsText = `几乘 ${b}，等于 ${a * b}？`; break; }
   }
   const q: Question = { kind: it.kind, operands: [...it.operands], ops: [...it.ops], missingIndex,
     answer, options: makeOptions(it, answer, cfg.band, rng), ttsText };
-  if (cfg.chapter !== 3) attachBlocks(q);
+  // 教具：一二章沿用；第三章无；第四章仅纯乘法题出阵列网格（缺数/两步不出）。
+  if (cfg.chapter === 1 || cfg.chapter === 2) attachBlocks(q);
+  else if (cfg.chapter === 4 && q.kind === 'mul') {
+    q.blocksPlan = { type: 'array-grid', rows: a, cols: b };
+    q.blocksHint = `${a} 组方块，每组 ${b} 个，一共几个？`;
+  }
   return q;
 }
 

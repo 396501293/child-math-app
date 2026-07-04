@@ -52,8 +52,29 @@ const add2d2dC = (w = 1): PoolSpec => ({ kind: 'add', weight: w, aRange: [10, 99
 const sub2d2dB = (w = 1): PoolSpec => ({ kind: 'sub', weight: w, aRange: [10, 99], bRange: [10, 99],
   filter: (a, b) => ones(b) > ones(a) && a - b >= 1 });
 
+// ── 第四章「银河」乘法与进阶 ──
+// 口诀表：a,b ∈ [1,9]，至少一个因子 ∈ ts（如 ×2×5 → ts=[2,5]）
+const mulTable = (ts: number[], w = 1): PoolSpec => ({ kind: 'mul', weight: w, aRange: [1, 9], bRange: [1, 9],
+  filter: (a, b) => ts.includes(a) || ts.includes(b) });
+// 档 48：a 或 b ∈ [2,5]，另一因子 ∈ [1,9]（排除两者都在 {1,6,7,8,9}）
+const mul48 = (w = 1): PoolSpec => ({ kind: 'mul', weight: w, aRange: [1, 9], bRange: [1, 9],
+  filter: (a, b) => (a >= 2 && a <= 5) || (b >= 2 && b <= 5) });
+// 九九全口诀：a,b ∈ [2,9]
+const mulAll = (w = 1): PoolSpec => ({ kind: 'mul', weight: w, aRange: [2, 9], bRange: [2, 9] });
+const missMulB = (w = 1): PoolSpec => ({ ...mulAll(w), kind: 'missing-mul-b' });
+const missMulA = (w = 1): PoolSpec => ({ ...mulAll(w), kind: 'missing-mul-a' });
+// 乘加/乘减两步：a×b (op2) c，从左往右算，中间与最终结果 ∈ [1,100]
+const chainMul = (op2: '+' | '-', w = 1): PoolSpec => ({ kind: 'chain3', weight: w, ops: ['×', op2],
+  aRange: [2, 9], bRange: [2, 9], cRange: [1, 99],
+  filter: (a, b, c) => {
+    const s1 = a * b;
+    if (s1 < 1 || s1 > 100) return false;
+    const s2 = op2 === '+' ? s1 + c! : s1 - c!;
+    return s2 >= 1 && s2 <= 100;
+  } });
+
 const B = (band: number, label: string, pools: PoolSpec[]): BandConfig =>
-  ({ band, chapter: Math.ceil(band / 15) as 1 | 2 | 3, label, pools });
+  ({ band, chapter: Math.ceil(band / 15) as 1 | 2 | 3 | 4, label, pools });
 
 export const BANDS: BandConfig[] = [
   B(1, '5以内加法', [add([2, 5])]),
@@ -105,9 +126,26 @@ export const BANDS: BandConfig[] = [
   B(44, '两位数±两位数·进退位', [add2d2dC(), sub2d2dB()]),
   B(45, '远洋大挑战', [tensAdd(), tensSub(), add2d1dNC(), sub2d1dNB(), add2dTens(), sub2dTens(),
     add2d1dC(), sub2d1dB(), add2d2dNC(), sub2d2dNB(), add2d2dC(), sub2d2dB()]),
+  // 第四章「银河」· 乘法与进阶
+  B(46, '乘法入门 ×2 ×5', [mulTable([2, 5])]),
+  B(47, '乘法 ×3 ×4', [mulTable([3, 4])]),
+  B(48, '口诀 2–5 混合', [mul48()]),
+  B(49, '乘法 ×6 ×7', [mulTable([6, 7])]),
+  B(50, '乘法 ×8 ×9', [mulTable([8, 9])]),
+  B(51, '九九全口诀', [mulAll()]),
+  B(52, '乘法缺数 a×?=c', [missMulB()]),
+  B(53, '乘法缺数 ?×b=c', [missMulA()]),
+  B(54, '乘法缺数混合', [missMulB(), missMulA()]),
+  B(55, '两位数进退位强化', [add2d2dC(), sub2d2dB()]),
+  B(56, '乘加两步', [chainMul('+')]),
+  B(57, '乘减两步', [chainMul('-')]),
+  B(58, '口诀+缺数混合', [mulAll(), missMulB(), missMulA()]),
+  B(59, '乘加减混合', [chainMul('+'), chainMul('-')]),
+  B(60, '银河大挑战', [mulAll(), missMulB(), missMulA(), chainMul('+'), chainMul('-'),
+    add2d2dC(), sub2d2dB()]),
 ];
 
 export const bandOf = (band: number): BandConfig => {
-  if (band < 1 || band > 45) throw new RangeError(`band out of range [1,45]: ${band}`);
+  if (band < 1 || band > 60) throw new RangeError(`band out of range [1,60]: ${band}`);
   return BANDS[band - 1];
 };

@@ -1,5 +1,7 @@
-export type Op = '+' | '-';
-export type QuestionKind = 'add' | 'sub' | 'missing-a' | 'missing-b' | 'missing-sub' | 'chain3';
+export type Op = '+' | '-' | '×';
+export type QuestionKind =
+  | 'add' | 'sub' | 'missing-a' | 'missing-b' | 'missing-sub' | 'chain3'
+  | 'mul' | 'missing-mul-a' | 'missing-mul-b';
 export type Rng = () => number; // [0,1)
 
 export type BlocksPlan =
@@ -7,7 +9,8 @@ export type BlocksPlan =
   | { type: 'two-group'; a: number; b: number }
   | { type: 'fill-slot'; filled: number; empty: number; filledFirst: boolean }
   | { type: 'keep-mark'; total: number; keep: number }
-  | { type: 'three-group'; groups: [number, number, number]; ops: [Op, Op] };
+  | { type: 'three-group'; groups: [number, number, number]; ops: [Op, Op] }
+  | { type: 'array-grid'; rows: number; cols: number };
 
 export interface Question {
   kind: QuestionKind;
@@ -31,14 +34,14 @@ export interface PoolSpec {
   filter?: (a: number, b: number, c?: number) => boolean;
 }
 
-export interface BandConfig { band: number; chapter: 1 | 2 | 3; label: string; pools: PoolSpec[] }
+export interface BandConfig { band: number; chapter: 1 | 2 | 3 | 4; label: string; pools: PoolSpec[] }
 
 export interface Item { kind: QuestionKind; operands: number[]; ops: Op[] }
 
 export interface Progress {
   version: 2;
   stars: Record<number, 0 | 1 | 2 | 3>;
-  unlocked: number;                                   // 1..45
+  unlocked: number;                                   // 1..60
   endless: { bestStreak: number; totalAnswered: number };
   timed: { bestCount: number };
   settings: { questionCount: number; hardMode: boolean; showBlocks: boolean; showBlocksTimed: boolean };

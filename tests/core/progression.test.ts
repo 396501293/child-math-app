@@ -23,6 +23,9 @@ test('chapterOf boundaries', () => {
   expect(chapterOf(16)).toBe(2);
   expect(chapterOf(30)).toBe(2);
   expect(chapterOf(31)).toBe(3);
+  expect(chapterOf(45)).toBe(3);
+  expect(chapterOf(46)).toBe(4);
+  expect(chapterOf(60)).toBe(4);
 });
 
 test('endlessBand: starts at current chapter first band, +1 per 4 correct, capped', () => {
@@ -62,8 +65,17 @@ test('unlockAfterWin: extends unlocked, keeps best stars', () => {
   expect(p2.stars[1]).toBe(2);
   const p3 = unlockAfterWin(p2, 1, 1);
   expect(p3.stars[1]).toBe(2); // 取历史最高
-  const p4 = unlockAfterWin(p3, 45, 3);
-  expect(p4.unlocked).toBe(45); // 上限 45
+  const p4 = unlockAfterWin(p3, 59, 3);
+  expect(p4.unlocked).toBe(60); // 完成 59 → 解锁 60
+  const p5 = unlockAfterWin(p4, 60, 3);
+  expect(p5.unlocked).toBe(60); // 上限 60（第 60 关无下一关）
+});
+
+test('timedPool spans chapter 3 & 4', () => {
+  const p = defaultProgress();
+  for (let l = 31; l <= 46; l++) p.stars[l] = 1;
+  p.unlocked = 46; // 当前章 = 4 → 只含章 3、4 已完成档
+  expect(timedPool(p)).toEqual([...Array(16)].map((_, i) => i + 31));
 });
 
 test('timedPool: timed first-use path (chapter 1 fully starred)', () => {

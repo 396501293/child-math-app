@@ -77,3 +77,17 @@ test('missing-* kinds never get a flipped distractor', () => {
     expect(opts).not.toContain(15);   // 15 = 9+6；d∈{1,2} 距离干扰只会给 4,5,7,8
   }
 });
+
+test('mul distractors prioritize 口诀邻位 candidates (7×8=56, band 51)', () => {
+  const item = { kind: 'mul' as const, operands: [7, 8], ops: ['×' as const] };
+  let neighborSeen = false;
+  for (let s = 1; s <= 200; s++) {
+    const opts = makeOptions(item, 56, 51, seeded(s));
+    expect(new Set(opts).size).toBe(3);
+    expect(opts).toContain(56);
+    for (const o of opts) { expect(o).toBeGreaterThanOrEqual(1); expect(o).toBeLessThanOrEqual(100); }
+    // 邻位候选：(7±1)×8=48/64，7×(8±1)=49/63
+    if (opts.some((o) => [48, 64, 49, 63].includes(o))) neighborSeen = true;
+  }
+  expect(neighborSeen).toBe(true);
+});

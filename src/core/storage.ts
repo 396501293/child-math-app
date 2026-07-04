@@ -124,11 +124,11 @@ export function loadProgress(store: StorageLike = safeStore()): Progress {
   const v1 = tryLoadV1(store);
   if (v1) {
     const merged = defaultProgress();
-    // prototype data isn't validated: clamp stars to 0..3 and unlocked to 1..45
+    // prototype data isn't validated: clamp stars to 0..3 and unlocked to 1..60
     for (const [k, v] of Object.entries(v1.stars))
       merged.stars[Number(k)] = Math.min(3, Math.max(0, Number(v) || 0)) as 0 | 1 | 2 | 3;
     const rawUnlocked = Number(v1.unlocked);
-    merged.unlocked = Math.min(45, Math.max(1, Number.isFinite(rawUnlocked) ? rawUnlocked : 1));
+    merged.unlocked = Math.min(60, Math.max(1, Number.isFinite(rawUnlocked) ? rawUnlocked : 1));
     saveProgress(merged, store); // migrate: persist v2 immediately, keep v1 key intact
     return merged;
   }
