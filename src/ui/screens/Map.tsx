@@ -45,6 +45,10 @@ function saveSeen(seen: Record<string, boolean>): void {
   }
 }
 
+// 模式键类名：解锁时挂颜色修饰类，锁定时不挂（改由 .mn-btn.is-locked 统一置灰）。
+const modeClass = (color: string, unlocked: boolean): string =>
+  unlocked ? `mn-btn ${color} mn-mode-btn` : 'mn-btn mn-mode-btn is-locked';
+
 type NodeState = 'done' | 'current' | 'locked';
 
 function NodeCell({ level, state, stars, onTap }: {
@@ -183,10 +187,12 @@ export function Map({ progress, onStartLevel, onStartEndless, onStartTimed, onOp
           </div>
         </div>
 
-        <button class="mn-cta" onClick={() => onStartLevel(current)}>挑战第 {current} 关 ▶</button>
+        <button class="mn-btn mn-btn--coral mn-cta" onClick={() => onStartLevel(current)}>挑战第 {current} 关 ▶</button>
 
+        {/* 三个模式键分配琥珀/青绿/叶绿：既是动森的色彩性格，
+            也让 4–7 岁能靠颜色而非文字辨认模式。 */}
         <button
-          class={endlessOn ? 'mn-mode-btn' : 'mn-mode-btn is-locked'}
+          class={modeClass('mn-btn--amber', endlessOn)}
           disabled={!endlessOn}
           onClick={endlessOn ? () => openMode('endless', onStartEndless) : undefined}
         >
@@ -195,7 +201,7 @@ export function Map({ progress, onStartLevel, onStartEndless, onStartTimed, onOp
         </button>
 
         <button
-          class={timedOn ? 'mn-mode-btn' : 'mn-mode-btn is-locked'}
+          class={modeClass('mn-btn--teal', timedOn)}
           disabled={!timedOn}
           onClick={timedOn ? () => openMode('timed', onStartTimed) : undefined}
         >
@@ -204,7 +210,7 @@ export function Map({ progress, onStartLevel, onStartEndless, onStartTimed, onOp
         </button>
 
         <button
-          class={starChartOn ? 'mn-mode-btn' : 'mn-mode-btn is-locked'}
+          class={modeClass('mn-btn--leaf', starChartOn)}
           disabled={!starChartOn}
           onClick={starChartOn ? () => openMode('starchart', onOpenStarChart) : undefined}
         >

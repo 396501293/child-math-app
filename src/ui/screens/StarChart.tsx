@@ -94,11 +94,15 @@ export function StarChart({ progress, onStartSession, onBack, onSpeak }: StarCha
           )}
         </div>
 
-        <button class={canStart ? 'mn-cta' : 'mn-cta is-disabled'} disabled={!canStart} onClick={canStart ? onStartSession : undefined}>
+        <button
+          class={canStart ? 'mn-btn mn-btn--coral mn-cta' : 'mn-btn mn-cta is-disabled'}
+          disabled={!canStart}
+          onClick={canStart ? onStartSession : undefined}
+        >
           开始练习 ▶
         </button>
         {!canStart && <div class="mn-sc-hint">先在地图上学习乘法表</div>}
-        <button class="mn-mode-btn" onClick={onBack}>回地图</button>
+        <button class="mn-btn mn-mode-btn" onClick={onBack}>回地图</button>
       </div>
     </>
   );

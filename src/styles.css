@@ -264,50 +264,18 @@ body {
   box-shadow: none;
 }
 
-/* ── 通用按钮硬阴影范式（旧，随 Task 4–6 逐批迁移到 .mn-btn） ── */
+/* ── 地图右栏按钮：仅留尺寸/排版，视觉全部来自 .mn-btn ── */
 .mn-cta {
   width: 100%;
-  border: none;
-  border-radius: 22px;
-  padding: 22px 0;
-  font-family: inherit;
+  padding: 20px 0;
   font-size: 29px;
-  font-weight: 900;
-  color: #fff;
-  background: var(--color-coral);
-  box-shadow: 0 6px 0 rgba(0, 0, 0, 0.25);
-  cursor: pointer;
-  user-select: none;
-}
-.mn-cta:active {
-  transform: translateY(4px);
-  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.25);
 }
 
 .mn-mode-btn {
   position: relative;
   width: 100%;
-  border: none;
-  border-radius: 22px;
-  padding: 18px 0;
-  font-family: inherit;
+  padding: 16px 0;
   font-size: 22px;
-  font-weight: 900;
-  color: #fff;
-  background: var(--panel-10);
-  box-shadow: 0 6px 0 rgba(0, 0, 0, 0.25);
-  cursor: pointer;
-  user-select: none;
-}
-.mn-mode-btn:not(.is-locked):active {
-  transform: translateY(4px);
-  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.25);
-}
-.mn-mode-btn.is-locked {
-  color: var(--color-white-40);
-  background: var(--panel-06);
-  box-shadow: none;
-  cursor: default;
 }
 .mn-badge {
   position: absolute;
@@ -317,9 +285,10 @@ body {
   color: #fff;
   font-size: 14px;
   font-weight: 900;
-  border-radius: 12px;
+  border: 2px solid var(--coral-dk);
+  border-radius: var(--r-pill);
   padding: 3px 10px;
-  box-shadow: 0 3px 0 rgba(0, 0, 0, 0.25);
+  box-shadow: 0 3px 0 0 var(--btn3d);
 }
 
 /* ── 章节切换 / 返回键样式 ── */
@@ -420,12 +389,7 @@ body {
 }
 
 /* CTA 禁用态（星图活跃池为空时的「开始练习」） */
-.mn-cta.is-disabled {
-  background: var(--panel-10);
-  color: var(--color-white-40);
-  box-shadow: none;
-  cursor: default;
-}
+/* CTA 禁用态由 .mn-btn.is-disabled 统一提供，此处无需重复 */
 
 /* ── 齿轮（长按 1.5s 开设置） ── */
 .mn-gear {
