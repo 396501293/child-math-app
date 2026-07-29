@@ -64,10 +64,46 @@ body {
 
   /* 设置面板遮罩（比反馈遮罩更暗，聚焦弹窗） */
   --color-scrim: rgba(9, 26, 32, 0.72);
+
+  /* ══ 以下为动森风格重构新增（配方源：animal-island-ui skill/SKILL.md） ══ */
+
+  /* 描边——动森核心特征：万物有边 */
+  --line: rgba(255, 255, 255, 0.22);
+  --line-strong: rgba(255, 255, 255, 0.34);
+  --bw: 3px; /* 标准描边宽（原库 2px，按本应用元素尺寸放大） */
+  --bw-strong: 4px; /* 焦点元素 */
+
+  /* 主色的暗色变体：着色元素的描边用，比阴影更清晰地勾出形状 */
+  --amber-dk: #cf8524;
+  --teal-dk: #21907d;
+  --coral-dk: #c44a4a;
+
+  /* 叶绿：动森的 success 色，用于「答对」 */
+  --color-leaf: #7cc44a;
+  --leaf-dk: #5f9e35;
+
+  /* 3D 硬阴影（原库硬规则 19：主按钮的核心识别特征，禁止去除） */
+  --btn3d: rgba(0, 0, 0, 0.34);
+
+  /* 柔和投影：面板用 */
+  --elev-sm: 0 3px 10px rgba(0, 0, 0, 0.2);
+  --elev: 0 6px 22px rgba(0, 0, 0, 0.28);
+
+  /* 圆角尺度 */
+  --r-sm: 12px;
+  --r-base: 18px;
+  --r-lg: 24px;
+  --r-pill: 999px;
+
+  /* 动效 */
+  --ease: cubic-bezier(0.4, 0, 0.2, 1);
+  --dur-fast: 0.15s;
+  --dur-base: 0.25s;
 }
 
 body {
-  font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, 'PingFang SC',
+  /* Nunito 必须前置：它只有拉丁字形，中文自动回退到 Noto Sans SC。 */
+  font-family: 'Nunito', 'Noto Sans SC', -apple-system, BlinkMacSystemFont, 'PingFang SC',
     'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
   background: var(--color-letterbox);
 }
