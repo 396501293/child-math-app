@@ -1,0 +1,699 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>数学夜航 · 动森风格重构预览</title>
+<style>
+/* ══════════════════════════════════════════════════════════════
+   预览页外壳（不属于 app，只是这份预览的工具条）
+   ══════════════════════════════════════════════════════════════ */
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; }
+body {
+  background: #1b1b1f;
+  color: #e7e3da;
+  font-family: ui-rounded, 'Nunito', 'Quicksand', -apple-system, BlinkMacSystemFont,
+    'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.bar {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  flex-wrap: wrap;
+  padding: 12px 20px;
+  background: #24242a;
+  border-bottom: 1px solid #35353d;
+}
+.bar h1 { font-size: 15px; margin: 0; font-weight: 800; letter-spacing: .02em; }
+.bar .sep { width: 1px; height: 22px; background: #3d3d47; }
+.grp { display: flex; gap: 6px; align-items: center; }
+.grp > label { font-size: 11px; color: #8d8a95; margin-right: 4px; letter-spacing: .04em; }
+.bar button {
+  font: inherit; font-size: 12.5px; font-weight: 700;
+  padding: 7px 14px; border-radius: 999px; cursor: pointer;
+  border: 1px solid #43434e; background: #2e2e36; color: #cfccd6;
+  transition: all .15s;
+}
+.bar button:hover { background: #383842; }
+.bar button[aria-pressed="true"] { background: #19c8b9; border-color: #19c8b9; color: #10312e; }
+.hint { font-size: 11.5px; color: #7d7a86; margin-left: auto; }
+
+/* fit 脱离文档流，否则 stage 的尺寸会反过来撑大 canvas，缩放算不收敛 */
+.canvas { flex: 1; position: relative; min-height: 0; }
+.fit { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); }
+
+/* ══════════════════════════════════════════════════════════════
+   STAGE — 1024×768 固定舞台（与 src/ui/scale.ts 一致）
+   ══════════════════════════════════════════════════════════════ */
+.stage {
+  width: 1024px; height: 768px;
+  position: relative; overflow: hidden;
+  transform-origin: top left;
+  border-radius: 18px;
+  font-family: ui-rounded, 'Nunito', 'Quicksand', -apple-system,
+    'PingFang SC', 'Hiragino Sans GB', sans-serif;
+  letter-spacing: .01em;
+}
+
+/* ────────── 主题 A：动森白天（SKILL.md 原味色板，儿童尺寸放大版） ────────── */
+.stage[data-theme="day"] {
+  --bg:            #f8f8f0;
+  --bg-2:          #eef3e2;
+  --panel:         rgb(247,243,223);
+  --panel-2:       #f0e8d8;
+  --line:          #c4b89e;      /* border light */
+  --line-strong:   #9f927d;      /* border standard */
+  --ink:           #794f27;      /* main text */
+  --ink-body:      #725d42;
+  --ink-mute:      #9f927d;
+  --ink-faint:     #c4b89e;
+  --primary:       #19c8b9;
+  --primary-dk:    #11a89b;
+  --primary-bg:    #e6f9f6;
+  --gold:          #f5c31c;
+  --gold-dk:       #dba90e;
+  --danger:        #e05a5a;
+  --danger-dk:     #c94444;
+  --leaf:          #6fba2c;
+  --leaf-dk:       #5a9e1e;
+  --btn3d:         #bdaea0;      /* 3D 硬阴影专用色 */
+  --elev:          0 3px 10px 0 rgba(61,52,40,.10);
+  --elev-sm:       0 2px 4px 0 rgba(61,52,40,.06);
+  --path:          #d9cfae;
+  --node-lock:     #e6dfcc;
+  background:
+    radial-gradient(120% 90% at 50% 0%, #ffffff 0%, var(--bg) 42%, var(--bg-2) 100%);
+  color: var(--ink);
+}
+
+/* ────────── 主题 B：夜航保留（同一套形状语言 · 深色配色） ────────── */
+.stage[data-theme="night"] {
+  --bg:            #12333e;
+  --panel:         rgba(255,255,255,.075);
+  --panel-2:       rgba(255,255,255,.12);
+  --line:          rgba(255,255,255,.22);
+  --line-strong:   rgba(255,255,255,.34);
+  --ink:           #ffffff;
+  --ink-body:      rgba(255,255,255,.85);
+  --ink-mute:      rgba(255,255,255,.55);
+  --ink-faint:     rgba(255,255,255,.34);
+  --primary:       #2fb29b;
+  --primary-dk:    #21907d;
+  --primary-bg:    rgba(47,178,155,.16);
+  --gold:          #f2a541;
+  --gold-dk:       #cf8524;
+  --danger:        #e85d5d;
+  --danger-dk:     #c44a4a;
+  --leaf:          #7cc44a;
+  --leaf-dk:       #5f9e35;
+  --btn3d:         rgba(0,0,0,.34);
+  --elev:          0 6px 22px rgba(0,0,0,.28);
+  --elev-sm:       0 3px 10px rgba(0,0,0,.2);
+  --path:          rgba(255,255,255,.18);
+  --node-lock:     rgba(255,255,255,.12);
+  background: linear-gradient(160deg, #12333e 0%, #174552 100%);
+  color: var(--ink);
+}
+/* 夜色主题的星点 */
+.stage[data-theme="night"]::before {
+  content: ''; position: absolute; inset: 0; pointer-events: none;
+  background-image:
+    radial-gradient(1.6px 1.6px at 12% 14%, rgba(255,255,255,.55) 50%, transparent 51%),
+    radial-gradient(1.3px 1.3px at 78% 9%,  rgba(255,255,255,.4) 50%, transparent 51%),
+    radial-gradient(1.8px 1.8px at 42% 6%,  rgba(255,255,255,.5) 50%, transparent 51%),
+    radial-gradient(1.2px 1.2px at 91% 30%, rgba(255,255,255,.35) 50%, transparent 51%),
+    radial-gradient(1.5px 1.5px at 63% 21%, rgba(255,255,255,.3) 50%, transparent 51%);
+}
+/* 白天主题的羊皮纸细纹 */
+.stage[data-theme="day"]::before {
+  content: ''; position: absolute; inset: 0; pointer-events: none; opacity: .5;
+  background-image:
+    radial-gradient(2px 2px at 8% 88%,  rgba(121,79,39,.05) 50%, transparent 51%),
+    radial-gradient(2px 2px at 92% 12%, rgba(121,79,39,.05) 50%, transparent 51%),
+    radial-gradient(2px 2px at 74% 78%, rgba(121,79,39,.04) 50%, transparent 51%);
+}
+
+.screen { position: absolute; inset: 0; display: none; }
+.screen.on { display: block; }
+
+/* ══════════════════════════════════════════════════════════════
+   动森语言核心配方 —— 以下全部来自 skill/SKILL.md，按儿童 iPad 放大
+   ══════════════════════════════════════════════════════════════ */
+
+/* ── 面板：2px 描边 + 20px 圆角 + 柔和投影 ── */
+.panel {
+  background: var(--panel);
+  border: 2px solid var(--line);
+  border-radius: 20px;
+  box-shadow: var(--elev);
+}
+
+/* ── 缎带标题（Title 组件的燕尾 clip-path） ── */
+.ribbon {
+  display: inline-flex; align-items: center; justify-content: center;
+  padding: 10px 40px;
+  background: var(--gold);
+  color: #6b4a12;
+  font-weight: 900;
+  border-radius: 6px;
+  clip-path: polygon(0 0, 100% 0, calc(100% - 20px) 50%, 100% 100%, 0 100%, 20px 50%);
+  filter: drop-shadow(0 3px 0 var(--gold-dk));
+}
+.stage[data-theme="night"] .ribbon { color: #3a2508; }
+
+/* ── 3D 硬阴影按钮（核心识别特征，硬规则 19：不可去掉） ── */
+.btn {
+  font: inherit; font-weight: 900; cursor: pointer; user-select: none;
+  border-radius: 999px;                       /* pill —— 硬规则 18：绝不直角 */
+  border: 3px solid var(--line-strong);
+  background: var(--panel);
+  color: var(--ink);
+  box-shadow: 0 8px 0 0 var(--btn3d);         /* 放大版的 0 5px 0 0 */
+  transition: all .15s cubic-bezier(.4,0,.2,1);
+}
+.btn:hover  { transform: translateY(-2px); box-shadow: 0 10px 0 0 var(--btn3d); }
+.btn:active { transform: translateY(4px);  box-shadow: 0 2px 0 0 var(--btn3d); }
+.btn--primary { background: var(--primary); border-color: var(--primary-dk); color: #fff; }
+.btn--gold    { background: var(--gold);    border-color: var(--gold-dk);    color: #6b4a12; }
+.btn--leaf    { background: var(--leaf);    border-color: var(--leaf-dk);    color: #fff; }
+.btn--danger  { background: var(--danger);  border-color: var(--danger-dk);  color: #fff; }
+.btn:disabled, .btn.is-locked {
+  background: var(--panel-2); border-color: var(--line); color: var(--ink-faint);
+  box-shadow: none; cursor: default; transform: none;
+}
+.btn:disabled:hover, .btn.is-locked:hover { transform: none; box-shadow: none; }
+
+/* ══════════════════════════════════════════════════════════════
+   1 · 地图屏
+   ══════════════════════════════════════════════════════════════ */
+.m-top { position: absolute; top: 30px; left: 40px; right: 40px; display: flex; align-items: center; gap: 20px; }
+.m-title { font-size: 36px; font-weight: 900; color: var(--ink); }
+.m-sub   { font-size: 21px; font-weight: 700; color: var(--ink-mute); }
+.starcap {
+  margin-left: auto; font-size: 26px; font-weight: 900;
+  color: #6b4a12; background: var(--gold);
+  border: 3px solid var(--gold-dk); border-radius: 999px;
+  padding: 7px 26px; box-shadow: 0 5px 0 0 var(--btn3d);
+}
+.stage[data-theme="night"] .starcap { color: #3a2508; }
+
+.m-left  { position: absolute; top: 122px; left: 40px; width: 660px; bottom: 38px; overflow: hidden; }
+.m-chap  { position: absolute; top: 18px; left: 24px; right: 24px; height: 66px; display: flex; align-items: center; gap: 14px; }
+.arrow {
+  width: 62px; height: 62px; flex: none; font-size: 30px; line-height: 1;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 20px; border: 3px solid var(--line-strong);
+  background: var(--panel-2); color: var(--ink-body);
+  box-shadow: 0 5px 0 0 var(--btn3d); cursor: pointer; font-weight: 900;
+}
+.arrow:active { transform: translateY(3px); box-shadow: 0 2px 0 0 var(--btn3d); }
+.arrow.is-disabled { opacity: .4; box-shadow: none; cursor: default; }
+.m-chapname { flex: 1; text-align: center; }
+
+.m-path { position: absolute; top: 0; left: 0; }
+.noderow { position: absolute; left: 52px; right: 52px; display: flex; justify-content: space-between; }
+.nodecell { display: flex; flex-direction: column; align-items: center; width: 80px; }
+.nodebox { height: 92px; display: flex; align-items: center; justify-content: center; }
+.node {
+  border-radius: 50%; display: flex; align-items: center; justify-content: center;
+  font-weight: 900; font-size: 28px; user-select: none; box-sizing: border-box;
+}
+.node--done {
+  width: 74px; height: 74px; background: var(--gold);
+  border: 3px solid var(--gold-dk); color: #6b4a12;
+  box-shadow: 0 6px 0 0 var(--btn3d); cursor: pointer;
+}
+.node--done:active { transform: translateY(3px); box-shadow: 0 2px 0 0 var(--btn3d); }
+.node--current {
+  width: 90px; height: 90px; background: var(--primary);
+  border: 4px solid var(--primary-dk); color: #fff; font-size: 34px;
+  box-shadow: 0 7px 0 0 var(--btn3d), 0 0 0 10px var(--primary-bg);
+  animation: ac-pulse 1.6s ease-in-out infinite; cursor: pointer;
+}
+.node--locked {
+  width: 74px; height: 74px; background: var(--node-lock);
+  border: 3px dashed var(--line); color: var(--ink-faint); font-size: 24px;
+}
+.nodestars { font-size: 15px; letter-spacing: 2px; height: 18px; margin-top: 7px; line-height: 1; color: var(--gold-dk); }
+.stage[data-theme="night"] .nodestars { color: var(--gold); }
+
+.m-right { position: absolute; top: 122px; right: 40px; width: 280px; bottom: 38px; display: flex; flex-direction: column; gap: 18px; }
+.m-mascotcard { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; cursor: pointer; }
+.m-line { font-size: 20px; font-weight: 700; color: var(--ink-body); text-align: center; line-height: 1.5; padding: 0 16px; }
+.ttsbadge {
+  display: inline-block; background: var(--panel-2); border: 2px solid var(--line);
+  border-radius: 999px; padding: 1px 9px; font-size: 15px;
+}
+.m-cta  { padding: 20px 0; font-size: 26px; width: 100%; }
+.m-mode { padding: 15px 0; font-size: 20px; width: 100%; position: relative; }
+.newbadge {
+  position: absolute; top: -12px; right: -6px;
+  background: var(--danger); color: #fff; font-size: 13px; font-weight: 900;
+  border: 2px solid var(--danger-dk); border-radius: 999px; padding: 2px 10px;
+  box-shadow: 0 3px 0 0 var(--btn3d);
+}
+.gear {
+  position: absolute; right: 16px; bottom: 14px;
+  width: 46px; height: 46px; border-radius: 16px; font-size: 22px; line-height: 1;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--panel-2); border: 2px solid var(--line); color: var(--ink-mute);
+  cursor: pointer; box-shadow: var(--elev-sm);
+}
+
+/* ── 吉祥物：agnes-ai 生成的真素材 ── */
+.mascot-img { display: block; height: 168px; width: auto; }
+.mascot-img.big { height: 210px; }
+.mascot-img.cheer { animation: ac-floaty 2.2s ease-in-out infinite; }
+/* 模式按钮里的小图标 */
+.mode-ico { height: 30px; width: auto; vertical-align: -8px; margin-right: 8px; }
+.btn.is-locked .mode-ico { filter: grayscale(1); opacity: .45; }
+/* 锁住的关卡节点用木牌素材 */
+.node--locked img { width: 66px; height: 66px; object-fit: contain; }
+
+/* ── 吉祥物 CSS 占位版（已被真素材取代，保留供对比） ── */
+.mascot { position: relative; width: 120px; height: 128px; }
+.mascot .leaf {
+  position: absolute; top: 0; left: 50%; width: 34px; height: 26px;
+  background: var(--leaf); border: 3px solid var(--leaf-dk);
+  border-radius: 0 100% 0 100%; transform: translateX(-52%) rotate(-16deg);
+}
+.mascot .face {
+  position: absolute; bottom: 0; left: 0; width: 120px; height: 108px;
+  background: var(--panel); border: 3px solid var(--line-strong);
+  border-radius: 52% 52% 46% 46%; box-shadow: var(--elev);
+}
+.mascot .ear {
+  position: absolute; top: 16px; width: 30px; height: 30px; border-radius: 50%;
+  background: var(--panel); border: 3px solid var(--line-strong);
+}
+.mascot .ear.l { left: -6px; } .mascot .ear.r { right: -6px; }
+.mascot .eye {
+  position: absolute; top: 46px; width: 13px; height: 17px; border-radius: 50%;
+  background: var(--ink);
+}
+.stage[data-theme="night"] .mascot .eye { background: #17414c; }
+.mascot .eye.l { left: 32px; } .mascot .eye.r { right: 32px; }
+.mascot .blush {
+  position: absolute; top: 63px; width: 20px; height: 12px; border-radius: 50%;
+  background: #f8a6b2; opacity: .85;
+}
+.mascot .blush.l { left: 15px; } .mascot .blush.r { right: 15px; }
+.mascot .mouth {
+  position: absolute; top: 68px; left: 50%; transform: translateX(-50%);
+  width: 24px; height: 13px; border: 3px solid var(--ink);
+  border-top: none; border-radius: 0 0 24px 24px;
+}
+.stage[data-theme="night"] .mascot .mouth { border-color: #17414c; }
+.mascot.cheer { animation: ac-floaty 2.2s ease-in-out infinite; }
+
+@keyframes ac-pulse  { 0%,100% { transform: scale(1); } 50% { transform: scale(1.06); } }
+@keyframes ac-floaty { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-9px); } }
+@keyframes ac-pop    { 0% { transform: scale(.6); } 60% { transform: scale(1.08); } 100% { transform: scale(1); } }
+
+/* ══════════════════════════════════════════════════════════════
+   2 · 答题屏
+   ══════════════════════════════════════════════════════════════ */
+.q-back, .q-replay {
+  position: absolute; top: 28px; width: 62px; height: 62px;
+  border-radius: 20px; border: 3px solid var(--line-strong);
+  background: var(--panel); color: var(--ink-body);
+  font-size: 27px; font-weight: 900; line-height: 1;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 5px 0 0 var(--btn3d); cursor: pointer;
+}
+.q-back { left: 30px; } .q-replay { right: 30px; }
+.q-back:active, .q-replay:active { transform: translateY(3px); box-shadow: 0 2px 0 0 var(--btn3d); }
+
+.q-prog {
+  position: absolute; top: 44px; left: 116px; right: 210px; height: 26px;
+  background: var(--panel-2); border: 3px solid var(--line);
+  border-radius: 999px; overflow: hidden;
+}
+.q-prog-fill {
+  height: 100%; width: 60%; border-radius: 999px;
+  background: repeating-linear-gradient(-45deg, var(--leaf) 0 12px, var(--leaf-dk) 12px 24px);
+}
+.q-count { position: absolute; top: 40px; right: 112px; font-size: 22px; font-weight: 900; color: var(--ink-mute); }
+
+.qrow {
+  position: absolute; top: 128px; left: 0; right: 0;
+  display: flex; justify-content: center; align-items: center; gap: 24px;
+  font-size: 92px; font-weight: 900; color: var(--ink);
+}
+.qrow .op { color: var(--primary); }
+.qrow .box {
+  width: 122px; height: 122px; flex: none; border-radius: 30px;
+  border: 5px dashed var(--gold-dk); background: var(--gold);
+  color: #6b4a12; font-size: 68px;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 6px 0 0 var(--btn3d);
+}
+.stage[data-theme="night"] .qrow .box { color: #3a2508; }
+
+.blocks { position: absolute; top: 302px; left: 0; right: 0; display: flex; flex-direction: column; align-items: center; gap: 12px; }
+.blocks-panel {
+  display: flex; flex-wrap: wrap; justify-content: center; gap: 9px;
+  max-width: 676px; padding: 18px 22px;
+  background: var(--panel); border: 2px solid var(--line);
+  border-radius: 22px; box-shadow: var(--elev-sm);
+}
+.block {
+  width: 54px; height: 54px; flex: none; border-radius: 16px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 26px; font-weight: 900; box-sizing: border-box;
+  border: 3px solid rgba(0,0,0,.16); box-shadow: 0 4px 0 0 rgba(0,0,0,.14);
+}
+.block--a { background: var(--primary); color: #fff; }
+.block--b { background: var(--gold);    color: #6b4a12; }
+.blocks-hint { font-size: 18px; font-weight: 700; color: var(--ink-mute); cursor: pointer; }
+
+.opts { position: absolute; bottom: 52px; left: 0; right: 0; display: flex; justify-content: center; gap: 34px; }
+.opt {
+  width: 152px; height: 112px; border-radius: 30px;
+  border: 3px solid var(--line-strong); background: var(--panel);
+  color: var(--ink); font-size: 50px; font-weight: 900;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 8px 0 0 var(--btn3d); cursor: pointer;
+  transition: all .15s cubic-bezier(.4,0,.2,1);
+}
+.opt:hover  { transform: translateY(-2px); box-shadow: 0 10px 0 0 var(--btn3d); }
+.opt:active { transform: translateY(4px);  box-shadow: 0 2px 0 0 var(--btn3d); }
+.opt--correct { background: var(--leaf); border-color: var(--leaf-dk); color: #fff; }
+.opt--excluded {
+  background: var(--panel-2); border-color: var(--danger); color: var(--danger);
+  opacity: .65; box-shadow: none; transform: none; cursor: default;
+}
+.opt--excluded:hover { transform: none; box-shadow: none; }
+
+/* ══════════════════════════════════════════════════════════════
+   3 · 结算屏
+   ══════════════════════════════════════════════════════════════ */
+.result { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; }
+.result-card {
+  width: 620px; padding: 40px 48px 44px;
+  display: flex; flex-direction: column; align-items: center; gap: 14px;
+  animation: ac-pop .35s ease-out;
+}
+.result-title { font-size: 46px; font-weight: 900; color: var(--ink); }
+.result-stars { font-size: 60px; letter-spacing: 12px; color: var(--gold); filter: drop-shadow(0 3px 0 var(--gold-dk)); }
+.result-sub   { font-size: 24px; font-weight: 700; color: var(--ink-body); display: flex; align-items: center; gap: 10px; }
+.result-acts  { display: flex; gap: 22px; margin-top: 12px; }
+.result-btn   { padding: 18px 40px; font-size: 24px; }
+
+/* ══════════════════════════════════════════════════════════════
+   4 · 九九星图
+   ══════════════════════════════════════════════════════════════ */
+.sc-grid { position: absolute; top: 130px; left: 40px; display: grid; grid-template-columns: repeat(10, 54px); grid-auto-rows: 54px; gap: 6px; }
+.sc-corner, .sc-head, .sc-cell {
+  width: 54px; height: 54px; border-radius: 16px;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 900; box-sizing: border-box; user-select: none;
+}
+.sc-corner { color: var(--ink-mute); font-size: 24px; }
+.sc-head {
+  color: #6b4a12; font-size: 23px;
+  background: var(--gold); border: 2px solid var(--gold-dk);
+  box-shadow: 0 3px 0 0 var(--btn3d);
+}
+.stage[data-theme="night"] .sc-head { color: #3a2508; }
+.sc-head.is-locked { background: var(--panel-2); border: 2px dashed var(--line); color: var(--ink-faint); font-size: 19px; box-shadow: none; }
+.sc-cell { font-size: 18px; cursor: pointer; border: 2px solid transparent; }
+.sc-cell--s0 { background: var(--panel-2); border-color: var(--line); color: var(--ink-faint); }
+.sc-cell--s1 { background: var(--primary-bg); border-color: var(--primary); color: var(--primary-dk); }
+.sc-cell--s2 { background: var(--primary); border-color: var(--primary-dk); color: #fff; }
+.sc-cell--s3 { background: var(--gold); border-color: var(--gold-dk); color: #6b4a12; box-shadow: 0 3px 0 0 var(--btn3d); }
+.stage[data-theme="night"] .sc-cell--s3 { color: #3a2508; }
+.sc-cell--free { background: var(--panel); border-color: var(--line); color: var(--ink-mute); }
+.sc-cell--locked { background: transparent; border: 2px dashed var(--line); color: var(--ink-faint); opacity: .55; }
+.sc-cell.is-sel { outline: 4px solid var(--danger); outline-offset: 2px; }
+
+.sc-right { position: absolute; top: 130px; left: 664px; width: 280px; bottom: 42px; display: flex; flex-direction: column; gap: 16px; }
+.sc-counter {
+  flex: none; text-align: center; padding: 13px 0; font-size: 22px; font-weight: 900;
+  background: var(--gold); border: 3px solid var(--gold-dk); border-radius: 20px;
+  color: #6b4a12; box-shadow: 0 5px 0 0 var(--btn3d);
+}
+.stage[data-theme="night"] .sc-counter { color: #3a2508; }
+.sc-card { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; padding: 18px; }
+.sc-eq     { font-size: 34px; font-weight: 900; color: var(--ink); }
+.sc-koujue { font-size: 25px; font-weight: 900; color: var(--primary-dk); }
+.stage[data-theme="night"] .sc-koujue { color: var(--primary); }
+.sc-arr { display: grid; gap: 4px; }
+.sc-dot { width: 15px; height: 15px; border-radius: 5px; background: var(--primary); border: 2px solid var(--primary-dk); }
+.sc-tts { font-size: 17px; font-weight: 700; color: var(--ink-mute); background: var(--panel-2); border: 2px solid var(--line); border-radius: 999px; padding: 5px 14px; cursor: pointer; }
+
+/* ══════════════════════════════════════════════════════════════
+   5 · 家长设置弹窗（动森 Modal 的 blob clip-path）
+   ══════════════════════════════════════════════════════════════ */
+.modal-mask { position: absolute; inset: 0; background: rgba(0,0,0,.35); display: flex; align-items: center; justify-content: center; }
+.modal-blob {
+  width: 560px; height: 420px; padding: 46px 54px;
+  background: var(--panel);
+  clip-path: url(#ac-modal-clip);
+  display: flex; flex-direction: column; align-items: center; gap: 18px;
+  animation: ac-pop .3s ease-out;
+}
+.modal-row { width: 100%; display: flex; align-items: center; justify-content: space-between; font-size: 21px; font-weight: 700; color: var(--ink-body); }
+.sw { width: 68px; height: 36px; border-radius: 999px; border: 3px solid var(--line-strong); background: var(--panel-2); position: relative; cursor: pointer; }
+.sw.on { background: var(--leaf); border-color: var(--leaf-dk); box-shadow: inset 0 3px 0 0 rgba(0,0,0,.14); }
+.sw i { position: absolute; top: 2px; left: 3px; width: 24px; height: 24px; border-radius: 50%; background: #fff; box-shadow: 0 2px 3px rgba(0,0,0,.2); transition: left .2s; }
+.sw.on i { left: 35px; }
+.modal-note { font-size: 14px; color: var(--ink-mute); text-align: center; }
+</style>
+</head>
+<body>
+
+<div class="bar">
+  <h1>数学夜航 × 动森风格 · 重构预览</h1>
+  <div class="sep"></div>
+  <div class="grp">
+    <label>配色</label>
+    <button data-theme-btn="day"   aria-pressed="true">白天（动森原味）</button>
+    <button data-theme-btn="night" aria-pressed="false">夜色（保留夜航）</button>
+  </div>
+  <div class="sep"></div>
+  <div class="grp">
+    <label>屏幕</label>
+    <button data-screen-btn="map"    aria-pressed="true">地图</button>
+    <button data-screen-btn="quiz"   aria-pressed="false">答题</button>
+    <button data-screen-btn="result" aria-pressed="false">结算</button>
+    <button data-screen-btn="star"   aria-pressed="false">九九星图</button>
+    <button data-screen-btn="modal"  aria-pressed="false">家长设置</button>
+  </div>
+  <div class="hint">按钮可点，有按压回弹 · 1024×768 等比缩放</div>
+</div>
+
+<div class="canvas"><div class="fit" id="fit">
+<div class="stage" data-theme="day" id="stage">
+
+  <!-- SVG clip-path：动森 Modal 的 blob 轮廓（SKILL.md 原样） -->
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+    <clipPath id="ac-modal-clip" clipPathUnits="objectBoundingBox">
+      <path d="M0.501,0.005 L0.501,0.005 L0.523,0.005 L0.549,0.006 C0.704,0.01,0.796,0.017,0.825,0.027 L0.827,0.028 C0.872,0.045,0.939,0.044,0.978,0.17 C1,0.254,1,0.365,0.99,0.505 L0.988,0.513 C0.979,0.558,0.971,0.598,0.965,0.633 C0.956,0.689,0.979,0.77,0.964,0.865 C0.953,0.928,0.921,0.966,0.869,0.979 C0.821,0.986,0.773,0.992,0.726,0.995 L0.712,0.996 L0.694,0.997 C0.648,1,0.586,1,0.507,1 L0.501,1 L0.464,1 C0.385,1,0.325,0.998,0.283,0.995 C0.234,0.992,0.184,0.987,0.133,0.979 C0.081,0.966,0.05,0.928,0.039,0.865 C0.023,0.77,0.047,0.689,0.037,0.633 C0.031,0.595,0.023,0.552,0.013,0.505 C-0.006,0.365,-0.002,0.254,0.024,0.17 C0.064,0.045,0.13,0.045,0.174,0.028 L0.175,0.028 C0.204,0.017,0.303,0.009,0.474,0.005 L0.501,0.005" />
+    </clipPath>
+  </defs></svg>
+
+  <!-- ═══════════ 地图屏 ═══════════ -->
+  <section class="screen on" data-screen="map">
+    <div class="m-top">
+      <div class="m-title">数学夜航 · 第一章</div>
+      <div class="m-sub">7 / 15 关</div>
+      <div class="starcap">★ 17</div>
+    </div>
+
+    <div class="m-left panel">
+      <div class="m-chap">
+        <div class="arrow is-disabled">‹</div>
+        <div class="m-chapname"><span class="ribbon" style="font-size:22px">第一章 · 启航</span></div>
+        <div class="arrow">›</div>
+      </div>
+      <svg class="m-path" width="660" height="598" aria-hidden="true">
+        <path d="M 92 175 H 568 C 620 175 620 325 568 325 H 92 C 40 325 40 475 92 475 H 568"
+              fill="none" stroke="var(--path)" stroke-width="12" stroke-linecap="round" stroke-dasharray="2 26" />
+      </svg>
+      <div class="noderow" id="row0" style="top:129px"></div>
+      <div class="noderow" id="row1" style="top:279px"></div>
+      <div class="noderow" id="row2" style="top:429px"></div>
+    </div>
+
+    <div class="m-right">
+      <div class="m-mascotcard panel">
+        <img class="mascot-img" src="../../src/assets/mascot-wave.webp" alt="吉祥物" />
+        <div class="m-line">准备好出发了吗？ <span class="ttsbadge">🔊</span></div>
+      </div>
+      <button class="btn btn--primary m-cta">挑战第 8 关 ▶</button>
+      <button class="btn btn--gold m-mode"><img class="mode-ico" src="../../src/assets/icon-endless.webp" alt="" />无尽夜航 <span class="newbadge">新玩法！</span></button>
+      <button class="btn btn--leaf m-mode"><img class="mode-ico" src="../../src/assets/icon-timed.webp" alt="" />星光冲刺</button>
+      <button class="btn m-mode is-locked"><img class="mode-ico" src="../../src/assets/icon-star.webp" alt="" />九九星图</button>
+    </div>
+
+    <div class="gear">⚙</div>
+  </section>
+
+  <!-- ═══════════ 答题屏 ═══════════ -->
+  <section class="screen" data-screen="quiz">
+    <div class="q-back">←</div>
+    <div class="q-prog"><div class="q-prog-fill"></div></div>
+    <div class="q-count">6/10</div>
+    <div class="q-replay">🔊</div>
+
+    <div class="qrow">
+      <span>7</span><span class="op">+</span><span>5</span><span class="op">=</span><span class="box">?</span>
+    </div>
+
+    <div class="blocks">
+      <div class="blocks-panel" id="blockpanel"></div>
+      <div class="blocks-hint">🔊 数一数，7 个加 5 个是多少？</div>
+    </div>
+
+    <div class="opts">
+      <div class="opt">10</div>
+      <div class="opt opt--excluded">11</div>
+      <div class="opt opt--correct">12</div>
+      <div class="opt">13</div>
+    </div>
+  </section>
+
+  <!-- ═══════════ 结算屏 ═══════════ -->
+  <section class="screen" data-screen="result">
+    <div class="result">
+      <div class="result-card panel">
+        <img class="mascot-img big cheer" src="../../src/assets/mascot-cheer.webp" alt="吉祥物欢呼" />
+        <div class="result-title">第 8 关完成！</div>
+        <div class="result-stars">★★★</div>
+        <div class="result-sub">太厉害了，一次全对！ <span class="ttsbadge">🔊</span></div>
+        <div class="result-acts">
+          <button class="btn result-btn">回地图</button>
+          <button class="btn btn--primary result-btn">下一关 ▶</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════ 九九星图 ═══════════ -->
+  <section class="screen" data-screen="star">
+    <div class="m-top">
+      <div class="m-title">九九星图</div>
+      <div class="m-sub">点亮全部 36 句口诀</div>
+    </div>
+    <div class="sc-grid" id="scgrid"></div>
+    <div class="sc-right">
+      <div class="sc-counter">✨ 已点亮 14 / 36</div>
+      <div class="sc-card panel">
+        <div class="sc-eq">3 × 4 = 12</div>
+        <div class="sc-koujue">三四十二</div>
+        <div class="sc-arr" id="scarr"></div>
+        <div class="sc-tts">🔊 再听一次</div>
+      </div>
+      <button class="btn btn--primary" style="padding:18px 0;font-size:24px">开始练习 ▶</button>
+      <button class="btn" style="padding:14px 0;font-size:20px">回地图</button>
+    </div>
+  </section>
+
+  <!-- ═══════════ 家长设置弹窗 ═══════════ -->
+  <section class="screen" data-screen="modal">
+    <div class="m-top" style="opacity:.35">
+      <div class="m-title">数学夜航 · 第一章</div>
+      <div class="starcap">★ 17</div>
+    </div>
+    <div class="modal-mask">
+      <div class="modal-blob">
+        <span class="ribbon" style="font-size:24px">家长设置</span>
+        <div class="modal-row">语音朗读 <span class="sw on"><i></i></span></div>
+        <div class="modal-row">显示计数块 <span class="sw on"><i></i></span></div>
+        <div class="modal-row">限时模式计数块 <span class="sw"><i></i></span></div>
+        <div class="modal-row">挑战难度 <button class="btn" style="padding:8px 22px;font-size:17px">普通 ▾</button></div>
+        <div class="modal-note">clip-path 用的是 SKILL.md 里那条 blob 路径原文</div>
+      </div>
+    </div>
+  </section>
+
+</div>
+</div></div>
+
+<script>
+/* ─── 地图节点 ─── */
+const STARS = {1:3,2:3,3:2,4:3,5:3,6:2,7:1};
+const rows = [[1,2,3,4,5],[10,9,8,7,6],[11,12,13,14,15]];
+rows.forEach((row, r) => {
+  const el = document.getElementById('row' + r);
+  el.innerHTML = row.map(n => {
+    const s = STARS[n];
+    let cls = 'node--locked', label = '<img src="../../src/assets/node-locked.webp" alt="未解锁">', stars = '';
+    if (s) {
+      cls = 'node--done'; label = n;
+      stars = '★★★'.slice(0, s) + '☆☆☆'.slice(0, 3 - s);
+    } else if (n === 8) {
+      cls = 'node--current'; label = n;
+    }
+    return `<div class="nodecell">
+      <div class="nodebox"><div class="node ${cls}">${label}</div></div>
+      <div class="nodestars">${stars}</div>
+    </div>`;
+  }).join('');
+});
+
+/* ─── 计数块 7 + 5 ─── */
+document.getElementById('blockpanel').innerHTML =
+  Array.from({length: 7}, (_, i) => `<div class="block block--a">${i + 1}</div>`).join('') +
+  Array.from({length: 5}, (_, i) => `<div class="block block--b">${i + 1}</div>`).join('');
+
+/* ─── 星图 10×10 ─── */
+const L = new Set([1,2,3,4,5]);                 // 已学乘法表
+const S = {'2x2':3,'2x3':3,'2x4':3,'2x5':3,'3x3':3,'3x4':3,'3x5':2,'4x4':2,'4x5':1,'5x5':1,
+           '2x6':3,'2x7':3,'2x8':3,'2x9':3,'3x6':2,'3x7':1};
+const sc = document.getElementById('scgrid');
+let html = '<div class="sc-corner">×</div>';
+const nums = [1,2,3,4,5,6,7,8,9];
+const locked = t => t >= 2 && !L.has(t);
+nums.forEach(c => html += `<div class="sc-head${locked(c) ? ' is-locked' : ''}">${locked(c) ? '🔒' : c}</div>`);
+nums.forEach(r => {
+  html += `<div class="sc-head${locked(r) ? ' is-locked' : ''}">${locked(r) ? '🔒' : r}</div>`;
+  nums.forEach(c => {
+    let cls;
+    if (r === 1 || c === 1) cls = 'sc-cell--free';
+    else if (!L.has(Math.min(r,c)) && !L.has(Math.max(r,c))) cls = 'sc-cell--locked';
+    else cls = 'sc-cell--s' + (S[`${Math.min(r,c)}x${Math.max(r,c)}`] ?? 0);
+    const sel = (Math.min(r,c) === 3 && Math.max(r,c) === 4) ? ' is-sel' : '';
+    html += `<div class="sc-cell ${cls}${sel}">${r * c}</div>`;
+  });
+});
+sc.innerHTML = html;
+
+/* ─── 星图卡片阵列 3×4 ─── */
+const arr = document.getElementById('scarr');
+arr.style.gridTemplateColumns = 'repeat(4, 15px)';
+arr.innerHTML = Array.from({length: 12}, () => '<div class="sc-dot"></div>').join('');
+
+/* ─── 工具条 ─── */
+const stage = document.getElementById('stage');
+document.querySelectorAll('[data-theme-btn]').forEach(b => b.onclick = () => {
+  stage.dataset.theme = b.dataset.themeBtn;
+  document.querySelectorAll('[data-theme-btn]').forEach(x => x.setAttribute('aria-pressed', x === b));
+});
+document.querySelectorAll('[data-screen-btn]').forEach(b => b.onclick = () => {
+  document.querySelectorAll('.screen').forEach(s =>
+    s.classList.toggle('on', s.dataset.screen === b.dataset.screenBtn));
+  document.querySelectorAll('[data-screen-btn]').forEach(x => x.setAttribute('aria-pressed', x === b));
+});
+document.querySelectorAll('.sw').forEach(s => s.onclick = () => s.classList.toggle('on'));
+
+/* ─── 等比缩放（同 src/ui/scale.ts） ─── */
+const fit = document.getElementById('fit');
+function resize() {
+  const box = fit.parentElement.getBoundingClientRect();
+  const k = Math.min((box.width - 40) / 1024, (box.height - 40) / 768);
+  stage.style.transform = `scale(${k})`;
+  fit.style.width = 1024 * k + 'px';
+  fit.style.height = 768 * k + 'px';
+}
+addEventListener('resize', resize);
+resize();
+</script>
+</body>
+</html>
