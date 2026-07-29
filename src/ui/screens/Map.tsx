@@ -3,6 +3,9 @@ import type { Progress } from '../../core/types';
 import { chapterOf, chapterStart, endlessUnlocked, timedUnlocked, timesTableUnlocked } from '../../core/progression';
 import { Mascot } from '../components/Mascot';
 import nodeLocked from '../../assets/node-locked.webp';
+import icoEndless from '../../assets/icon-endless.webp';
+import icoStar from '../../assets/icon-star.webp';
+import icoTimed from '../../assets/icon-timed.webp';
 
 interface MapProps {
   progress: Progress;
@@ -200,6 +203,7 @@ export function Map({ progress, onStartLevel, onStartEndless, onStartTimed, onOp
           disabled={!endlessOn}
           onClick={endlessOn ? () => openMode('endless', onStartEndless) : undefined}
         >
+          <img class="mn-mode-ico" src={icoEndless} alt="" />
           {!endlessOn && '🔒 '}无尽夜航
           {endlessOn && !seen.endless && <span class="mn-badge">新玩法！</span>}
         </button>
@@ -209,6 +213,7 @@ export function Map({ progress, onStartLevel, onStartEndless, onStartTimed, onOp
           disabled={!timedOn}
           onClick={timedOn ? () => openMode('timed', onStartTimed) : undefined}
         >
+          <img class="mn-mode-ico" src={icoTimed} alt="" />
           {!timedOn && '🔒 '}星光冲刺
           {timedOn && !seen.timed && <span class="mn-badge">新玩法！</span>}
         </button>
@@ -218,6 +223,7 @@ export function Map({ progress, onStartLevel, onStartEndless, onStartTimed, onOp
           disabled={!starChartOn}
           onClick={starChartOn ? () => openMode('starchart', onOpenStarChart) : undefined}
         >
+          <img class="mn-mode-ico" src={icoStar} alt="" />
           {!starChartOn && '🔒 '}九九星图
           {starChartOn && !seen.starchart && <span class="mn-badge">新玩法！</span>}
         </button>

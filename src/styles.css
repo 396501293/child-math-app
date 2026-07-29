@@ -299,6 +299,18 @@ body {
   box-shadow: 0 3px 0 0 var(--btn3d);
 }
 
+/* 模式键内嵌图标 */
+.mn-mode-ico {
+  height: 30px;
+  width: auto;
+  vertical-align: -8px;
+  margin-right: 8px;
+}
+.mn-btn.is-locked .mn-mode-ico {
+  filter: grayscale(1);
+  opacity: 0.45;
+}
+
 /* ── 章节切换箭头：仅留尺寸/排版，视觉来自 .mn-btn.mn-btn--square ── */
 .mn-arrow {
   width: 68px;
@@ -569,6 +581,11 @@ body {
   overflow: hidden;
 }
 .mn-quiz-progress-fill {
+  background-image: repeating-linear-gradient(
+    -45deg,
+    var(--color-leaf) 0 12px,
+    var(--leaf-dk) 12px 24px
+  );
   height: 100%;
   border-radius: 16px;
   background: var(--color-amber);
@@ -610,10 +627,11 @@ body {
   height: 120px;
   flex: none;
   border-radius: 26px;
-  border: 6px dashed var(--color-amber);
-  background: var(--amber-08);
+  border: 6px dashed var(--amber-70);
+  background: var(--amber-20);
   color: var(--color-amber);
   font-size: 70px;
+  box-shadow: 0 6px 0 0 var(--btn3d);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -651,7 +669,9 @@ body {
   width: 56px;
   height: 56px;
   flex: none;
-  border-radius: 12px;
+  border: 3px solid rgba(0, 0, 0, 0.16);
+  border-radius: 16px;
+  box-shadow: 0 4px 0 0 rgba(0, 0, 0, 0.14);
   box-sizing: border-box;
   display: flex;
   align-items: center;
@@ -788,10 +808,12 @@ body {
   animation: mn-pop 0.35s ease-out;
 }
 .mn-feedback-card--right {
-  background: var(--color-teal);
+  background: var(--color-leaf);
+  border: var(--bw-strong) solid var(--leaf-dk);
 }
 .mn-feedback-card--wrong {
   background: var(--color-coral);
+  border: var(--bw-strong) solid var(--coral-dk);
 }
 
 /* ═══════ 模式顶栏共用槽位（StreakBar / TimerBar 的定位与布局） ═══════ */
@@ -1037,7 +1059,8 @@ body {
 .mn-sc-cell {
   width: 54px;
   height: 54px;
-  border-radius: 12px;
+  border: 2px solid transparent;
+  border-radius: 16px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1050,10 +1073,16 @@ body {
   font-size: 26px;
 }
 .mn-sc-head {
-  color: var(--color-amber);
+  background: var(--color-amber);
+  border: 2px solid var(--amber-dk);
+  box-shadow: 0 3px 0 0 var(--btn3d);
+  color: var(--color-text-dark);
   font-size: 24px;
 }
 .mn-sc-head.is-locked {
+  background: var(--panel-06);
+  border: 2px dashed var(--line);
+  box-shadow: none;
   color: var(--color-white-40);
   font-size: 20px;
 }
@@ -1064,18 +1093,23 @@ body {
 /* 掌握度色阶：s0 暗 → 青绿弱 → 青绿亮 → 琥珀金（点亮，pop） */
 .mn-sc-cell--s0 {
   background: var(--panel-06);
+  border-color: var(--line);
   color: var(--color-white-40);
 }
 .mn-sc-cell--s1 {
   background: rgba(47, 178, 155, 0.32);
+  border-color: var(--teal-70);
   color: var(--color-white-85);
 }
 .mn-sc-cell--s2 {
   background: rgba(47, 178, 155, 0.72);
+  border-color: var(--teal-dk);
   color: var(--color-white-100);
 }
 .mn-sc-cell--s3 {
   background: var(--color-amber);
+  border-color: var(--amber-dk);
+  box-shadow: 0 3px 0 0 var(--btn3d);
   color: var(--color-text-dark);
   animation: mn-pop 0.35s ease-out;
 }
@@ -1086,7 +1120,8 @@ body {
 }
 /* 未学（a、b 均未学）：更暗，仍可点预览 */
 .mn-sc-cell--locked {
-  background: var(--panel-06);
+  background: transparent;
+  border: 2px dashed var(--line);
   color: var(--color-white-40);
   opacity: 0.5;
 }
@@ -1186,13 +1221,16 @@ body {
   font-weight: 900;
   color: var(--color-white-85);
   background: var(--panel-12);
-  border-radius: 50px;
-  padding: 10px 24px;
+  border: var(--bw) solid var(--line);
+  border-radius: var(--r-pill);
+  box-shadow: var(--elev-sm);
+  padding: 9px 24px;
   white-space: nowrap;
 }
 .mn-tt-pill--lit {
   color: var(--color-amber);
   background: var(--amber-20);
+  border-color: var(--amber-70);
 }
 
 /* ── 答错揭示卡（口诀 + 阵列 + 点一下继续）：全屏遮罩天然挡住选项点击 ── */
@@ -1207,7 +1245,8 @@ body {
   cursor: pointer;
 }
 .mn-tt-reveal-card {
-  background: var(--panel-12);
+  background: linear-gradient(180deg, #1b4351, #17394a);
+  border: var(--bw-strong) solid var(--line-strong);
   border-radius: 32px;
   padding: 34px 56px 28px;
   display: flex;
