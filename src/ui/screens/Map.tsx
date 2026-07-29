@@ -140,7 +140,7 @@ export function Map({ progress, onStartLevel, onStartEndless, onStartTimed, onOp
         {/* 章节切换行 */}
         <div style={{ position: 'absolute', top: 16, left: 24, right: 24, height: 68, display: 'flex', alignItems: 'center', gap: 12 }}>
           <button
-            class={leftDisabled ? 'mn-arrow is-disabled' : 'mn-arrow'}
+            class={leftDisabled ? 'mn-btn mn-btn--square mn-arrow is-disabled' : 'mn-btn mn-btn--square mn-arrow'}
             disabled={leftDisabled}
             onClick={leftDisabled ? undefined : () => setViewChapter((c) => c - 1)}
             aria-label="上一章"
@@ -151,7 +151,7 @@ export function Map({ progress, onStartLevel, onStartEndless, onStartTimed, onOp
             第{cnNum}章 · {chapterName}
           </div>
           <button
-            class={rightDisabled ? 'mn-arrow is-disabled' : 'mn-arrow'}
+            class={rightDisabled ? 'mn-btn mn-btn--square mn-arrow is-disabled' : 'mn-btn mn-btn--square mn-arrow'}
             disabled={rightDisabled}
             onClick={rightDisabled ? undefined : () => setViewChapter((c) => c + 1)}
             aria-label={rightLocked ? '下一章（未解锁）' : '下一章'}
@@ -221,7 +221,7 @@ export function Map({ progress, onStartLevel, onStartEndless, onStartTimed, onOp
 
       {/* ─── 右下角齿轮：长按 1.5s 打开家长设置 ─── */}
       <button
-        class="mn-gear"
+        class="mn-btn mn-btn--square mn-gear"
         style={{ position: 'absolute', right: 16, bottom: 16 }}
         onPointerDown={startHold}
         onPointerUp={cancelHold}

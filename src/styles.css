@@ -291,31 +291,24 @@ body {
   box-shadow: 0 3px 0 0 var(--btn3d);
 }
 
-/* ── 章节切换 / 返回键样式 ── */
+/* ── 章节切换箭头：仅留尺寸/排版，视觉来自 .mn-btn.mn-btn--square ── */
 .mn-arrow {
   width: 68px;
   height: 68px;
   flex: none;
-  border: none;
-  border-radius: 20px;
-  background: var(--panel-10);
   color: var(--color-white-60);
-  font-family: inherit;
   font-size: 34px;
-  font-weight: 900;
   line-height: 1;
   display: flex;
   align-items: center;
   justify-content: center;
-  cursor: pointer;
-  user-select: none;
 }
 .mn-arrow:not(.is-disabled):hover {
   background: var(--panel-12);
 }
+/* 箭头无底色变化，仅靠基类去阴影不够明显，额外降透明度 */
 .mn-arrow.is-disabled {
   opacity: 0.4;
-  cursor: default;
 }
 
 /* ── 关卡节点 ── */
@@ -395,21 +388,13 @@ body {
 .mn-gear {
   width: 48px;
   height: 48px;
-  border: none;
-  border-radius: 14px;
-  background: rgba(255, 255, 255, 0.25);
-  color: #fff;
+  color: var(--color-white-85);
   font-size: 26px;
   line-height: 1;
   display: flex;
   align-items: center;
   justify-content: center;
-  cursor: pointer;
-  user-select: none;
-  touch-action: none; /* 长按不触发页面滚动/文本选择手势 */
-}
-.mn-gear:active {
-  background: rgba(255, 255, 255, 0.38);
+  touch-action: none; /* 长按不触发页面滚动/文本选择手势——删掉长按开设置就废了 */
 }
 
 /* ── 吉祥物（几何占位，README §Assets） ── */
@@ -559,26 +544,20 @@ body {
 /* ═══════ 答题屏（Quiz） ═══════ */
 
 /* ── 顶栏 ── */
+/* ── 答题屏返回 / 重播：仅留定位与字号，视觉来自 .mn-btn.mn-btn--square ── */
 .mn-quiz-back,
 .mn-quiz-replay {
   position: absolute;
   top: 28px;
   width: 68px;
   height: 68px;
-  border: none;
-  border-radius: 20px;
-  font-family: inherit;
-  font-weight: 900;
   line-height: 1;
   display: flex;
   align-items: center;
   justify-content: center;
-  cursor: pointer;
-  user-select: none;
 }
 .mn-quiz-back {
   left: 36px;
-  background: var(--panel-10);
   color: var(--color-white-60);
   font-size: 30px;
 }
@@ -588,7 +567,7 @@ body {
 .mn-quiz-replay {
   right: 36px;
   background: var(--amber-20);
-  color: var(--color-white-100);
+  border-color: var(--amber-70);
   font-size: 28px;
 }
 .mn-quiz-progress {

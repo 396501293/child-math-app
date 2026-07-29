@@ -33,7 +33,7 @@ export function Quiz({ session, showBlocks, timeLeftMs, timeMaxMs, onAnswer, onE
 
   return (
     <div style={{ position: 'absolute', inset: 0 }}>
-      <button class="mn-quiz-back" onClick={onExit} aria-label={exitLabel}>←</button>
+      <button class="mn-btn mn-btn--square mn-quiz-back" onClick={onExit} aria-label={exitLabel}>←</button>
       {campaign && (
         <>
           <div class="mn-quiz-progress">
@@ -50,7 +50,7 @@ export function Quiz({ session, showBlocks, timeLeftMs, timeMaxMs, onAnswer, onE
           <span class="mn-tt-pill mn-tt-pill--lit">✨ 已点亮 {session.ttLit ?? 0}/36</span>
         </div>
       )}
-      <button class="mn-quiz-replay" onClick={onReplay} aria-label="重播读题">🔊</button>
+      <button class="mn-btn mn-btn--square mn-quiz-replay" onClick={onReplay} aria-label="重播读题">🔊</button>
 
       <QuestionRow q={q} />
 
