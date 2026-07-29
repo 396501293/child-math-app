@@ -198,7 +198,73 @@ body {
   font-weight: 900;
 }
 
-/* ── 通用按钮硬阴影范式 ── */
+/* ── 动森按钮基类 ──
+   CTA / 模式键 / 章节箭头 / 返回 / 重播 / 齿轮 / 选项砖 / 结算键 共八处，
+   统一：描边 + 圆角 + 3D 硬阴影 + 按压回弹。改一处即全体生效。 */
+.mn-btn {
+  font-family: inherit;
+  font-weight: 900;
+  color: var(--color-white-100);
+  background: var(--panel-10);
+  border: var(--bw) solid var(--line);
+  border-radius: var(--r-pill);
+  box-shadow: 0 8px 0 0 var(--btn3d);
+  cursor: pointer;
+  user-select: none;
+  transition: transform var(--dur-fast) var(--ease), box-shadow var(--dur-fast) var(--ease);
+}
+.mn-btn:active {
+  transform: translateY(4px);
+  box-shadow: 0 2px 0 0 var(--btn3d);
+}
+
+/* 着色变体：底色 + 同色系暗边（暗边比阴影更清晰地勾出形状） */
+.mn-btn--coral {
+  background: var(--color-coral);
+  border-color: var(--coral-dk);
+}
+.mn-btn--amber {
+  background: var(--color-amber);
+  border-color: var(--amber-dk);
+  color: var(--color-text-dark);
+}
+.mn-btn--teal {
+  background: var(--color-teal);
+  border-color: var(--teal-dk);
+}
+.mn-btn--leaf {
+  background: var(--color-leaf);
+  border-color: var(--leaf-dk);
+}
+
+/* 方形变体：返回 / 章节箭头 / 齿轮——圆角而非 pill，阴影浅一档 */
+.mn-btn--square {
+  border-radius: var(--r-lg);
+  box-shadow: 0 5px 0 0 var(--btn3d);
+}
+.mn-btn--square:active {
+  transform: translateY(3px);
+  box-shadow: 0 2px 0 0 var(--btn3d);
+}
+
+/* 禁用 / 锁定：去阴影去位移——这是「不可按」的关键视觉信号，不要只降透明度 */
+.mn-btn:disabled,
+.mn-btn.is-locked,
+.mn-btn.is-disabled {
+  background: var(--panel-06);
+  border-color: var(--line);
+  color: var(--color-white-40);
+  box-shadow: none;
+  cursor: default;
+}
+.mn-btn:disabled:active,
+.mn-btn.is-locked:active,
+.mn-btn.is-disabled:active {
+  transform: none;
+  box-shadow: none;
+}
+
+/* ── 通用按钮硬阴影范式（旧，随 Task 4–6 逐批迁移到 .mn-btn） ── */
 .mn-cta {
   width: 100%;
   border: none;
