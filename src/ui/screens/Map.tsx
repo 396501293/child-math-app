@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'preact/hooks';
 import type { Progress } from '../../core/types';
 import { chapterOf, chapterStart, endlessUnlocked, timedUnlocked, timesTableUnlocked } from '../../core/progression';
 import { Mascot } from '../components/Mascot';
+import nodeLocked from '../../assets/node-locked.webp';
 
 interface MapProps {
   progress: Progress;
@@ -65,7 +66,9 @@ function NodeCell({ level, state, stars, onTap }: {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: 80 }}>
       <div style={{ height: 92, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <div class={cls} onClick={state === 'locked' ? undefined : onTap}>{level}</div>
+        <div class={cls} onClick={state === 'locked' ? undefined : onTap}>
+          {state === 'locked' ? <img src={nodeLocked} alt="未解锁" /> : level}
+        </div>
       </div>
       <div class="mn-node-stars">{starStr}</div>
     </div>

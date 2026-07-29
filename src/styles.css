@@ -334,25 +334,39 @@ body {
   width: 76px;
   height: 76px;
   background: var(--color-amber);
+  border: var(--bw) solid var(--amber-dk);
   color: var(--color-text-dark);
+  box-shadow: 0 6px 0 0 var(--btn3d);
   cursor: pointer;
+  transition: transform var(--dur-fast) var(--ease), box-shadow var(--dur-fast) var(--ease);
 }
+.mn-node--done:active {
+  transform: translateY(3px);
+  box-shadow: 0 2px 0 0 var(--btn3d);
+}
+/* 当前关：青绿实心比原先的白底珊瑚边更醒目；脉冲与外发光环保留 */
 .mn-node--current {
   width: 92px;
   height: 92px;
-  background: #fff;
-  color: var(--color-coral);
-  border: 6px solid var(--color-coral);
-  box-shadow: 0 0 0 10px rgba(232, 93, 93, 0.2);
+  background: var(--color-teal);
+  color: var(--color-white-100);
+  border: var(--bw-strong) solid var(--teal-dk);
+  box-shadow: 0 7px 0 0 var(--btn3d), 0 0 0 10px rgba(47, 178, 155, 0.22);
   animation: mn-pulse 1.6s ease-in-out infinite;
   cursor: pointer;
 }
+/* 未解锁：虚线圈内嵌木牌锁头素材（见 NodeCell） */
 .mn-node--locked {
   width: 76px;
   height: 76px;
-  background: var(--panel-12);
-  color: var(--color-white-40);
+  background: transparent;
+  border: var(--bw) dashed var(--line);
   cursor: default;
+}
+.mn-node--locked img {
+  width: 62px;
+  height: 62px;
+  object-fit: contain;
 }
 .mn-node-stars {
   font-size: 15px;
