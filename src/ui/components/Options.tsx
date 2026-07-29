@@ -16,9 +16,9 @@ export function Options({ question, excluded, lastWrong, feedback, onPick }: Opt
       {question.options.map((v, i) => {
         const isExcluded = excluded.includes(v);
         const isCorrectFlash = feedback === 'right' && v === question.answer;
-        let cls = 'mn-opt';
-        if (isCorrectFlash) cls = 'mn-opt mn-opt--correct';
-        else if (isExcluded) cls = 'mn-opt mn-opt--excluded' + (feedback === 'wrong' && v === lastWrong ? ' mn-opt--shake' : '');
+        let cls = 'mn-btn mn-opt';
+        if (isCorrectFlash) cls = 'mn-btn mn-opt mn-opt--correct';
+        else if (isExcluded) cls = 'mn-btn mn-opt mn-opt--excluded' + (feedback === 'wrong' && v === lastWrong ? ' mn-opt--shake' : '');
         const clickable = !isExcluded && !isCorrectFlash && feedback === null;
         return (
           <div key={i} class={cls} onClick={clickable ? () => onPick(v) : undefined}>

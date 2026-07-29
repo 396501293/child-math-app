@@ -488,30 +488,13 @@ body {
   gap: 28px;
   margin-top: 16px;
 }
+/* ── 结算按钮：仅留尺寸，视觉来自 .mn-btn ── */
 .mn-result-btn {
-  border: none;
-  border-radius: 22px;
-  padding: 20px 46px;
-  font-family: inherit;
+  padding: 18px 44px;
   font-size: 28px;
-  font-weight: 900;
-  color: var(--color-white-100);
-  cursor: pointer;
-  user-select: none;
-}
-.mn-result-btn--ghost {
-  background: var(--panel-12);
 }
 .mn-result-btn--ghost:hover {
   background: rgba(255, 255, 255, 0.22);
-}
-.mn-result-btn--next {
-  background: var(--color-coral);
-  box-shadow: 0 6px 0 rgba(0, 0, 0, 0.25);
-}
-.mn-result-btn--next:active {
-  transform: translateY(4px);
-  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.25);
 }
 /* 无尽/限时结算：破纪录庆祝 + 纪录统计 */
 .mn-result-record {
@@ -744,31 +727,35 @@ body {
   justify-content: center;
   gap: 36px;
 }
+/* 选项砖：矩形而非 pill，故用 --r-lg 覆盖基类圆角 */
 .mn-opt {
   width: 150px;
   height: 110px;
   box-sizing: border-box;
-  border-radius: 26px;
-  background: var(--panel-10);
-  border: 3px solid var(--panel-25);
-  color: var(--color-white-100);
+  border-radius: var(--r-lg);
+  border-color: var(--line-strong);
   font-size: 52px;
-  font-weight: 900;
   display: flex;
   align-items: center;
   justify-content: center;
-  cursor: pointer;
-  user-select: none;
 }
+/* 已排除：去阴影去位移——已答错即不可再点 */
 .mn-opt--excluded {
   background: var(--coral-30);
   border-color: var(--color-coral);
   opacity: 0.6;
+  box-shadow: none;
   cursor: default;
 }
+.mn-opt--excluded:active {
+  transform: none;
+  box-shadow: none;
+}
+/* 正确态用叶绿而非青绿：动森的 success 色是绿；
+   青绿在本应用已被计数块占用，区分开可减少误读。 */
 .mn-opt--correct {
-  background: var(--color-teal);
-  border-color: var(--color-teal);
+  background: var(--color-leaf);
+  border-color: var(--leaf-dk);
 }
 .mn-opt--shake {
   animation: mn-shake 0.4s;

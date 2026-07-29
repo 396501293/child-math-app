@@ -41,9 +41,9 @@ export function Result(props: ResultProps) {
           <span class="mn-result-sub-tts" role="button" aria-label="重播祝贺语" onClick={onReplaySub}>🔊</span>
         </div>
         <div class="mn-result-actions">
-          <button class="mn-result-btn mn-result-btn--ghost" onClick={onBackToMap}>回地图</button>
+          <button class="mn-btn mn-result-btn mn-result-btn--ghost" onClick={onBackToMap}>回地图</button>
           {onNextLevel && (
-            <button class="mn-result-btn mn-result-btn--next" onClick={onNextLevel}>
+            <button class="mn-btn mn-btn--coral mn-result-btn" onClick={onNextLevel}>
               {nextLabel(level)}
             </button>
           )}
@@ -72,7 +72,7 @@ export function Result(props: ResultProps) {
           </div>
         </div>
         <div class="mn-result-actions">
-          <button class="mn-result-btn mn-result-btn--next" onClick={onBackToMap}>回地图</button>
+          <button class="mn-btn mn-btn--coral mn-result-btn" onClick={onBackToMap}>回地图</button>
         </div>
       </div>
     );
@@ -97,8 +97,8 @@ export function Result(props: ResultProps) {
           <span class="mn-result-sub-tts" role="button" aria-label="重播祝贺语" onClick={onReplaySub}>🔊</span>
         </div>
         <div class="mn-result-actions">
-          <button class="mn-result-btn mn-result-btn--ghost" onClick={onBackToMap}>回地图</button>
-          <button class="mn-result-btn mn-result-btn--next" onClick={onBackToStarChart}>回星图</button>
+          <button class="mn-btn mn-result-btn mn-result-btn--ghost" onClick={onBackToMap}>回地图</button>
+          <button class="mn-btn mn-btn--coral mn-result-btn" onClick={onBackToStarChart}>回星图</button>
         </div>
       </div>
     );
@@ -120,7 +120,7 @@ export function Result(props: ResultProps) {
         </div>
       </div>
       <div class="mn-result-actions">
-        <button class="mn-result-btn mn-result-btn--next" onClick={onBackToMap}>回地图</button>
+        <button class="mn-btn mn-btn--coral mn-result-btn" onClick={onBackToMap}>回地图</button>
       </div>
     </div>
   );
