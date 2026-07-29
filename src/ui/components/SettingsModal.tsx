@@ -67,7 +67,7 @@ export function SettingsModal({ settings, onUpdateSettings, onResetProgress, onU
       {/* 阻止冒泡：点卡片内部不关闭 */}
       <div class="mn-set-card" onClick={(e) => e.stopPropagation()}>
         <button class="mn-set-close" onClick={onClose} aria-label="关闭设置">✕</button>
-        <div class="mn-set-title">家长设置</div>
+        <div class="mn-ribbon mn-set-title">家长设置</div>
 
         {/* 每关题数（仅主线）3–10 步进 */}
         <div class="mn-set-row">

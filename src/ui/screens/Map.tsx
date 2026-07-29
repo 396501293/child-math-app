@@ -153,8 +153,8 @@ export function Map({ progress, onStartLevel, onStartEndless, onStartTimed, onOp
           >
             ‹
           </button>
-          <div style={{ flex: 1, textAlign: 'center', fontSize: 24, fontWeight: 900, color: 'var(--color-white-100)' }}>
-            第{cnNum}章 · {chapterName}
+          <div style={{ flex: 1, display: 'flex', justifyContent: 'center' }}>
+            <span class="mn-ribbon" style={{ fontSize: 22 }}>第{cnNum}章 · {chapterName}</span>
           </div>
           <button
             class={rightDisabled ? 'mn-btn mn-btn--square mn-arrow is-disabled' : 'mn-btn mn-btn--square mn-arrow'}

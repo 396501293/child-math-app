@@ -198,6 +198,20 @@ body {
   font-weight: 900;
 }
 
+/* ── 燕尾缎带标题（动森 Title 组件的形状语言） ── */
+.mn-ribbon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 40px;
+  background: var(--color-amber);
+  color: var(--color-text-dark);
+  font-weight: 900;
+  border-radius: 6px;
+  clip-path: polygon(0 0, 100% 0, calc(100% - 20px) 50%, 100% 100%, 0 100%, 20px 50%);
+  filter: drop-shadow(0 3px 0 var(--amber-dk));
+}
+
 /* ── 面板：动森的「万物有边」也适用于容器 ── */
 .mn-panel {
   background: var(--panel-06);
@@ -924,9 +938,9 @@ body {
   position: relative;
   width: 580px;
   max-width: calc(100% - 80px);
-  background: var(--panel-12);
-  backdrop-filter: blur(2px);
-  border-radius: 28px;
+  background: linear-gradient(180deg, #1b4351, #17394a);
+  border: var(--bw-strong) solid var(--line-strong);
+  border-radius: 36px;
   padding: 40px 44px 44px;
   display: flex;
   flex-direction: column;
@@ -957,9 +971,8 @@ body {
   background: var(--panel-25);
 }
 .mn-set-title {
-  font-size: 30px;
-  font-weight: 900;
-  color: var(--color-white-100);
+  align-self: center;
+  font-size: 26px;
   margin-bottom: 6px;
 }
 .mn-set-row {
