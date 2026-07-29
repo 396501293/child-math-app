@@ -198,6 +198,14 @@ body {
   font-weight: 900;
 }
 
+/* ── 面板：动森的「万物有边」也适用于容器 ── */
+.mn-panel {
+  background: var(--panel-06);
+  border: var(--bw) solid var(--line);
+  border-radius: 28px;
+  box-shadow: var(--elev-sm);
+}
+
 /* ── 动森按钮基类 ──
    CTA / 模式键 / 章节箭头 / 返回 / 重播 / 齿轮 / 选项砖 / 结算键 共八处，
    统一：描边 + 圆角 + 3D 硬阴影 + 按压回弹。改一处即全体生效。 */
@@ -447,7 +455,20 @@ body {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 28px;
+}
+/* 结算卡：原先内容直接浮在夜空上，缺少承托。用面板质感收拢成一张卡。 */
+.mn-result-card {
+  width: 640px;
+  padding: 36px 48px 40px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 22px;
+  background: var(--panel-07);
+  border: var(--bw) solid var(--line);
+  border-radius: 32px;
+  box-shadow: var(--elev);
+  animation: mn-pop 0.35s ease-out;
 }
 /* 预留 150 高，容纳放大的吉祥物（scale 1.15 后不占布局尺寸），保证 gap 均匀。 */
 .mn-result-mascot {
@@ -636,8 +657,10 @@ body {
   gap: 8px;
   max-width: 676px;
   padding: 18px 22px;
+  border: var(--bw) solid var(--line);
   border-radius: 20px;
   background: var(--panel-07);
+  box-shadow: var(--elev-sm);
 }
 .mn-block {
   position: relative;
@@ -1091,19 +1114,22 @@ body {
 /* ── 右面板：点亮计数 + 点格弹卡 + CTA ── */
 .mn-sc-counter {
   flex: none;
-  background: var(--panel-10);
-  border: 2px solid rgba(242, 165, 65, 0.6);
-  border-radius: 16px;
-  padding: 14px 0;
+  background: var(--color-amber);
+  border: var(--bw) solid var(--amber-dk);
+  border-radius: var(--r-lg);
+  box-shadow: 0 5px 0 0 var(--btn3d);
+  padding: 13px 0;
   text-align: center;
   font-size: 24px;
   font-weight: 900;
-  color: var(--color-amber);
+  color: var(--color-text-dark);
 }
 .mn-sc-card {
   flex: 1;
   background: var(--panel-07);
+  border: var(--bw) solid var(--line);
   border-radius: 20px;
+  box-shadow: var(--elev-sm);
   display: flex;
   align-items: center;
   justify-content: center;

@@ -136,7 +136,7 @@ export function Map({ progress, onStartLevel, onStartEndless, onStartTimed, onOp
       </div>
 
       {/* ─── 左路径面板 ─── */}
-      <div style={{ position: 'absolute', top: 130, left: 40, width: 660, bottom: 40, background: 'var(--panel-06)', borderRadius: 28, overflow: 'hidden' }}>
+      <div class="mn-panel" style={{ position: 'absolute', top: 130, left: 40, width: 660, bottom: 40, overflow: 'hidden' }}>
         {/* 章节切换行 */}
         <div style={{ position: 'absolute', top: 16, left: 24, right: 24, height: 68, display: 'flex', alignItems: 'center', gap: 12 }}>
           <button
@@ -178,7 +178,8 @@ export function Map({ progress, onStartLevel, onStartEndless, onStartTimed, onOp
       {/* ─── 右面板 ─── */}
       <div style={{ position: 'absolute', top: 130, right: 40, width: 280, bottom: 40, display: 'flex', flexDirection: 'column', gap: 24 }}>
         <div
-          style={{ flex: 1, background: 'var(--panel-06)', borderRadius: 28, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 14, cursor: 'pointer' }}
+          class="mn-panel"
+          style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 14, cursor: 'pointer' }}
           onClick={() => onWelcome(mascotLine)}
         >
           <Mascot pose="idle" />

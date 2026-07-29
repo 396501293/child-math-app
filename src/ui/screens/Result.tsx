@@ -1,3 +1,4 @@
+import type { ComponentChildren } from 'preact';
 import { Mascot } from '../components/Mascot';
 
 // 结算屏（README §3 + 题库设计 §7-5）。dumb 组件：所有数值由 App 计算后经 props 传入。
@@ -23,13 +24,23 @@ function nextLabel(level: number): string {
   return '下一关 ▶';
 }
 
+// 结算卡片外壳：四个变体共用。内容原先直接浮在夜空上缺少承托，
+// 动森化后收拢成一张有描边的卡（.mn-result-card）。
+function ResultCard({ children }: { children: ComponentChildren }) {
+  return (
+    <div class="mn-result">
+      <div class="mn-result-card">{children}</div>
+    </div>
+  );
+}
+
 export function Result(props: ResultProps) {
   if (props.variant === 'campaign') {
     const { level, stars, onBackToMap, onNextLevel, onReplaySub } = props;
     const starStr = '★★★'.slice(0, stars) + '☆☆☆'.slice(0, 3 - stars);
     const pose = stars === 3 ? 'cheer' : 'happy';
     return (
-      <div class="mn-result">
+      <ResultCard>
         <div class="mn-result-mascot">
           <Mascot pose={pose} scale={1.15} />
         </div>
@@ -48,14 +59,14 @@ export function Result(props: ResultProps) {
             </button>
           )}
         </div>
-      </div>
+      </ResultCard>
     );
   }
 
   if (props.variant === 'endless') {
     const { answered, runBestStreak, historyBestStreak, broke, onBackToMap } = props;
     return (
-      <div class="mn-result">
+      <ResultCard>
         <div class="mn-result-mascot">
           <Mascot pose={broke ? 'cheer' : 'happy'} scale={1.15} />
         </div>
@@ -74,7 +85,7 @@ export function Result(props: ResultProps) {
         <div class="mn-result-actions">
           <button class="mn-btn mn-btn--coral mn-result-btn" onClick={onBackToMap}>回地图</button>
         </div>
-      </div>
+      </ResultCard>
     );
   }
 
@@ -82,7 +93,7 @@ export function Result(props: ResultProps) {
     const { answered, newLit, lit, onBackToStarChart, onBackToMap, onReplaySub } = props;
     const cleared = lit >= 36;
     return (
-      <div class="mn-result">
+      <ResultCard>
         <div class="mn-result-mascot">
           <Mascot pose={newLit > 0 ? 'cheer' : 'happy'} scale={1.15} />
         </div>
@@ -100,14 +111,14 @@ export function Result(props: ResultProps) {
           <button class="mn-btn mn-result-btn mn-result-btn--ghost" onClick={onBackToMap}>回地图</button>
           <button class="mn-btn mn-btn--coral mn-result-btn" onClick={onBackToStarChart}>回星图</button>
         </div>
-      </div>
+      </ResultCard>
     );
   }
 
   // props.variant === 'timed'
   const { answered, bestCount, broke, onBackToMap } = props;
   return (
-    <div class="mn-result">
+    <ResultCard>
       <div class="mn-result-mascot">
         <Mascot pose={broke ? 'cheer' : 'happy'} scale={1.15} />
       </div>
@@ -122,6 +133,6 @@ export function Result(props: ResultProps) {
       <div class="mn-result-actions">
         <button class="mn-btn mn-btn--coral mn-result-btn" onClick={onBackToMap}>回地图</button>
       </div>
-    </div>
+    </ResultCard>
   );
 }
