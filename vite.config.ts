@@ -25,7 +25,8 @@ export default defineConfig({
         ],
       },
       // 预缓存壳 + 字体分片 + 图标，实现离线可用。
-      workbox: { globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'] },
+      // webp 必须在列：美术素材是 webp，漏了断网即碎图。
+      workbox: { globPatterns: ['**/*.{js,css,html,ico,png,svg,webp,woff2}'] },
     }),
   ],
 });

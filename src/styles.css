@@ -452,7 +452,9 @@ body {
 }
 .mn-mascot-img {
   display: block;
-  height: 168px;
+  /* 132px 而非更大：地图右栏要在 598px 内塞下吉祥物卡 + CTA + 三个模式键，
+     模式键加图标后变高，吉祥物再大就会把「九九星图」挤出面板。 */
+  height: 132px;
   width: auto;
   animation: mn-floaty 3s ease-in-out infinite;
 }
@@ -482,7 +484,7 @@ body {
 }
 /* 预留 150 高，容纳放大的吉祥物（scale 1.15 后不占布局尺寸），保证 gap 均匀。 */
 .mn-result-mascot {
-  height: 150px;
+  height: 152px;
   display: flex;
   align-items: center;
   justify-content: center;

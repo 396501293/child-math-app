@@ -182,7 +182,7 @@ export function Map({ progress, onStartLevel, onStartEndless, onStartTimed, onOp
       </div>
 
       {/* ─── 右面板 ─── */}
-      <div style={{ position: 'absolute', top: 130, right: 40, width: 280, bottom: 40, display: 'flex', flexDirection: 'column', gap: 24 }}>
+      <div style={{ position: 'absolute', top: 130, right: 40, width: 280, bottom: 40, display: 'flex', flexDirection: 'column', gap: 18 }}>
         <div
           class="mn-panel"
           style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 14, cursor: 'pointer' }}

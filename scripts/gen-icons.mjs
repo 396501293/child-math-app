@@ -1,29 +1,23 @@
-// 生成 PWA / apple-touch 图标：用 sharp 把内嵌的几何吉祥物 SVG 光栅化为 PNG。
-// 吉祥物：琥珀 #F2A541 圆角方脸 + 深色 #12333E 眼 + 白高光 + 下弯微笑；背景 #12333E 圆角。
-// 与 src/ui/components/Mascot.tsx 造型一致。运行：node scripts/gen-icons.mjs
+// 生成 PWA / apple-touch 图标：把吉祥物素材合成到夜色圆角底上。
+// 素材源 src/assets/app-icon.webp（由 scripts/gen-assets.mjs 生成）。
+// 运行：node scripts/gen-icons.mjs
+//
+// 早期版本是把内嵌的几何吉祥物 SVG 光栅化——那个造型已被手绘素材取代，
+// 留着会导致主屏图标与应用内吉祥物长得不一样。
 import { mkdir } from 'node:fs/promises';
-import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import sharp from 'sharp';
 
 const BG = '#12333E';
-const AMBER = '#F2A541';
-const DARK = '#12333E';
+const root = join(dirname(fileURLToPath(import.meta.url)), '..');
+const srcIcon = join(root, 'src', 'assets', 'app-icon.webp');
+const outDir = join(root, 'public', 'icons');
 
-// viewBox 512×512。face 300×280 居中偏上；眼/高光/嘴按 Mascot 造型等比放大。
-const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
-  <rect width="512" height="512" rx="112" ry="112" fill="${BG}"/>
-  <circle cx="256" cy="262" r="190" fill="${AMBER}" opacity="0.12"/>
-  <rect x="106" y="116" width="300" height="280" rx="118" ry="112" fill="${AMBER}"/>
-  <circle cx="195" cy="231" r="35" fill="${DARK}"/>
-  <circle cx="317" cy="231" r="35" fill="${DARK}"/>
-  <circle cx="181" cy="219" r="13" fill="#ffffff"/>
-  <circle cx="331" cy="219" r="13" fill="#ffffff"/>
-  <path d="M 213 308 H 299 V 330 Q 299 348 281 348 H 231 Q 213 348 213 330 Z" fill="${DARK}"/>
-</svg>`;
-
-const outDir = join(dirname(fileURLToPath(import.meta.url)), '..', 'public', 'icons');
 await mkdir(outDir, { recursive: true });
+
+// maskable 安全区：图标内容需收在中心 80% 内，避免被各平台裁切成圆形时切到角色。
+const CONTENT_RATIO = 0.78;
 
 const targets = [
   ['icon-192.png', 192],
@@ -32,9 +26,24 @@ const targets = [
 ];
 
 for (const [name, size] of targets) {
-  await sharp(Buffer.from(svg))
-    .resize(size, size)
-    .png()
+  const inner = Math.round(size * CONTENT_RATIO);
+  const mascot = await sharp(srcIcon)
+    .resize(inner, inner, { fit: 'inside', withoutEnlargement: false })
+    .toBuffer();
+  const { width, height } = await sharp(mascot).metadata();
+
+  // 圆角底：SVG 铺底再合成，圆角半径取 size 的 22%（与 iOS 图标观感接近）。
+  const bg = Buffer.from(
+    `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}">
+       <rect width="${size}" height="${size}" rx="${Math.round(size * 0.22)}" ry="${Math.round(size * 0.22)}" fill="${BG}"/>
+     </svg>`,
+  );
+
+  await sharp(bg)
+    .composite([{ input: mascot, left: Math.round((size - width) / 2), top: Math.round((size - height) / 2) }])
+    // 调色板量化：素材是扁平插画、色数有限，PNG-8 能压掉约 3/4 体积且肉眼无损。
+    // 图标进 PWA 预缓存，体积直接影响首次安装的下载量。
+    .png({ palette: true, quality: 90, effort: 10 })
     .toFile(join(outDir, name));
   console.log(`wrote ${name} (${size}×${size})`);
 }

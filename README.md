@@ -40,9 +40,31 @@ npm run build   # 类型检查 + 生产构建 → dist/
 4. 首次联网加载完成后，应用会离线缓存资源，之后无网络也可继续游玩。
 5. **家长设置**：在地图屏右下角长按齿轮图标约 1.5 秒即可打开（防止儿童误触）。
 
-## 图标再生成
+## 视觉与素材
 
-App / PWA 图标由脚本从内嵌 SVG 光栅化生成，如需重新生成：
+界面采用动森（《集合啦！动物森友会》）风格：粗描边、pill 圆角、3D 硬阴影按钮、
+按压回弹、手绘美术素材。设计配方（色值、圆角尺度、阴影公式、缓动曲线）移植自
+[animal-island-ui](https://github.com/guokaigdg/animal-island-ui)（`CC BY-NC 4.0`）的
+`skill/SKILL.md` —— **仅移植设计令牌，未引入其代码或包**。感谢作者 [@guokaigdg](https://github.com/guokaigdg)。
+
+视觉基准见 [`docs/ui-preview/index.html`](./docs/ui-preview/index.html)（浏览器直接打开）。
+
+### 美术素材再生成
+
+`src/assets/*.webp` 由 [agnes-ai](https://agnes-ai.com) 文生图生成后抠白底转 WebP，**产物已入库**。
+需要重出时：
+
+```bash
+AGNES_API_KEY=<你的密钥> node scripts/gen-assets.mjs              # 全部
+AGNES_API_KEY=<你的密钥> node scripts/gen-assets.mjs mascot-idle   # 指定项
+```
+
+> `scripts/gen-assets.mjs` 是**一次性开发工具，不属于构建流程**：`npm run build` 与 CI 都不执行它。
+> 构建依赖外部 API 会给部署增加卡死点。密钥只走环境变量，不入库。
+
+### 图标再生成
+
+App / PWA 图标由 `src/assets/app-icon.webp` 合成到夜色圆角底上生成：
 
 ```bash
 node scripts/gen-icons.mjs
