@@ -1,26 +1,19 @@
-import type { JSX } from 'preact';
+import { mascotSrc, type MascotPose } from './mascotAssets';
 
-export type MascotPose = 'idle' | 'happy' | 'cheer';
+export type { MascotPose };
 
-// 姿态只微调嘴形（眼睛保持稳定）——琥珀圆角方脸吉祥物，见 README §Assets。
-const MOUTHS: Record<MascotPose, JSX.CSSProperties> = {
-  idle: { width: 24, height: 10, bottom: 14, left: 30, borderRadius: '0 0 10px 10px' },
-  happy: { width: 30, height: 14, bottom: 12, left: 27, borderRadius: '0 0 15px 15px' },
-  cheer: { width: 22, height: 20, bottom: 12, left: 31, borderRadius: '50%' },
-};
-
+// 吉祥物。原为 CSS 几何拼装（halo/face/eye/hi/mouth 五层 div），
+// 动森化后改用手绘素材，姿势→素材映射见 ./mascotAssets。
+//
+// ⚠️ 缩放与漂浮动画必须分处两层元素：二者都写 transform，
+//    同层时 CSS 动画会覆盖内联的 scale（结算屏 scale=1.15 会失效）。
+//
+// alt="" 是刻意的：吉祥物是装饰性的，情绪信息已由同屏文案表达，
+// 给它加 alt 会让读屏器重复播报。
 export function Mascot({ pose = 'idle', scale = 1 }: { pose?: MascotPose; scale?: number }) {
   return (
     <div class="mn-mascot" style={{ transform: `scale(${scale})` }}>
-      <div class="mn-mascot-halo">
-        <div class="mn-mascot-face">
-          <div class="mn-mascot-eye" style={{ left: 15 }} />
-          <div class="mn-mascot-eye" style={{ right: 15 }} />
-          <div class="mn-mascot-hi" style={{ left: 20 }} />
-          <div class="mn-mascot-hi" style={{ right: 20 }} />
-          <div class="mn-mascot-mouth" style={MOUTHS[pose]} />
-        </div>
-      </div>
+      <img class="mn-mascot-img" src={mascotSrc(pose)} alt="" />
     </div>
   );
 }

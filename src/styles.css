@@ -419,46 +419,16 @@ body {
   touch-action: none; /* 长按不触发页面滚动/文本选择手势——删掉长按开设置就废了 */
 }
 
-/* ── 吉祥物（几何占位，README §Assets） ── */
+/* ── 吉祥物（手绘素材，见 ui/components/mascotAssets.ts） ──
+   外层只做缩放、内层只做漂浮：二者都写 transform，同层时动画会盖掉 scale。 */
 .mn-mascot {
   transform-origin: center center;
 }
-.mn-mascot-halo {
-  width: 130px;
-  height: 130px;
-  border-radius: 50%;
-  background: rgba(242, 165, 65, 0.15);
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.mn-mascot-img {
+  display: block;
+  height: 168px;
+  width: auto;
   animation: mn-floaty 3s ease-in-out infinite;
-}
-.mn-mascot-face {
-  position: relative;
-  width: 84px;
-  height: 78px;
-  border-radius: 40px 40px 34px 34px;
-  background: var(--color-amber);
-}
-.mn-mascot-eye {
-  position: absolute;
-  top: 22px;
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  background: var(--color-text-dark);
-}
-.mn-mascot-hi {
-  position: absolute;
-  top: 26px;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: #fff;
-}
-.mn-mascot-mouth {
-  position: absolute;
-  background: var(--color-text-dark);
 }
 
 /* ═══════ 结算屏（Result，README §3） ═══════ */

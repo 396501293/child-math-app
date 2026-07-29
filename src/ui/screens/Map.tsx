@@ -185,7 +185,7 @@ export function Map({ progress, onStartLevel, onStartEndless, onStartTimed, onOp
           style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 14, cursor: 'pointer' }}
           onClick={() => onWelcome(mascotLine)}
         >
-          <Mascot pose="idle" />
+          <Mascot pose="wave" />
           <div style={{ fontSize: 23, color: 'var(--color-white-85)', textAlign: 'center', lineHeight: 1.5, padding: '0 18px' }}>
             {mascotLine} <span class="mn-tts-badge">🔊</span>
           </div>
