@@ -6,6 +6,7 @@ import nodeLocked from '../../assets/node-locked.webp';
 import icoEndless from '../../assets/icon-endless.webp';
 import icoStar from '../../assets/icon-star.webp';
 import icoTimed from '../../assets/icon-timed.webp';
+import { Ico } from '../components/Ico';
 
 interface MapProps {
   progress: Progress;
@@ -162,7 +163,7 @@ export function Map({ progress, onStartLevel, onStartEndless, onStartTimed, onOp
             onClick={rightDisabled ? undefined : () => setViewChapter((c) => c + 1)}
             aria-label={rightLocked ? '下一章（未解锁）' : '下一章'}
           >
-            {rightLocked ? '🔒' : '›'}
+            {rightLocked ? <Ico name="lock" /> : '›'}
           </button>
         </div>
 
@@ -190,7 +191,7 @@ export function Map({ progress, onStartLevel, onStartEndless, onStartTimed, onOp
         >
           <Mascot pose="wave" />
           <div style={{ fontSize: 23, color: 'var(--color-white-85)', textAlign: 'center', lineHeight: 1.5, padding: '0 18px' }}>
-            {mascotLine} <span class="mn-tts-badge">🔊</span>
+            {mascotLine} <span class="mn-tts-badge"><Ico name="sound" /></span>
           </div>
         </div>
 
@@ -204,7 +205,7 @@ export function Map({ progress, onStartLevel, onStartEndless, onStartTimed, onOp
           onClick={endlessOn ? () => openMode('endless', onStartEndless) : undefined}
         >
           <img class="mn-mode-ico" src={icoEndless} alt="" />
-          {!endlessOn && '🔒 '}无尽夜航
+          {!endlessOn && <Ico name="lock" />}无尽夜航
           {endlessOn && !seen.endless && <span class="mn-badge">新玩法！</span>}
         </button>
 
@@ -214,7 +215,7 @@ export function Map({ progress, onStartLevel, onStartEndless, onStartTimed, onOp
           onClick={timedOn ? () => openMode('timed', onStartTimed) : undefined}
         >
           <img class="mn-mode-ico" src={icoTimed} alt="" />
-          {!timedOn && '🔒 '}星光冲刺
+          {!timedOn && <Ico name="lock" />}星光冲刺
           {timedOn && !seen.timed && <span class="mn-badge">新玩法！</span>}
         </button>
 
@@ -224,7 +225,7 @@ export function Map({ progress, onStartLevel, onStartEndless, onStartTimed, onOp
           onClick={starChartOn ? () => openMode('starchart', onOpenStarChart) : undefined}
         >
           <img class="mn-mode-ico" src={icoStar} alt="" />
-          {!starChartOn && '🔒 '}九九星图
+          {!starChartOn && <Ico name="lock" />}九九星图
           {starChartOn && !seen.starchart && <span class="mn-badge">新玩法！</span>}
         </button>
       </div>
@@ -240,7 +241,7 @@ export function Map({ progress, onStartLevel, onStartEndless, onStartTimed, onOp
         onContextMenu={(e) => e.preventDefault()}
         aria-label="家长设置（长按打开）"
       >
-        ⚙
+        <Ico name="gear" />
       </button>
     </>
   );

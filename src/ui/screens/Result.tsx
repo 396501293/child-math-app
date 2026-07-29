@@ -1,5 +1,6 @@
 import type { ComponentChildren } from 'preact';
 import { Mascot } from '../components/Mascot';
+import { Ico } from '../components/Ico';
 
 // 结算屏（README §3 + 题库设计 §7-5）。dumb 组件：所有数值由 App 计算后经 props 传入。
 // 三种变体：campaign（星级）/ endless（本轮答对 + 连对纪录）/ timed（时间到 + 个人最佳）。
@@ -49,7 +50,7 @@ export function Result(props: ResultProps) {
         <div class="mn-result-sub">
           {CAMPAIGN_SUB[stars]}
           {/* 点击重播结算祝贺（App speak 同一句副文案） */}
-          <span class="mn-result-sub-tts" role="button" aria-label="重播祝贺语" onClick={onReplaySub}>🔊</span>
+          <span class="mn-result-sub-tts" role="button" aria-label="重播祝贺语" onClick={onReplaySub}><Ico name="sound" /></span>
         </div>
         <div class="mn-result-actions">
           <button class="mn-btn mn-result-btn mn-result-btn--ghost" onClick={onBackToMap}>回地图</button>
@@ -71,10 +72,10 @@ export function Result(props: ResultProps) {
           <Mascot pose={broke ? 'cheer' : 'happy'} scale={1.15} />
         </div>
         <div class="mn-result-title">本轮答对 {answered} 题！</div>
-        {broke && <div class="mn-result-record">🎉 新纪录！</div>}
+        {broke && <div class="mn-result-record"><Ico name="party" /> 新纪录！</div>}
         <div class="mn-result-stats">
           <div class="mn-result-stat">
-            <span class="mn-result-stat-num">🔥 {runBestStreak}</span>
+            <span class="mn-result-stat-num"><Ico name="fire" /> {runBestStreak}</span>
             <span class="mn-result-stat-label">本轮最高连对</span>
           </div>
           <div class="mn-result-stat">
@@ -99,13 +100,13 @@ export function Result(props: ResultProps) {
         </div>
         <div class="mn-result-title">本轮答对 {answered} 题！</div>
         {cleared ? (
-          <div class="mn-result-record">🎉 星图点亮！全会啦！</div>
+          <div class="mn-result-record"><Ico name="party" /> 星图点亮！全会啦！</div>
         ) : newLit > 0 ? (
-          <div class="mn-result-record">✨ 新点亮 {newLit} 格！</div>
+          <div class="mn-result-record"><Ico name="sparkle" /> 新点亮 {newLit} 格！</div>
         ) : null}
         <div class="mn-result-sub">
           已点亮 {lit} / 36
-          <span class="mn-result-sub-tts" role="button" aria-label="重播祝贺语" onClick={onReplaySub}>🔊</span>
+          <span class="mn-result-sub-tts" role="button" aria-label="重播祝贺语" onClick={onReplaySub}><Ico name="sound" /></span>
         </div>
         <div class="mn-result-actions">
           <button class="mn-btn mn-result-btn mn-result-btn--ghost" onClick={onBackToMap}>回地图</button>
@@ -123,7 +124,7 @@ export function Result(props: ResultProps) {
         <Mascot pose={broke ? 'cheer' : 'happy'} scale={1.15} />
       </div>
       <div class="mn-result-title">时间到！你答对了 {answered} 题！</div>
-      {broke && <div class="mn-result-record">🎉 新纪录！</div>}
+      {broke && <div class="mn-result-record"><Ico name="party" /> 新纪录！</div>}
       <div class="mn-result-stats">
         <div class="mn-result-stat">
           <span class="mn-result-stat-num">{bestCount}</span>

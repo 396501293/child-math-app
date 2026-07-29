@@ -43,6 +43,21 @@ const ASSETS = {
   'icon-timed': { edge: 256, prompt: 'a chubby rounded hourglass with a wooden frame, glowing golden sand falling inside, small motion sparkles, game mode icon' },
   'icon-star': { edge: 256, prompt: 'a 3x3 grid of small rounded squares, some tiles glowing warm gold and some dim cream, arranged as a little constellation board, game mode icon' },
   'node-locked': { edge: 256, prompt: 'a small round wooden signpost plaque with a closed brass padlock on it, weathered warm wood, level marker' },
+
+  // ── 替代彩色 emoji 的行内小图标 ──
+  // 这些会渲染到 17–30px，**必须是极简剪影**：任何内部纹理都会糊成一团
+  // （icon-endless 第一版就栽在这上面）。提示词统一强调 bold simple silhouette。
+  //
+  // edge 按实际渲染尺寸定：iPad Pro 上 stage 缩放 1.33 × DPR 2 ≈ 2.67x，
+  // 28px 的图标撑死需要 75px。给到 96px 已有余量，再大纯属浪费预缓存体积。
+  'ico-sound': { edge: 96, prompt: 'an extremely bold minimal speaker icon: one solid filled trapezoid horn shape plus two thick short curved arcs to its right, maximum contrast, chunky thick strokes, designed to stay readable at 16 pixels, NO grille, NO texture, NO detail whatsoever' },
+  'ico-lock': { edge: 96, prompt: 'a closed brass padlock, bold simple silhouette, NO keyhole detail, NO texture, tiny icon' },
+  'ico-gear': { edge: 96, prompt: 'a chunky wooden gear cog with six rounded teeth and a round hole in the center, bold simple silhouette, tiny icon' },
+  'ico-party': { edge: 112, prompt: 'a golden trophy cup with two handles on a small base, bold simple silhouette, chunky, NO engraving, NO texture, tiny icon' },
+  'ico-sparkle': { edge: 96, prompt: 'one large golden four-pointed sparkle star with two tiny sparkles beside it, bold simple silhouette, tiny icon' },
+  'ico-fire': { edge: 96, prompt: 'a single warm orange flame, bold simple silhouette, NO internal gradient bands, tiny icon' },
+  'ico-boat': { edge: 96, prompt: 'a tiny sailboat with one triangular cream sail on a wooden hull, bold simple silhouette, tiny icon' },
+  'ico-rotate': { edge: 256, prompt: 'a plain empty tablet device in landscape orientation with a thick circular rotation arrow curving around it, EMPTY blank screen, NO character, NO content on screen, bold simple silhouette' },
   'app-icon': { edge: 512, prompt: `${CHAR} HEAD AND FACE ONLY, close-up portrait cropped at the neck, big friendly smile, facing forward, filling the whole frame` },
 };
 
