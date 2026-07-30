@@ -624,6 +624,7 @@ export function App() {
         {settingsOpen && (
           <SettingsModal
             settings={progress.settings}
+            weekly={progress.weekly}
             onUpdateSettings={updateSettings}
             onResetProgress={resetProgress}
             onUnlockAll={unlockAll}

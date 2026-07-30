@@ -1593,3 +1593,40 @@ body {
   stroke: rgba(255, 233, 168, 0.4);
   stroke-width: 2;
 }
+
+/* 家长设置：周小结 / 观察清单 / 重置警示 */
+.mn-set-week {
+  font-size: 18px;
+  color: var(--color-white-55);
+  text-align: center;
+  padding: 2px 0;
+}
+.mn-set-checklist-toggle {
+  font-family: inherit;
+  font-size: 16px;
+  color: var(--color-white-55);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  text-shadow: var(--text-sh);
+  padding: 2px 0;
+}
+.mn-set-checklist {
+  font-size: 14px;
+  line-height: 1.7;
+  color: var(--color-white-85);
+  background: var(--slot-bg);
+  border: 3px solid;
+  border-color: var(--bevel-any-in);
+  padding: 10px 14px;
+  max-height: 220px;
+  overflow-y: auto;
+}
+.mn-set-checklist p {
+  margin: 0 0 4px;
+}
+.mn-set-reset-warn {
+  font-size: 15px;
+  color: var(--color-coral);
+  text-align: center;
+}
