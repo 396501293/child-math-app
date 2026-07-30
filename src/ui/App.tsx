@@ -160,7 +160,7 @@ export function App() {
     const current = nextModeQuestion('endless', 0, []);
     speak(VOICE.endlessIntro, { interrupt: true }); // 模式入口介绍（进入前一句）
     speak(current.ttsText);                           // 队列在介绍之后朗读首题
-    setSession({ ...blankRun('endless'), current });
+    setSession({ ...blankRun('endless'), current, streak: progress.endless.streak });
     setScreen('quiz');
   };
 
@@ -344,13 +344,20 @@ export function App() {
     const q = currentQuestion(s);
     clearTimer();
     // 养成埋点（评审 P 定义 = 练习模式首答即对；weekly 计全模式首答题量）
-    updateProgress(
-      recordAnswer(
-        progressRef.current,
-        { practice: s.mode !== 'campaign', firstTry: s.excluded.length === 0, correct: option === q.answer },
-        Date.now(),
-      ),
+    let nextP = recordAnswer(
+      progressRef.current,
+      { practice: s.mode !== 'campaign', firstTry: s.excluded.length === 0, correct: option === q.answer },
+      Date.now(),
     );
+    // 无尽连对活持久化：每题作答即落盘（搭埋点写盘的顺风车），
+    // 中途强退也不丢；答错清零同样立即落盘。
+    if (s.mode === 'endless') {
+      nextP = {
+        ...nextP,
+        endless: { ...nextP.endless, streak: option === q.answer ? s.streak + 1 : 0 },
+      };
+    }
+    updateProgress(nextP);
     if (option === q.answer) {
       speak(VOICE.right, { interrupt: true }); // 答对反馈
       setSession({ ...s, feedback: 'right' });
@@ -386,6 +393,7 @@ export function App() {
       endless: {
         bestStreak: Math.max(oldBest, s.runBestStreak),
         totalAnswered: progressRef.current.endless.totalAnswered + s.correctCount,
+        streak: s.streak, // 退出保持连对（下次进无尽从这里继续）
       },
     });
     speak(VOICE.endlessResult(s.correctCount), { interrupt: true }); // 无尽结算祝贺

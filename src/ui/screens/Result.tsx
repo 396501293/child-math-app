@@ -97,7 +97,7 @@ export function Result(props: ResultProps) {
         <div class="mn-result-stats">
           <div class="mn-result-stat">
             <span class="mn-result-stat-num"><Ico name="fire" /> {runBestStreak}</span>
-            <span class="mn-result-stat-label">本轮最高连对</span>
+            <span class="mn-result-stat-label">最高连对</span>
           </div>
           <div class="mn-result-stat">
             <span class="mn-result-stat-num">{historyBestStreak}</span>

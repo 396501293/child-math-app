@@ -61,7 +61,9 @@ export interface Progress {
   version: 2;
   stars: Record<number, 0 | 1 | 2 | 3>;
   unlocked: number;                                   // 1..60
-  endless: { bestStreak: number; totalAnswered: number };
+  // streak = 跨会话延续的当前连对（无尽模式）。只被答错清零，不被退出清零
+  //（无惩罚原则：退出常是家长的决定，为它罚连对等于罚孩子控制不了的事）。
+  endless: { bestStreak: number; totalAnswered: number; streak: number };
   timed: { bestCount: number };
   // 九九星图：跨会话持久的 per-口诀 掌握度切片（key = `${min}×${max}`，稀疏存）
   timesTable: {

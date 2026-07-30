@@ -15,7 +15,7 @@ export function defaultProgress(): Progress {
     version: 2,
     stars: {},
     unlocked: 1,
-    endless: { bestStreak: 0, totalAnswered: 0 },
+    endless: { bestStreak: 0, totalAnswered: 0, streak: 0 },
     timed: { bestCount: 0 },
     timesTable: { facts: {}, sessions: 0 },
     settings: { questionCount: 5, hardMode: false, showBlocks: true, showBlocksTimed: false, steveRaise: true },

@@ -43,6 +43,27 @@ test('已有 rewards 切片：原样保留，不重复折算', () => {
   expect(p.rewards.owned).toEqual(['eq-leather-boots']);
 });
 
+// ── 无尽连对跨会话携带（无惩罚原则：连对只被答错打断，不被退出打断——
+//    退出常是家长的决定，为它清零等于罚孩子一个他控制不了的事）──
+
+test('旧存档无 endless.streak：默认 0', () => {
+  const store = memStore();
+  const legacy = defaultProgress() as unknown as Record<string, unknown>;
+  (legacy.endless as Record<string, unknown>) = { bestStreak: 7, totalAnswered: 40 }; // 旧形状
+  store.map.set('math_nightsail_v2', JSON.stringify(legacy));
+  const p = loadProgress(store);
+  expect(p.endless.streak).toBe(0);
+  expect(p.endless.bestStreak).toBe(7);
+});
+
+test('endless.streak 持久化往返', () => {
+  const store = memStore();
+  const p0 = defaultProgress();
+  p0.endless.streak = 12;
+  saveProgress(p0, store);
+  expect(loadProgress(store).endless.streak).toBe(12);
+});
+
 // ── recordAnswer：埋点纯函数（App.answer 调用）──
 
 const WEEK = 7 * 24 * 3600 * 1000;
