@@ -101,11 +101,23 @@ body {
   --dur-base: 0.25s;
 }
 
+/* 方舟像素字体 12px（OFL）。已按本仓库文案子集化：534KB → 26KB，
+   并替换掉原先约 7MB 的 Noto Sans SC 分片。它自带 ASCII，无需第二个字体文件。
+   新增中文文案后必须重跑子集化——tests/ui/charset.test.ts 会拦住忘记的情况。 */
+@font-face {
+  font-family: 'ArkPixel';
+  src: url('./assets/fonts/ark-pixel-12px.woff2') format('woff2');
+  font-weight: 400 900; /* 点阵字体只有一个字重，全字重映射到同一份 */
+  font-display: block;  /* 不用 swap：回退字体形态差异过大，闪烁比等待更糟 */
+}
+
 body {
-  /* Nunito 必须前置：它只有拉丁字形，中文自动回退到 Noto Sans SC。 */
-  font-family: 'Nunito', 'Noto Sans SC', -apple-system, BlinkMacSystemFont, 'PingFang SC',
-    'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+  font-family: 'ArkPixel', -apple-system, 'PingFang SC', 'Hiragino Sans GB', sans-serif;
   background: var(--color-letterbox);
+  /* 像素字体禁止字距微调与连字，否则点阵会被推离整数网格 */
+  font-kerning: none;
+  font-variant-ligatures: none;
+  -webkit-font-smoothing: none;
 }
 
 /* ── 动画（直译自原型 Design Tokens） ── */
