@@ -18,7 +18,15 @@ export function defaultProgress(): Progress {
     endless: { bestStreak: 0, totalAnswered: 0 },
     timed: { bestCount: 0 },
     timesTable: { facts: {}, sessions: 0 },
-    settings: { questionCount: 5, hardMode: false, showBlocks: true, showBlocksTimed: false },
+    settings: { questionCount: 5, hardMode: false, showBlocks: true, showBlocksTimed: false, steveRaise: true },
+    rewards: {
+      practiceFirstTry: 0,
+      owned: [],
+      equipped: { boots: null, helm: null, legs: null, chest: null, accessories: [] },
+      skyStars: 0,
+      traded: { coalToIron: 0, ironToGold: 0, goldToDiamond: 0, diamondToEmerald: 0 },
+    },
+    weekly: { weekStart: 0, answered: 0, firstTry: 0 },
   };
 }
 
