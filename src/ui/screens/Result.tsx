@@ -4,11 +4,14 @@ import { Ico } from '../components/Ico';
 
 // 结算屏（README §3 + 题库设计 §7-5）。dumb 组件：所有数值由 App 计算后经 props 传入。
 // 三种变体：campaign（星级）/ endless（本轮答对 + 连对纪录）/ timed（时间到 + 个人最佳）。
-type ResultProps =
+// 四变体共用：史蒂夫穿当前装备进结算（评审遗留 2 已批准——衣服非奖励标牌）
+type ResultCommon = { equipped: import('../../core/types').RewardsSlice['equipped'] };
+type ResultProps = ResultCommon &
+  (
   | { variant: 'campaign'; level: number; stars: 1 | 2 | 3; onBackToMap: () => void; onNextLevel?: () => void; onReplaySub: () => void }
   | { variant: 'endless'; answered: number; runBestStreak: number; historyBestStreak: number; broke: boolean; onBackToMap: () => void }
   | { variant: 'timed'; answered: number; bestCount: number; broke: boolean; onBackToMap: () => void }
-  | { variant: 'timestable'; answered: number; newLit: number; lit: number; onBackToStarChart: () => void; onBackToMap: () => void; onReplaySub: () => void };
+  | { variant: 'timestable'; answered: number; newLit: number; lit: number; onBackToStarChart: () => void; onBackToMap: () => void; onReplaySub: () => void });
 
 // campaign 副文案常量表（按星级）。App 结算时读同一份文案朗读（Task 13）。
 export const CAMPAIGN_SUB: Record<1 | 2 | 3, string> = {
@@ -43,7 +46,7 @@ export function Result(props: ResultProps) {
     return (
       <ResultCard>
         <div class="mn-result-steve">
-          <Steve pose={pose} scale={1.15} />
+          <Steve pose={pose} scale={1.15} equipped={props.equipped} />
         </div>
         <div class="mn-result-title">第 {level} 关完成！</div>
         <div class="mn-result-stars">{starStr}</div>
@@ -69,7 +72,7 @@ export function Result(props: ResultProps) {
     return (
       <ResultCard>
         <div class="mn-result-steve">
-          <Steve pose={broke ? 'cheer' : 'happy'} scale={1.15} />
+          <Steve pose={broke ? 'cheer' : 'happy'} scale={1.15} equipped={props.equipped} />
         </div>
         <div class="mn-result-title">本轮答对 {answered} 题！</div>
         {broke && <div class="mn-result-record"><Ico name="party" /> 新纪录！</div>}
@@ -96,7 +99,7 @@ export function Result(props: ResultProps) {
     return (
       <ResultCard>
         <div class="mn-result-steve">
-          <Steve pose={newLit > 0 ? 'cheer' : 'happy'} scale={1.15} />
+          <Steve pose={newLit > 0 ? 'cheer' : 'happy'} scale={1.15} equipped={props.equipped} />
         </div>
         <div class="mn-result-title">本轮答对 {answered} 题！</div>
         {cleared ? (
@@ -121,7 +124,7 @@ export function Result(props: ResultProps) {
   return (
     <ResultCard>
       <div class="mn-result-steve">
-        <Steve pose={broke ? 'cheer' : 'happy'} scale={1.15} />
+        <Steve pose={broke ? 'cheer' : 'happy'} scale={1.15} equipped={props.equipped} />
       </div>
       <div class="mn-result-title">时间到！你答对了 {answered} 题！</div>
       {broke && <div class="mn-result-record"><Ico name="party" /> 新纪录！</div>}

@@ -501,6 +501,7 @@ export function App() {
         {screen === 'result' && session && (
           session.mode === 'campaign' ? (
             <Result
+              equipped={progress.rewards.equipped}
               variant="campaign"
               level={session.level!}
               stars={session.resultStars ?? starsFor(session.wrongTotal)}
@@ -510,6 +511,7 @@ export function App() {
             />
           ) : session.mode === 'endless' ? (
             <Result
+              equipped={progress.rewards.equipped}
               variant="endless"
               answered={session.correctCount}
               runBestStreak={session.runBestStreak}
@@ -519,6 +521,7 @@ export function App() {
             />
           ) : session.mode === 'timestable' ? (
             <Result
+              equipped={progress.rewards.equipped}
               variant="timestable"
               answered={session.resultTimes?.correct ?? session.correctCount}
               newLit={session.resultTimes?.newLit ?? 0}
@@ -529,6 +532,7 @@ export function App() {
             />
           ) : (
             <Result
+              equipped={progress.rewards.equipped}
               variant="timed"
               answered={session.correctCount}
               bestCount={progress.timed.bestCount}

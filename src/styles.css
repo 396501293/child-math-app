@@ -516,15 +516,22 @@ body {
 .mn-steve {
   transform-origin: center center;
 }
+/* 叠层容器：尺寸由组件按姿势 manifest 设定（整数倍），漂浮动画挂这里
+   ——挂在 img 上会让装备层不跟着飘 */
+.mn-steve-box {
+  position: relative;
+  animation: mn-floaty 3s steps(6, end) infinite;
+}
 .mn-steve-img {
   display: block;
-  /* 精灵原始高 32–36px，按 4 倍整数放大到 128–144px。
-     **必须整数倍**——非整数倍会让点阵落在半像素上，糊掉。
-     地图右栏要在 598px 内塞下角色卡 + CTA + 三个模式键，4 倍正好。 */
-  height: 136px;
-  width: auto;
+  width: 100%;
+  height: 100%;
   image-rendering: pixelated;
-  animation: mn-floaty 3s steps(6, end) infinite;
+}
+.mn-steve-layer {
+  position: absolute;
+  image-rendering: pixelated;
+  pointer-events: none;
 }
 
 /* ═══════ 结算屏（Result，README §3） ═══════ */

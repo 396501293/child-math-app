@@ -189,7 +189,7 @@ export function Map({ progress, onStartLevel, onStartEndless, onStartTimed, onOp
           style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 14, cursor: 'pointer' }}
           onClick={() => onWelcome(steveLine)}
         >
-          <Steve pose="wave" />
+          <Steve pose="wave" equipped={progress.rewards.equipped} />
           <div style={{ fontSize: 23, color: 'var(--color-white-85)', textAlign: 'center', lineHeight: 1.5, padding: '0 18px' }}>
             {steveLine} <span class="mn-tts-badge"><Ico name="sound" /></span>
           </div>
