@@ -2,10 +2,10 @@ import { useEffect, useRef, useState } from 'preact/hooks';
 import type { Progress } from '../../core/types';
 import { chapterOf, chapterStart, endlessUnlocked, timedUnlocked, timesTableUnlocked } from '../../core/progression';
 import { Steve } from '../components/Steve';
-import nodeLocked from '../../assets/node-locked.webp';
-import icoEndless from '../../assets/icon-endless.webp';
-import icoStar from '../../assets/icon-star.webp';
-import icoTimed from '../../assets/icon-timed.webp';
+import nodeLocked from '../../assets/ico-lock.png';
+import icoEndless from '../../assets/ico-mode-endless.png';
+import icoStar from '../../assets/ico-mode-chart.png';
+import icoTimed from '../../assets/ico-mode-timed.png';
 import { Ico } from '../components/Ico';
 
 interface MapProps {
