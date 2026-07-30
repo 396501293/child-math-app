@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'preact/hooks';
 import type { Progress } from '../../core/types';
 import { chapterOf, chapterStart, endlessUnlocked, timedUnlocked, timesTableUnlocked } from '../../core/progression';
-import { Mascot } from '../components/Mascot';
+import { Steve } from '../components/Steve';
 import nodeLocked from '../../assets/node-locked.webp';
 import icoEndless from '../../assets/icon-endless.webp';
 import icoStar from '../../assets/icon-star.webp';
@@ -15,12 +15,12 @@ interface MapProps {
   onStartTimed: () => void;
   onOpenStarChart: () => void; // 进九九星图模式主页
   onOpenSettings: () => void;
-  onWelcome: (line: string) => void; // 点击 mascot 卡片/🔊 徽标念欢迎语（首次交互后发声，无自动播）
+  onWelcome: (line: string) => void; // 点击史蒂夫卡片/🔊 徽标念欢迎语（首次交互后发声，无自动播）
 }
 
 const CN_NUM = ['一', '二', '三', '四'];
 const CHAPTER_NAME = ['启航', '深海', '远洋', '银河'];
-const MASCOT_LINES = ['准备好出发了吗？', '这一关有点挑战，加油！', '你越来越厉害了！', '星星快集满一排啦！'];
+const STEVE_LINES = ['准备好出发了吗？', '这一关有点挑战，加油！', '你越来越厉害了！', '星星快集满一排啦！'];
 
 // 蛇形路径几何（面板内坐标，面板 660×598）：5 列节点 × 3 行，第 2 行反向。
 const ROW_Y = [175, 325, 475];
@@ -101,7 +101,7 @@ export function Map({ progress, onStartLevel, onStartEndless, onStartTimed, onOp
   const rows = [levels.slice(0, 5), levels.slice(5, 10).reverse(), levels.slice(10, 15)];
 
   const current = Math.min(progress.unlocked, 60);
-  const mascotLine = MASCOT_LINES[current % MASCOT_LINES.length];
+  const steveLine = STEVE_LINES[current % STEVE_LINES.length];
 
   const leftDisabled = viewChapter <= 1;
   const rightLocked = viewChapter < 4 && viewChapter + 1 > maxChapter;
@@ -187,11 +187,11 @@ export function Map({ progress, onStartLevel, onStartEndless, onStartTimed, onOp
         <div
           class="mn-panel"
           style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 14, cursor: 'pointer' }}
-          onClick={() => onWelcome(mascotLine)}
+          onClick={() => onWelcome(steveLine)}
         >
-          <Mascot pose="wave" />
+          <Steve pose="wave" />
           <div style={{ fontSize: 23, color: 'var(--color-white-85)', textAlign: 'center', lineHeight: 1.5, padding: '0 18px' }}>
-            {mascotLine} <span class="mn-tts-badge"><Ico name="sound" /></span>
+            {steveLine} <span class="mn-tts-badge"><Ico name="sound" /></span>
           </div>
         </div>
 

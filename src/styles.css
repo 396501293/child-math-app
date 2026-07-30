@@ -65,40 +65,57 @@ body {
   /* 设置面板遮罩（比反馈遮罩更暗，聚焦弹窗） */
   --color-scrim: rgba(9, 26, 32, 0.72);
 
-  /* ══ 以下为动森风格重构新增（配方源：animal-island-ui skill/SKILL.md） ══ */
+  /* ══ 以下为我的世界像素风令牌（替换动森那一组，结构不变只换值）══ */
 
-  /* 描边——动森核心特征：万物有边 */
-  --line: rgba(255, 255, 255, 0.22);
-  --line-strong: rgba(255, 255, 255, 0.34);
-  --bw: 3px; /* 标准描边宽（原库 2px，按本应用元素尺寸放大） */
-  --bw-strong: 4px; /* 焦点元素 */
+  /* 描边——像素风的边是「实心硬边」，不是半透明细线 */
+  --line: #6a6a6a;
+  --line-strong: #c6c6c6;
+  --bw: 4px;        /* 像素风必须是 4 的倍数，否则缩放后边宽不匀 */
+  --bw-strong: 4px;
 
-  /* 主色的暗色变体：着色元素的描边用，比阴影更清晰地勾出形状 */
-  --amber-dk: #cf8524;
-  --teal-dk: #21907d;
-  --coral-dk: #c44a4a;
+  /* Minecraft 界面的标志性斜角：左上受光、右下背光。
+     它替代了动森的圆角 + 柔影，是本风格的核心识别特征。 */
+  --bevel-lit: #c6c6c6;
+  --bevel-dim: #373737;
+  --face: #8b8b8b;   /* 石质面板 */
+  --face-2: #6f6f6f; /* 按钮面 */
 
-  /* 叶绿：动森的 success 色，用于「答对」 */
-  --color-leaf: #7cc44a;
-  --leaf-dk: #5f9e35;
+  /* 主色改用 Minecraft 的矿物色系（原动森色偏柔，在硬边下发灰） */
+  --color-amber: #d9a334;
+  --amber-dk: #8a6410;
+  --color-teal: #2a9d8f;
+  --teal-dk: #17635a;
+  --color-coral: #b5423a;
+  --coral-dk: #74241e;
+  --color-leaf: #5d9b30;
+  --leaf-dk: #38601c;
 
-  /* 3D 硬阴影（原库硬规则 19：主按钮的核心识别特征，禁止去除） */
-  --btn3d: rgba(0, 0, 0, 0.34);
+  /* 木质：关卡节点与缎带 */
+  --wood: #9c6b3f;
+  --wood-lit: #c08a54;
+  --wood-dim: #5f3f22;
 
-  /* 柔和投影：面板用 */
-  --elev-sm: 0 3px 10px rgba(0, 0, 0, 0.2);
-  --elev: 0 6px 22px rgba(0, 0, 0, 0.28);
+  /* 硬阴影：像素风只有 0 偏移的实心投影，绝无模糊半径 */
+  --btn3d: rgba(0, 0, 0, 0.45);
+  --elev-sm: 4px 4px 0 0 rgba(0, 0, 0, 0.35);
+  --elev: 6px 6px 0 0 rgba(0, 0, 0, 0.45);
 
-  /* 圆角尺度 */
-  --r-sm: 12px;
-  --r-base: 18px;
-  --r-lg: 24px;
-  --r-pill: 999px;
+  /* 圆角尺度：全部归零。像素风的识别度就建立在直角上。 */
+  --r-sm: 0;
+  --r-base: 0;
+  --r-lg: 0;
+  --r-pill: 0;
 
-  /* 动效 */
-  --ease: cubic-bezier(0.4, 0, 0.2, 1);
-  --dur-fast: 0.15s;
-  --dur-base: 0.25s;
+  /* 动效：像素风用阶跃而非缓动——连续插值会让点阵在中间帧糊掉 */
+  --ease: steps(2, end);
+  --dur-fast: 0.08s;
+  --dur-base: 0.16s;
+
+  /* 文字硬投影：Minecraft 的文字阴影恒等于「一个字体像素」。
+     方舟像素按 12px 设计，故偏移 = 1/12 em —— 用 em 而非固定 px，
+     才能在任意字号下都正好落一格；固定 3px 会在多数字号下卡在半格上，
+     把中文笔画糊成鬼影。 */
+  --text-sh: 0.0834em 0.0834em 0 rgba(0, 0, 0, 0.6);
 }
 
 /* 方舟像素字体 12px（OFL）。已按本仓库文案子集化：534KB → 26KB，
@@ -184,6 +201,9 @@ body {
   overflow: hidden;
   background: linear-gradient(180deg, var(--color-bg-start), var(--color-bg-end));
   color: #fff;
+  /* 像素素材放大必须走最近邻，默认的双线性会把点阵糊成一团 */
+  image-rendering: pixelated;
+  text-shadow: var(--text-sh);
 }
 
 /* ── 竖屏遮罩 ── */
@@ -220,91 +240,105 @@ body {
 }
 
 /* ── 燕尾缎带标题（动森 Title 组件的形状语言） ── */
+/* 章节 / 弹窗标题：动森的燕尾缎带在像素风里不成立——
+   clip-path 的斜边会产生反锯齿灰边，与硬像素直接冲突。改木质牌匾。 */
 .mn-ribbon {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 10px 40px;
-  background: var(--color-amber);
-  color: var(--color-text-dark);
-  font-weight: 900;
-  border-radius: 6px;
-  clip-path: polygon(0 0, 100% 0, calc(100% - 20px) 50%, 100% 100%, 0 100%, 20px 50%);
-  filter: drop-shadow(0 3px 0 var(--amber-dk));
+  padding: 9px 34px;
+  background: var(--wood);
+  color: #fff;
+  font-weight: 400;
+  border: var(--bw) solid;
+  border-color: var(--wood-lit) var(--wood-dim) var(--wood-dim) var(--wood-lit);
+  border-radius: 0;
+  text-shadow: var(--text-sh);
 }
 
 /* ── 面板：动森的「万物有边」也适用于容器 ── */
+/* ── 面板：Minecraft 的石质框——左上受光、右下背光的 4px 硬斜角 ── */
 .mn-panel {
-  background: var(--panel-06);
-  border: var(--bw) solid var(--line);
-  border-radius: 28px;
-  box-shadow: var(--elev-sm);
+  background: var(--face);
+  border: var(--bw) solid;
+  border-color: var(--bevel-lit) var(--bevel-dim) var(--bevel-dim) var(--bevel-lit);
+  border-radius: 0;
+  box-shadow: none;
+  /* 石质纹理：纯 CSS 条纹，零素材 */
+  background-image: repeating-linear-gradient(
+    0deg,
+    rgba(0, 0, 0, 0.06) 0 4px,
+    transparent 4px 8px
+  );
 }
 
 /* ── 动森按钮基类 ──
    CTA / 模式键 / 章节箭头 / 返回 / 重播 / 齿轮 / 选项砖 / 结算键 共八处，
    统一：描边 + 圆角 + 3D 硬阴影 + 按压回弹。改一处即全体生效。 */
+/* ── 像素按钮基类 ──
+   动森靠「硬阴影 + 下沉」表达按压；Minecraft 靠**斜角反转**——
+   松开时左上亮右下暗（凸起），按下时对调（凹陷）。不需要位移。 */
 .mn-btn {
   font-family: inherit;
-  font-weight: 900;
+  font-weight: 400; /* 点阵字体只有一个字重 */
   color: var(--color-white-100);
-  background: var(--panel-10);
-  border: var(--bw) solid var(--line);
-  border-radius: var(--r-pill);
-  box-shadow: 0 8px 0 0 var(--btn3d);
+  background: var(--face-2);
+  border: var(--bw) solid;
+  border-color: var(--bevel-lit) var(--bevel-dim) var(--bevel-dim) var(--bevel-lit);
+  border-radius: 0;
+  box-shadow: none;
+  text-shadow: var(--text-sh);
   cursor: pointer;
   user-select: none;
-  transition: transform var(--dur-fast) var(--ease), box-shadow var(--dur-fast) var(--ease);
+}
+.mn-btn:hover {
+  filter: brightness(1.14);
 }
 .mn-btn:active {
-  transform: translateY(4px);
-  box-shadow: 0 2px 0 0 var(--btn3d);
+  border-color: var(--bevel-dim) var(--bevel-lit) var(--bevel-lit) var(--bevel-dim);
+  filter: brightness(0.92);
 }
 
 /* 着色变体：底色 + 同色系暗边（暗边比阴影更清晰地勾出形状） */
 .mn-btn--coral {
   background: var(--color-coral);
-  border-color: var(--coral-dk);
 }
 .mn-btn--amber {
   background: var(--color-amber);
-  border-color: var(--amber-dk);
-  color: var(--color-text-dark);
 }
 .mn-btn--teal {
   background: var(--color-teal);
-  border-color: var(--teal-dk);
 }
 .mn-btn--leaf {
   background: var(--color-leaf);
-  border-color: var(--leaf-dk);
 }
 
 /* 方形变体：返回 / 章节箭头 / 齿轮——圆角而非 pill，阴影浅一档 */
+/* 方形变体：像素风本就全是直角，此类保留仅为语义与尺寸挂点 */
 .mn-btn--square {
-  border-radius: var(--r-lg);
-  box-shadow: 0 5px 0 0 var(--btn3d);
-}
-.mn-btn--square:active {
-  transform: translateY(3px);
-  box-shadow: 0 2px 0 0 var(--btn3d);
+  border-radius: 0;
 }
 
 /* 禁用 / 锁定：去阴影去位移——这是「不可按」的关键视觉信号，不要只降透明度 */
+/* 禁用 / 锁定：斜角抹平成纯色边 —— 立体感消失即「按不动」，
+   与动森版「去硬阴影」是同一条语义，换了表达方式。 */
 .mn-btn:disabled,
 .mn-btn.is-locked,
 .mn-btn.is-disabled {
-  background: var(--panel-06);
-  border-color: var(--line);
-  color: var(--color-white-40);
-  box-shadow: none;
+  background: #4a4a4a;
+  border-color: #5a5a5a;
+  color: #909090;
   cursor: default;
+  filter: none;
 }
+.mn-btn:disabled:hover,
+.mn-btn.is-locked:hover,
+.mn-btn.is-disabled:hover,
 .mn-btn:disabled:active,
 .mn-btn.is-locked:active,
 .mn-btn.is-disabled:active {
-  transform: none;
-  box-shadow: none;
+  border-color: #5a5a5a;
+  filter: none;
 }
 
 /* ── 地图右栏按钮：仅留尺寸/排版，视觉全部来自 .mn-btn ── */
@@ -368,7 +402,7 @@ body {
 
 /* ── 关卡节点 ── */
 .mn-node {
-  border-radius: 50%;
+  border-radius: 0;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -377,37 +411,40 @@ body {
   user-select: none;
   box-sizing: border-box;
 }
+/* 已完成：木质方块 */
 .mn-node--done {
   width: 76px;
   height: 76px;
-  background: var(--color-amber);
-  border: var(--bw) solid var(--amber-dk);
-  color: var(--color-text-dark);
-  box-shadow: 0 6px 0 0 var(--btn3d);
+  background: var(--wood);
+  border: var(--bw) solid;
+  border-color: var(--wood-lit) var(--wood-dim) var(--wood-dim) var(--wood-lit);
+  color: #fff;
   cursor: pointer;
-  transition: transform var(--dur-fast) var(--ease), box-shadow var(--dur-fast) var(--ease);
 }
+.mn-node--done:hover { filter: brightness(1.14); }
 .mn-node--done:active {
-  transform: translateY(3px);
-  box-shadow: 0 2px 0 0 var(--btn3d);
+  border-color: var(--wood-dim) var(--wood-lit) var(--wood-lit) var(--wood-dim);
+  filter: brightness(0.92);
 }
-/* 当前关：青绿实心比原先的白底珊瑚边更醒目；脉冲与外发光环保留 */
+/* 当前关：绿宝石块 —— 像素风里靠「更亮的矿物色 + 外框」而非发光环
+   （模糊发光是柔和风的语言，在硬像素里会显脏） */
 .mn-node--current {
   width: 92px;
   height: 92px;
-  background: var(--color-teal);
-  color: var(--color-white-100);
-  border: var(--bw-strong) solid var(--teal-dk);
-  box-shadow: 0 7px 0 0 var(--btn3d), 0 0 0 10px rgba(47, 178, 155, 0.22);
-  animation: mn-pulse 1.6s ease-in-out infinite;
+  background: #3fbf5a;
+  color: #fff;
+  border: var(--bw-strong) solid;
+  border-color: #7ee08f #1f6b2f #1f6b2f #7ee08f;
+  box-shadow: 0 0 0 4px #1f6b2f;
+  animation: mn-pulse 1.6s steps(4, end) infinite;
   cursor: pointer;
 }
-/* 未解锁：虚线圈内嵌木牌锁头素材（见 NodeCell） */
+/* 未解锁：基岩灰块，斜角抹平（同按钮禁用态语义） */
 .mn-node--locked {
   width: 76px;
   height: 76px;
-  background: transparent;
-  border: var(--bw) dashed var(--line);
+  background: #4a4a4a;
+  border: var(--bw) solid #5a5a5a;
   cursor: default;
 }
 .mn-node--locked img {
@@ -466,18 +503,20 @@ body {
   touch-action: none; /* 长按不触发页面滚动/文本选择手势——删掉长按开设置就废了 */
 }
 
-/* ── 吉祥物（手绘素材，见 ui/components/mascotAssets.ts） ──
+/* ── 史蒂夫（像素精灵，见 ui/components/steveAssets.ts） ──
    外层只做缩放、内层只做漂浮：二者都写 transform，同层时动画会盖掉 scale。 */
-.mn-mascot {
+.mn-steve {
   transform-origin: center center;
 }
-.mn-mascot-img {
+.mn-steve-img {
   display: block;
-  /* 132px 而非更大：地图右栏要在 598px 内塞下吉祥物卡 + CTA + 三个模式键，
-     模式键加图标后变高，吉祥物再大就会把「九九星图」挤出面板。 */
-  height: 132px;
+  /* 精灵原始高 32–36px，按 4 倍整数放大到 128–144px。
+     **必须整数倍**——非整数倍会让点阵落在半像素上，糊掉。
+     地图右栏要在 598px 内塞下角色卡 + CTA + 三个模式键，4 倍正好。 */
+  height: 136px;
   width: auto;
-  animation: mn-floaty 3s ease-in-out infinite;
+  image-rendering: pixelated;
+  animation: mn-floaty 3s steps(6, end) infinite;
 }
 
 /* ═══════ 结算屏（Result，README §3） ═══════ */
@@ -504,7 +543,7 @@ body {
   animation: mn-pop 0.35s ease-out;
 }
 /* 预留 150 高，容纳放大的吉祥物（scale 1.15 后不占布局尺寸），保证 gap 均匀。 */
-.mn-result-mascot {
+.mn-result-steve {
   height: 152px;
   display: flex;
   align-items: center;

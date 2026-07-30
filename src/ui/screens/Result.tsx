@@ -1,5 +1,5 @@
 import type { ComponentChildren } from 'preact';
-import { Mascot } from '../components/Mascot';
+import { Steve } from '../components/Steve';
 import { Ico } from '../components/Ico';
 
 // 结算屏（README §3 + 题库设计 §7-5）。dumb 组件：所有数值由 App 计算后经 props 传入。
@@ -42,8 +42,8 @@ export function Result(props: ResultProps) {
     const pose = stars === 3 ? 'cheer' : 'happy';
     return (
       <ResultCard>
-        <div class="mn-result-mascot">
-          <Mascot pose={pose} scale={1.15} />
+        <div class="mn-result-steve">
+          <Steve pose={pose} scale={1.15} />
         </div>
         <div class="mn-result-title">第 {level} 关完成！</div>
         <div class="mn-result-stars">{starStr}</div>
@@ -68,8 +68,8 @@ export function Result(props: ResultProps) {
     const { answered, runBestStreak, historyBestStreak, broke, onBackToMap } = props;
     return (
       <ResultCard>
-        <div class="mn-result-mascot">
-          <Mascot pose={broke ? 'cheer' : 'happy'} scale={1.15} />
+        <div class="mn-result-steve">
+          <Steve pose={broke ? 'cheer' : 'happy'} scale={1.15} />
         </div>
         <div class="mn-result-title">本轮答对 {answered} 题！</div>
         {broke && <div class="mn-result-record"><Ico name="party" /> 新纪录！</div>}
@@ -95,8 +95,8 @@ export function Result(props: ResultProps) {
     const cleared = lit >= 36;
     return (
       <ResultCard>
-        <div class="mn-result-mascot">
-          <Mascot pose={newLit > 0 ? 'cheer' : 'happy'} scale={1.15} />
+        <div class="mn-result-steve">
+          <Steve pose={newLit > 0 ? 'cheer' : 'happy'} scale={1.15} />
         </div>
         <div class="mn-result-title">本轮答对 {answered} 题！</div>
         {cleared ? (
@@ -120,8 +120,8 @@ export function Result(props: ResultProps) {
   const { answered, bestCount, broke, onBackToMap } = props;
   return (
     <ResultCard>
-      <div class="mn-result-mascot">
-        <Mascot pose={broke ? 'cheer' : 'happy'} scale={1.15} />
+      <div class="mn-result-steve">
+        <Steve pose={broke ? 'cheer' : 'happy'} scale={1.15} />
       </div>
       <div class="mn-result-title">时间到！你答对了 {answered} 题！</div>
       {broke && <div class="mn-result-record"><Ico name="party" /> 新纪录！</div>}
