@@ -27,7 +27,7 @@ body {
   --color-letterbox: #0e2831;
 
   /* 蛇形路径虚线描边 */
-  --path-dash: rgba(255, 255, 255, 0.18);
+  --path-dash: rgba(0, 0, 0, 0.30); /* 像素风：石面上的深色刻痕（白色在 #8b8b8b 上看不见） */
 
   /* 面板（白色透明层级） */
   --panel-06: rgba(255, 255, 255, 0.06);
@@ -110,6 +110,13 @@ body {
   --ease: steps(2, end);
   --dur-fast: 0.08s;
   --dur-base: 0.16s;
+
+  /* 通用斜角（半透明）：给彩色块用——不必每种底色配一对明暗色。
+     any = 凸起（左上亮），any-in = 凹陷（左上暗）。 */
+  --bevel-any: rgba(255, 255, 255, 0.38) rgba(0, 0, 0, 0.32) rgba(0, 0, 0, 0.32) rgba(255, 255, 255, 0.38);
+  --bevel-any-in: rgba(0, 0, 0, 0.32) rgba(255, 255, 255, 0.38) rgba(255, 255, 255, 0.38) rgba(0, 0, 0, 0.32);
+  /* 凹槽底色（计分槽 / 物品栏 / 进度条轨道共用） */
+  --slot-bg: rgba(0, 0, 0, 0.32);
 
   /* 文字硬投影：Minecraft 的文字阴影恒等于「一个字体像素」。
      方舟像素按 12px 设计，故偏移 = 1/12 em —— 用 em 而非固定 px，
@@ -463,9 +470,10 @@ body {
 
 /* ── 星星胶囊 / 🔊 徽标 ── */
 .mn-star-cap {
-  background: var(--panel-10);
-  border: 2px solid rgba(242, 165, 65, 0.6);
-  border-radius: 50px;
+  background: var(--slot-bg);
+  border: 3px solid;
+  border-color: var(--bevel-any-in);
+  border-radius: 0;
   padding: 10px 26px;
   font-size: 28px;
   font-weight: 900;
@@ -473,7 +481,7 @@ body {
 }
 .mn-tts-badge {
   background: var(--panel-12);
-  border-radius: 50px;
+  border-radius: 0;
   padding: 2px 10px;
   font-size: 17px;
 }
@@ -536,11 +544,12 @@ body {
   flex-direction: column;
   align-items: center;
   gap: 22px;
-  background: var(--panel-07);
-  border: var(--bw) solid var(--line);
-  border-radius: 32px;
+  background: var(--face);
+  border: var(--bw) solid;
+  border-color: var(--bevel-lit) var(--bevel-dim) var(--bevel-dim) var(--bevel-lit);
+  border-radius: 0;
   box-shadow: var(--elev);
-  animation: mn-pop 0.35s ease-out;
+  animation: mn-pop 0.35s steps(3, end);
 }
 /* 预留 150 高，容纳放大的吉祥物（scale 1.15 后不占布局尺寸），保证 gap 均匀。 */
 .mn-result-steve {
@@ -570,7 +579,7 @@ body {
 }
 .mn-result-sub-tts {
   background: var(--panel-12);
-  border-radius: 50px;
+  border-radius: 0;
   padding: 2px 10px;
   font-size: 18px;
   user-select: none;
@@ -651,21 +660,18 @@ body {
   top: 52px;
   left: 140px;
   right: 240px;
-  height: 16px;
-  border-radius: 16px;
-  background: var(--panel-12);
+  height: 20px;
+  border-radius: 0;
+  background: var(--slot-bg);
+  border: 3px solid;
+  border-color: var(--bevel-any-in);
   overflow: hidden;
 }
+/* MC 经验条：纯色填充，无条纹无渐变；宽度按 steps 跳格前进 */
 .mn-quiz-progress-fill {
-  background-image: repeating-linear-gradient(
-    -45deg,
-    var(--color-leaf) 0 12px,
-    var(--leaf-dk) 12px 24px
-  );
   height: 100%;
-  border-radius: 16px;
-  background: var(--color-amber);
-  transition: width 0.4s;
+  background: var(--color-leaf);
+  transition: width 0.4s steps(6, end);
 }
 .mn-quiz-count {
   position: absolute;
@@ -702,12 +708,13 @@ body {
   width: 120px;
   height: 120px;
   flex: none;
-  border-radius: 26px;
-  border: 6px dashed var(--amber-70);
-  background: var(--amber-20);
+  border-radius: 0;
+  /* MC 没有虚线：「待填」用物品栏空槽表达——凹陷斜角 + 深底 */
+  border: 4px solid;
+  border-color: var(--bevel-any-in);
+  background: var(--slot-bg);
   color: var(--color-amber);
   font-size: 70px;
-  box-shadow: 0 6px 0 0 var(--btn3d);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -735,19 +742,19 @@ body {
   gap: 8px;
   max-width: 676px;
   padding: 18px 22px;
-  border: var(--bw) solid var(--line);
-  border-radius: 20px;
-  background: var(--panel-07);
-  box-shadow: var(--elev-sm);
+  border: 4px solid;
+  border-color: var(--bevel-any-in);
+  border-radius: 0;
+  background: var(--slot-bg);
 }
 .mn-block {
   position: relative;
   width: 56px;
   height: 56px;
   flex: none;
-  border: 3px solid rgba(0, 0, 0, 0.16);
-  border-radius: 16px;
-  box-shadow: 0 4px 0 0 rgba(0, 0, 0, 0.14);
+  border: 3px solid;
+  border-color: var(--bevel-any);
+  border-radius: 0;
   box-sizing: border-box;
   display: flex;
   align-items: center;
@@ -810,7 +817,7 @@ body {
   font-size: 15px;
   font-weight: 900;
   line-height: 1;
-  border-radius: 8px;
+  border-radius: 0;
   padding: 2px 5px;
 }
 .mn-blocks-hint {
@@ -875,21 +882,21 @@ body {
   justify-content: center;
 }
 .mn-feedback-card {
-  border-radius: 32px;
+  border-radius: 0;
+  border: var(--bw-strong) solid;
+  border-color: var(--bevel-any);
   padding: 36px 70px;
   font-size: 56px;
   font-weight: 900;
   color: var(--color-white-100);
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
-  animation: mn-pop 0.35s ease-out;
+  box-shadow: var(--elev);
+  animation: mn-pop 0.35s steps(3, end);
 }
 .mn-feedback-card--right {
   background: var(--color-leaf);
-  border: var(--bw-strong) solid var(--leaf-dk);
 }
 .mn-feedback-card--wrong {
   background: var(--color-coral);
-  border: var(--bw-strong) solid var(--coral-dk);
 }
 
 /* ═══════ 模式顶栏共用槽位（StreakBar / TimerBar 的定位与布局） ═══════ */
@@ -910,9 +917,11 @@ body {
   font-size: 26px;
   font-weight: 900;
   color: var(--color-amber);
-  background: var(--amber-20);
-  border-radius: 50px;
-  padding: 9px 22px;
+  background: var(--slot-bg);
+  border: 3px solid;
+  border-color: var(--bevel-any-in);
+  border-radius: 0;
+  padding: 7px 20px;
   white-space: nowrap;
 }
 .mn-streak-fire.is-dim {
@@ -959,14 +968,15 @@ body {
 /* ═══════ 限时顶栏（TimerBar） ═══════ */
 .mn-timerbar-track {
   flex: 1;
-  height: 22px;
-  border-radius: 16px;
-  background: var(--panel-12);
+  height: 24px;
+  border-radius: 0;
+  background: var(--slot-bg);
+  border: 3px solid;
+  border-color: var(--bevel-any-in);
   overflow: hidden;
 }
 .mn-timerbar-fill {
   height: 100%;
-  border-radius: 16px;
   background: var(--color-amber);
   /* 答对 +8s 宽度增大 → transition 形成回弹；≤10s 变色也平滑过渡 */
   transition: width 0.4s ease, background-color 0.3s ease;
@@ -1000,14 +1010,15 @@ body {
   position: relative;
   width: 580px;
   max-width: calc(100% - 80px);
-  background: linear-gradient(180deg, #1b4351, #17394a);
-  border: var(--bw-strong) solid var(--line-strong);
-  border-radius: 36px;
+  background: var(--face);
+  border: var(--bw-strong) solid;
+  border-color: var(--bevel-lit) var(--bevel-dim) var(--bevel-dim) var(--bevel-lit);
+  border-radius: 0;
   padding: 40px 44px 44px;
   display: flex;
   flex-direction: column;
   gap: 18px;
-  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.45);
+  box-shadow: var(--elev);
 }
 .mn-set-close {
   position: absolute;
@@ -1015,10 +1026,11 @@ body {
   right: 20px;
   width: 68px;
   height: 68px;
-  border: none;
-  border-radius: 20px;
-  background: var(--panel-12);
-  color: var(--color-white-60);
+  border: 3px solid;
+  border-color: var(--bevel-lit) var(--bevel-dim) var(--bevel-dim) var(--bevel-lit);
+  border-radius: 0;
+  background: var(--face-2);
+  color: var(--color-white-100);
   font-family: inherit;
   font-size: 26px;
   font-weight: 900;
@@ -1055,16 +1067,19 @@ body {
   display: flex;
   align-items: center;
   gap: 6px;
-  background: var(--panel-10);
-  border-radius: 16px;
+  background: var(--slot-bg);
+  border: 3px solid;
+  border-color: var(--bevel-any-in);
+  border-radius: 0;
   padding: 6px;
 }
 .mn-step-btn {
   width: 48px;
   height: 48px;
-  border: none;
-  border-radius: 12px;
-  background: var(--panel-12);
+  border: 3px solid;
+  border-color: var(--bevel-lit) var(--bevel-dim) var(--bevel-dim) var(--bevel-lit);
+  border-radius: 0;
+  background: var(--face-2);
   color: var(--color-white-100);
   font-family: inherit;
   font-size: 28px;
@@ -1074,7 +1089,8 @@ body {
   user-select: none;
 }
 .mn-step-btn:not(:disabled):active {
-  background: var(--panel-25);
+  border-color: var(--bevel-dim) var(--bevel-lit) var(--bevel-lit) var(--bevel-dim);
+  filter: brightness(0.92);
 }
 .mn-step-btn:disabled {
   opacity: 0.35;
@@ -1093,29 +1109,32 @@ body {
   position: relative;
   width: 92px;
   height: 52px;
-  border: none;
-  border-radius: 26px;
-  background: var(--panel-25);
+  border: 3px solid;
+  border-color: var(--bevel-any-in);
+  border-radius: 0;
+  background: var(--slot-bg);
   cursor: pointer;
   padding: 0;
-  transition: background-color 0.2s ease;
+  transition: background-color 0.2s steps(2, end);
 }
 .mn-toggle.is-on {
-  background: var(--color-teal);
+  background: var(--color-leaf);
 }
+/* 方形滑块（MC 拉杆头）：凸起斜角，滑动按 steps 跳格 */
 .mn-toggle-knob {
   position: absolute;
-  top: 4px;
-  left: 4px;
+  top: 3px;
+  left: 3px;
   width: 44px;
-  height: 44px;
-  border-radius: 50%;
-  background: var(--color-white-100);
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
-  transition: left 0.2s ease;
+  height: 40px;
+  border: 3px solid;
+  border-color: var(--bevel-lit) var(--bevel-dim) var(--bevel-dim) var(--bevel-lit);
+  border-radius: 0;
+  background: var(--line-strong);
+  transition: left 0.2s steps(3, end);
 }
 .mn-toggle.is-on .mn-toggle-knob {
-  left: 44px;
+  left: 42px;
 }
 /* ═══════ 九九星图（StarChart 星图盘 + 答题屏 timestable 变体） ═══════ */
 
@@ -1135,7 +1154,7 @@ body {
   width: 54px;
   height: 54px;
   border: 2px solid transparent;
-  border-radius: 16px;
+  border-radius: 0;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1220,10 +1239,10 @@ body {
 }
 .mn-sc-card {
   flex: 1;
-  background: var(--panel-07);
-  border: var(--bw) solid var(--line);
-  border-radius: 20px;
-  box-shadow: var(--elev-sm);
+  background: var(--slot-bg);
+  border: var(--bw) solid;
+  border-color: var(--bevel-any-in);
+  border-radius: 0;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1251,7 +1270,7 @@ body {
 .mn-sc-card-tts {
   margin-top: 4px;
   background: var(--panel-12);
-  border-radius: 50px;
+  border-radius: 0;
   padding: 6px 16px;
   font-size: 18px;
   color: var(--color-white-85);
@@ -1275,7 +1294,7 @@ body {
   justify-content: center;
 }
 .mn-arraygrid-dot {
-  border-radius: 4px;
+  border-radius: 0;
   background: var(--color-teal);
 }
 
@@ -1320,16 +1339,17 @@ body {
   cursor: pointer;
 }
 .mn-tt-reveal-card {
-  background: linear-gradient(180deg, #1b4351, #17394a);
-  border: var(--bw-strong) solid var(--line-strong);
-  border-radius: 32px;
+  background: var(--face);
+  border: var(--bw-strong) solid;
+  border-color: var(--bevel-lit) var(--bevel-dim) var(--bevel-dim) var(--bevel-lit);
+  border-radius: 0;
   padding: 34px 56px 28px;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 18px;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
-  animation: mn-pop 0.35s ease-out;
+  box-shadow: var(--elev);
+  animation: mn-pop 0.35s steps(3, end);
 }
 .mn-tt-reveal-koujue {
   font-size: 62px;
@@ -1353,8 +1373,9 @@ body {
 .mn-set-reset {
   margin-top: 12px;
   width: 100%;
-  border: none;
-  border-radius: 18px;
+  border: 3px solid;
+  border-color: var(--bevel-lit) var(--bevel-dim) var(--bevel-dim) var(--bevel-lit);
+  border-radius: 0;
   padding: 16px 0;
   font-family: inherit;
   font-size: 22px;

@@ -169,7 +169,7 @@ export function Map({ progress, onStartLevel, onStartEndless, onStartTimed, onOp
 
         {/* 蛇形虚线路径 */}
         <svg width="660" height="598" style={{ position: 'absolute', top: 0, left: 0 }}>
-          <path d={PATH_D} fill="none" style={{ stroke: 'var(--path-dash)' }} strokeWidth={10} strokeLinecap="round" strokeDasharray="1 24" />
+          <path d={PATH_D} fill="none" style={{ stroke: 'var(--path-dash)' }} strokeWidth={10} strokeLinecap="butt" strokeDasharray="10 14" />
         </svg>
 
         {/* 节点三行 */}
