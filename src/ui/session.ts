@@ -3,7 +3,7 @@ import type { Question } from '../core/types';
 // 三屏状态机与关内/轮内会话状态（App 持有，Quiz/Result 消费）。
 // 独立成模块以避免 App ↔ Quiz 的运行时循环导入。
 
-export type Screen = 'map' | 'quiz' | 'result' | 'starchart';
+export type Screen = 'map' | 'quiz' | 'result' | 'starchart' | 'steve';
 export type Mode = 'campaign' | 'endless' | 'timed' | 'timestable';
 
 // 九九星图答错揭示阶段的最小数据（口诀 + 阵列由 fact 推得），点击继续后清空。

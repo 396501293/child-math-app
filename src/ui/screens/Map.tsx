@@ -3,6 +3,8 @@ import type { Progress } from '../../core/types';
 import { chapterOf, chapterStart, endlessUnlocked, timedUnlocked, timesTableUnlocked } from '../../core/progression';
 import { Steve } from '../components/Steve';
 import nodeLocked from '../../assets/ico-lock.png';
+import { balance } from '../../core/rewards';
+import { ORE_SRC } from '../components/oreAssets';
 import icoEndless from '../../assets/ico-mode-endless.png';
 import icoStar from '../../assets/ico-mode-chart.png';
 import icoTimed from '../../assets/ico-mode-timed.png';
@@ -14,6 +16,7 @@ interface MapProps {
   onStartEndless: () => void;
   onStartTimed: () => void;
   onOpenStarChart: () => void; // 进九九星图模式主页
+  onOpenSteve: () => void;     // 点史蒂夫卡片进养成屏（🔊 徽标仍念台词）
   onOpenSettings: () => void;
   onWelcome: (line: string) => void; // 点击史蒂夫卡片/🔊 徽标念欢迎语（首次交互后发声，无自动播）
 }
@@ -79,7 +82,7 @@ function NodeCell({ level, state, stars, onTap }: {
   );
 }
 
-export function Map({ progress, onStartLevel, onStartEndless, onStartTimed, onOpenStarChart, onOpenSettings, onWelcome }: MapProps) {
+export function Map({ progress, onStartLevel, onStartEndless, onStartTimed, onOpenStarChart, onOpenSteve, onOpenSettings, onWelcome }: MapProps) {
   const maxChapter = chapterOf(progress.unlocked);
   const [viewChapter, setViewChapter] = useState<number>(maxChapter);
   const [seen, setSeen] = useState<Record<string, boolean>>(loadSeen);
@@ -140,6 +143,11 @@ export function Map({ progress, onStartLevel, onStartEndless, onStartTimed, onOp
         </div>
         <div style={{ fontSize: 22, fontWeight: 500, color: 'var(--color-white-55)' }}>{doneCount} / 15 关</div>
         <div class="mn-star-cap" style={{ marginLeft: 'auto' }}>★ {chapterStars}</div>
+        {progress.settings.steveRaise && (
+          <div class="mn-coal-cap">
+            <img class="mn-ico" src={ORE_SRC.coal} alt="煤" /> {balance(progress).coal}
+          </div>
+        )}
       </div>
 
       {/* ─── 左路径面板 ─── */}
@@ -187,11 +195,19 @@ export function Map({ progress, onStartLevel, onStartEndless, onStartTimed, onOp
         <div
           class="mn-panel"
           style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 14, cursor: 'pointer' }}
-          onClick={() => onWelcome(steveLine)}
+          onClick={() => (progress.settings.steveRaise ? onOpenSteve() : onWelcome(steveLine))}
         >
           <Steve pose="wave" equipped={progress.rewards.equipped} />
           <div style={{ fontSize: 23, color: 'var(--color-white-85)', textAlign: 'center', lineHeight: 1.5, padding: '0 18px' }}>
-            {steveLine} <span class="mn-tts-badge"><Ico name="sound" /></span>
+            {steveLine}{' '}
+            <span
+              class="mn-tts-badge"
+              role="button"
+              aria-label="念一句"
+              onClick={(e) => { e.stopPropagation(); onWelcome(steveLine); }}
+            >
+              <Ico name="sound" />
+            </span>
           </div>
         </div>
 

@@ -1402,3 +1402,167 @@ body {
   box-shadow: 0 4px 0 rgba(0, 0, 0, 0.25);
   animation: mn-pop 0.3s ease-out;
 }
+
+/* ═══════ 史蒂夫养成屏（SteveScreen，spec §5） ═══════ */
+.mn-steve-top {
+  position: absolute;
+  top: 30px;
+  left: 124px;
+  right: 40px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.mn-steve-title {
+  font-size: 34px;
+  font-weight: 900;
+}
+.mn-steve-tab {
+  padding: 12px 30px;
+  font-size: 22px;
+}
+.mn-steve-tab.is-on {
+  background: var(--color-amber);
+  color: var(--color-text-dark);
+  text-shadow: none;
+}
+/* 中央立绘区（左半）；面板在右半 */
+.mn-steve-stage {
+  position: absolute;
+  top: 130px;
+  left: 40px;
+  width: 400px;
+  bottom: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.mn-steve-panel {
+  position: absolute;
+  top: 118px;
+  left: 460px;
+  right: 40px;
+  bottom: 36px;
+  padding: 18px 22px;
+  overflow-y: auto;
+}
+.mn-gear-tier-name {
+  font-size: 22px;
+  font-weight: 900;
+  color: var(--color-amber);
+  margin: 10px 0 6px;
+}
+.mn-gear-tier.is-next {
+  opacity: 0.55;
+}
+.mn-gear-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 52px;
+  padding: 4px 10px;
+  font-size: 20px;
+  font-family: inherit;
+  color: var(--color-white-100);
+  background: transparent;
+  border: none;
+  text-shadow: var(--text-sh);
+}
+.mn-gear-row.is-owned {
+  cursor: pointer;
+  background: var(--slot-bg);
+  border: 3px solid;
+  border-color: var(--bevel-any-in);
+  margin-bottom: 6px;
+}
+.mn-gear-row.is-worn .mn-gear-state {
+  color: var(--color-leaf);
+}
+.mn-gear-state {
+  margin-left: auto;
+  font-size: 17px;
+  color: var(--color-white-55);
+}
+.mn-gear-craft {
+  margin-left: auto;
+  padding: 8px 22px;
+  font-size: 19px;
+  flex: none;
+}
+.mn-gear-lack {
+  margin-left: auto;
+  font-size: 16px;
+  color: var(--color-white-40);
+  white-space: nowrap;
+}
+.mn-gear-hint {
+  font-size: 16px;
+  color: var(--color-white-40);
+  padding: 6px 10px;
+}
+.mn-price {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 18px;
+}
+.mn-price b {
+  color: var(--color-amber);
+}
+.mn-price-group {
+  display: inline-flex;
+  gap: 2px;
+  margin-right: 4px;
+}
+.mn-price-dot {
+  width: 8px;
+  height: 8px;
+  background: var(--color-amber);
+  display: inline-block;
+}
+.mn-bench-ores {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+.mn-bench-ore {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 0;
+  font-size: 20px;
+  font-family: inherit;
+  color: var(--color-amber);
+  background: var(--slot-bg);
+  border: 3px solid;
+  border-color: var(--bevel-any-in);
+  cursor: pointer;
+  text-shadow: var(--text-sh);
+}
+.mn-bench-sec {
+  font-size: 20px;
+  font-weight: 900;
+  color: var(--color-white-55);
+  margin: 14px 0 4px;
+}
+.mn-trade-eq {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+/* 地图顶栏煤计数（只显煤——五矿加总是错误的加法模型；只在地图屏） */
+.mn-coal-cap {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--slot-bg);
+  border: 3px solid;
+  border-color: var(--bevel-any-in);
+  padding: 8px 18px;
+  font-size: 24px;
+  font-weight: 900;
+  color: var(--color-white-85);
+}

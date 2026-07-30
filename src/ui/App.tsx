@@ -6,7 +6,9 @@ import { applyHardMode, generateLevel, generateQuestion } from '../core/generato
 import { chapterOf, effectiveLevel, endlessBand, starsFor, timedPool, unlockAfterWin } from '../core/progression';
 import { defaultProgress, loadProgress, saveProgress } from '../core/storage';
 import { koujue, TimesTableSession } from '../core/timesTable';
-import { recordAnswer } from '../core/rewards';
+import { craft, lightStar, recordAnswer, setEquipped, trade } from '../core/rewards';
+import { CATALOG_BY_ID, SKY_PATTERNS } from '../core/rewardsCatalog';
+import { SteveScreen } from './screens/SteveScreen';
 import { onAvailabilityChange, speak, stopTTS, ttsAvailable } from '../audio/tts';
 import { currentQuestion, type Mode, type Screen, type Session } from './session';
 import { useCountdown } from './useCountdown';
@@ -36,6 +38,10 @@ const VOICE = {
   ttResult: (n: number) => `本轮答对 ${n} 题！`,
   ttResultLit: (n: number, lit: number) => `本轮答对 ${n} 题，新点亮 ${lit} 句口诀！`,
   ttComplete: '星图点亮！九九口诀你全会了！',
+  steveWelcome: '这是你的伙伴史蒂夫！做完的题都变成材料啦。',
+  crafted: (name: string) => `${name}做好了！`,
+  starLit: '点亮一颗星！',
+  constellation: (name: string) => `${name}连起来了！`,
 } as const;
 
 // 九九星图结算祝贺语（集齐 > 有新点亮 > 普通完成）。结算与重播读同一句。
@@ -450,6 +456,37 @@ export function App() {
     ttSessionRef.current = null;
     setScreen('map');
   };
+  // ── 史蒂夫养成（呈现纪律 M1/M2/M7：无角标无催促；措辞「做」；结算处才入账）──
+  const openSteve = () => {
+    setScreen('steve');
+    speak(VOICE.steveWelcome, { interrupt: true });
+  };
+  const doCraft = (id: string) => {
+    const next = craft(progressRef.current, id);
+    if (next === progressRef.current) return;
+    updateProgress(next);
+    speak(VOICE.crafted(CATALOG_BY_ID[id]?.name ?? ''), { interrupt: true });
+  };
+  const doToggleWear = (slot: 'boots' | 'helm' | 'legs' | 'chest', id: string) => {
+    const cur = progressRef.current.rewards.equipped[slot];
+    updateProgress(setEquipped(progressRef.current, { [slot]: cur === id ? null : id }));
+  };
+  const doTrade = (kind: Parameters<typeof trade>[1]) => {
+    updateProgress(trade(progressRef.current, kind));
+  };
+  const doLightStar = () => {
+    const next = lightStar(progressRef.current);
+    if (next === progressRef.current) return;
+    updateProgress(next);
+    // 星座集齐 = 连线亮起 + 一句语音，无其他奖励（评审表 C）
+    let acc = 0;
+    for (const pat of SKY_PATTERNS) {
+      acc += pat.stars;
+      if (next.rewards.skyStars === acc) { speak(VOICE.constellation(pat.name), { interrupt: true }); return; }
+    }
+    speak(VOICE.starLit, { interrupt: true });
+  };
+
   // 解锁全部关卡（家长设置）：拉满 unlocked，不动星星；关面板回地图。
   const unlockAll = () => {
     updateProgress({ ...progress, unlocked: 60 });
@@ -467,7 +504,19 @@ export function App() {
             onStartTimed={startTimed}
             onOpenStarChart={openStarChart}
             onOpenSettings={openSettings}
+            onOpenSteve={openSteve}
             onWelcome={(line) => speak(line, { interrupt: true })}
+          />
+        )}
+        {screen === 'steve' && (
+          <SteveScreen
+            progress={progress}
+            onBack={exitToMap}
+            onCraft={doCraft}
+            onToggleWear={doToggleWear}
+            onTrade={doTrade}
+            onLightStar={doLightStar}
+            onSpeak={(line) => speak(line, { interrupt: true })}
           />
         )}
         {screen === 'starchart' && (
