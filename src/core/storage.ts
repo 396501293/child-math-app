@@ -125,6 +125,17 @@ export function loadProgress(store: StorageLike = safeStore()): Progress {
       endless: { ...d.endless, ...parsed.endless },
       timed: { ...d.timed, ...parsed.timed },
       timesTable: { ...d.timesTable, ...parsed.timesTable },
+      // 养成切片：旧存档无此片时按 totalAnswered 折算 practiceFirstTry
+      //（评审 M5「事后惊喜」——老用户首开养成屏材料已按既往进度堆好）
+      rewards: parsed.rewards
+        ? {
+            ...d.rewards,
+            ...parsed.rewards,
+            equipped: { ...d.rewards.equipped, ...parsed.rewards.equipped },
+            traded: { ...d.rewards.traded, ...parsed.rewards.traded },
+          }
+        : { ...d.rewards, practiceFirstTry: parsed.endless?.totalAnswered ?? 0 },
+      weekly: { ...d.weekly, ...parsed.weekly },
       version: 2,
     };
   }

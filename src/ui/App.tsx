@@ -6,6 +6,7 @@ import { applyHardMode, generateLevel, generateQuestion } from '../core/generato
 import { chapterOf, effectiveLevel, endlessBand, starsFor, timedPool, unlockAfterWin } from '../core/progression';
 import { defaultProgress, loadProgress, saveProgress } from '../core/storage';
 import { koujue, TimesTableSession } from '../core/timesTable';
+import { recordAnswer } from '../core/rewards';
 import { onAvailabilityChange, speak, stopTTS, ttsAvailable } from '../audio/tts';
 import { currentQuestion, type Mode, type Screen, type Session } from './session';
 import { useCountdown } from './useCountdown';
@@ -73,6 +74,10 @@ export function App() {
   // 供定时器/倒计时回调读取最新 session（避免闭包读到旧值）。
   const sessionRef = useRef<Session | null>(session);
   sessionRef.current = session;
+  // 同理的 progress ref：养成埋点会在答题中途更新 progress，
+  // 结算 setTimeout 回调若读闭包 progress 会丢掉最后一题的埋点。
+  const progressRef = useRef<Progress>(progress);
+  progressRef.current = progress;
 
   // 九九星图会话对象：有状态、活在 Preact state 之外（ref-truth），
   // Session 只镜像顶栏/揭示/结算所需最小字段（同 useCountdown 的 ref+display 范式）。
@@ -165,14 +170,16 @@ export function App() {
     const tt = ttSessionRef.current;
     if (!s || s.mode !== 'timestable' || !tt) return;
     clearTimer();
-    const before = progress.timesTable.facts;
+    const before = progressRef.current.timesTable.facts;
     const committed = tt.commit();
     const after = committed.timesTable.facts;
     let newLit = 0;
     for (const [k, st] of Object.entries(after))
       if (st.s === 3 && (before[k]?.s ?? 0) !== 3) newLit++;
     const lit = Object.values(after).filter((f) => f.s === 3).length;
-    updateProgress(committed);
+    // 只取 commit 的 timesTable 切片：committed 基于会话构造时的快照，
+    // 整体落盘会回滚会话期间的养成埋点（rewards/weekly 在每题作答时都在更新）。
+    updateProgress({ ...progressRef.current, timesTable: committed.timesTable });
     speak(ttResultLine(correctCount, newLit, lit), { interrupt: true }); // 结算祝贺
     setSession({ ...s, feedback: null, ttReveal: null, resultTimes: { correct: correctCount, newLit, lit } });
     setScreen('result');
@@ -211,6 +218,13 @@ export function App() {
     const q = tt.currentQuestion();
     const fact = tt.currentFact();
     clearTimer();
+    updateProgress(
+      recordAnswer(
+        progressRef.current,
+        { practice: true, firstTry: s.excluded.length === 0, correct: option === q.answer },
+        Date.now(),
+      ),
+    );
     speak(koujue(fact.a, fact.b), { interrupt: true }); // 答对=庆祝口诀 / 答错=揭示口诀（同句）
     if (option === q.answer) {
       setSession({ ...s, feedback: 'right' });
@@ -252,8 +266,8 @@ export function App() {
       // 结算：星级一次算定并立即落盘（不在结算 render / 按钮点击时算），
       // 这样即便玩家在结算屏退出 App，本次胜利与解锁也已保存。
       const stars = starsFor(s.wrongTotal);
-      const next = unlockAfterWin(progress, s.level!, stars);
-      const chapterUp = chapterOf(next.unlocked) > chapterOf(progress.unlocked); // 完成 15/30 关跨章
+      const next = unlockAfterWin(progressRef.current, s.level!, stars);
+      const chapterUp = chapterOf(next.unlocked) > chapterOf(progressRef.current.unlocked); // 完成 15/30 关跨章
       updateProgress(next);
       speak(CAMPAIGN_SUB[stars], { interrupt: true }); // 结算祝贺（按星级副文案）
       if (chapterUp) speak(VOICE.unlockChapter);        // 章节解锁祝贺
@@ -296,6 +310,14 @@ export function App() {
     if (s.feedback !== null) return; // 反馈展示期间忽略（含答对 1.1s 窗口，防止二次触发）
     const q = currentQuestion(s);
     clearTimer();
+    // 养成埋点（评审 P 定义 = 练习模式首答即对；weekly 计全模式首答题量）
+    updateProgress(
+      recordAnswer(
+        progressRef.current,
+        { practice: s.mode !== 'campaign', firstTry: s.excluded.length === 0, correct: option === q.answer },
+        Date.now(),
+      ),
+    );
     if (option === q.answer) {
       speak(VOICE.right, { interrupt: true }); // 答对反馈
       setSession({ ...s, feedback: 'right' });
@@ -324,13 +346,13 @@ export function App() {
     const s = sessionRef.current;
     if (!s || s.mode !== 'endless') return;
     clearTimer();
-    const oldBest = progress.endless.bestStreak;
+    const oldBest = progressRef.current.endless.bestStreak;
     const broke = s.runBestStreak > oldBest;
     updateProgress({
-      ...progress,
+      ...progressRef.current,
       endless: {
         bestStreak: Math.max(oldBest, s.runBestStreak),
-        totalAnswered: progress.endless.totalAnswered + s.correctCount,
+        totalAnswered: progressRef.current.endless.totalAnswered + s.correctCount,
       },
     });
     speak(VOICE.endlessResult(s.correctCount), { interrupt: true }); // 无尽结算祝贺
@@ -344,9 +366,9 @@ export function App() {
     const s = sessionRef.current;
     if (!s || s.mode !== 'timed') return;
     clearTimer();
-    const oldBest = progress.timed.bestCount;
+    const oldBest = progressRef.current.timed.bestCount;
     const broke = s.correctCount > oldBest;
-    updateProgress({ ...progress, timed: { bestCount: Math.max(oldBest, s.correctCount) } });
+    updateProgress({ ...progressRef.current, timed: { bestCount: Math.max(oldBest, s.correctCount) } });
     speak(VOICE.timedResult(s.correctCount), { interrupt: true }); // 冲刺结算祝贺
     if (broke) speak(VOICE.record);
     setSession({ ...s, feedback: null, resultBroke: broke });

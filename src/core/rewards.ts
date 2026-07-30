@@ -113,6 +113,31 @@ export function lightStar(p: Progress): Progress {
   return { ...p, rewards: { ...p.rewards, skyStars: p.rewards.skyStars + 1 } };
 }
 
+// ── 埋点（App.answer 每次首答/重试调用，纯函数）──
+// practice = 三练习模式（非 campaign）；firstTry = 本题首次作答（excluded 为空）。
+// weekly 只在首答时计题量（重试不重复计入答题量）；翻周即重置（P0-2-lite）。
+const WEEK_MS = 7 * 24 * 3600 * 1000;
+export function recordAnswer(
+  p: Progress,
+  a: { practice: boolean; firstTry: boolean; correct: boolean },
+  now: number,
+): Progress {
+  const fresh = now - p.weekly.weekStart >= WEEK_MS;
+  const w = fresh ? { weekStart: now, answered: 0, firstTry: 0 } : { ...p.weekly };
+  if (a.firstTry) {
+    w.answered += 1;
+    if (a.correct) w.firstTry += 1;
+  }
+  const firstTryCorrect = a.practice && a.firstTry && a.correct;
+  return {
+    ...p,
+    weekly: w,
+    rewards: firstTryCorrect
+      ? { ...p.rewards, practiceFirstTry: p.rewards.practiceFirstTry + 1 }
+      : p.rewards,
+  };
+}
+
 // 渐次显形辅助（spec §5）：下一件可见目标
 export function nextEquipTargets(r: RewardsSlice): string[] {
   const out: string[] = [];
