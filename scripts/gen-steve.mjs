@@ -14,32 +14,53 @@ import sharp from 'sharp';
 
 const OUT = join(dirname(fileURLToPath(import.meta.url)), '..', 'src', 'assets');
 
-// Minecraft 经典配色
+// Minecraft 经典配色（对着原版皮肤取的，不是凭印象）
 const C = {
   '.': null,
-  H: [0x2b, 0x19, 0x0e], // 头发
-  S: [0xb5, 0x88, 0x6b], // 皮肤
-  s: [0x9c, 0x73, 0x59], // 皮肤暗面
+  H: [0x33, 0x22, 0x11], // 头发
+  S: [0xb5, 0x8d, 0x6c], // 皮肤
+  s: [0x9a, 0x76, 0x59], // 皮肤暗面 / 鼻
   W: [0xff, 0xff, 0xff], // 眼白
-  B: [0x36, 0x3c, 0xb4], // 瞳色
-  M: [0x4a, 0x2e, 0x1e], // 嘴 / 胡
-  C: [0x00, 0xaf, 0xaf], // 衬衫
-  c: [0x00, 0x8c, 0x8c], // 衬衫暗面
-  P: [0x3a, 0x3a, 0xa8], // 裤子
-  p: [0x2e, 0x2e, 0x8a], // 裤子暗面
-  O: [0x53, 0x53, 0x53], // 鞋
+  B: [0x4b, 0x3d, 0xa8], // 瞳色（史蒂夫是蓝紫，不是纯蓝）
+  M: [0x6b, 0x4a, 0x2c], // 络腮胡 —— 史蒂夫最标志性的特征
+  C: [0x27, 0xbd, 0xbd], // 衬衫 / 短袖（史蒂夫的青比这更亮一档）
+  c: [0x14, 0x8c, 0x8c], // 衬衫暗面
+  P: [0x3d, 0x3d, 0xac], // 裤子
+  p: [0x30, 0x30, 0x8c], // 裤子暗面
+  O: [0x4a, 0x4a, 0x52], // 鞋
 };
 
-const HEAD = ['HHHHHHHH', 'HHHHHHHH', 'HSSSSSSH', 'HWBSSBWH', 'HSSSSSSH', '', 'HSSSSSSH', '.SSSSSS.'];
-// 嘴随情绪换，其余七行全姿势共用
-const MOUTH = { flat: 'HSMMMMSH', smile: 'HSMSSMSH', open: 'HSMMMMSH', oops: 'HSSMMSSH' };
+// 头 8×8。史蒂夫的脸靠三样东西被认出来：头发方块、蓝紫眼睛、
+// **下半张脸那片络腮胡**。前一版漏了胡子和鼻子，所以谁都不像。
+//   y0–2 头发满行；y3 只剩两侧鬓角；y4 眼；y5 鼻；y6–7 络腮胡
+const HEAD = [
+  'HHHHHHHH',
+  'HHHHHHHH',
+  'HHHHHHHH',
+  'HSSSSSSH',
+  'HWBSSBWH',   // 眼：外白内蓝紫
+  'HSSssSSH',   // 鼻：中间两格暗肤色
+  'HSMMMMSH',   // 胡：只占一行（占两行会让整个头在小尺寸下读成一坨深色，
+                //     而真史蒂夫在远处是「深发 + 亮脸」的高对比）
+  '.SSSSSS.',   // 下巴留亮肤色
+];
+// 情绪只改胡子中间那两格（张嘴 / 抿嘴），不动轮廓——保证五姿势是同一张脸
+const MOUTH = {
+  flat:  'HSMMMMSH',
+  smile: 'HSMSSMSH',
+  open:  'HSMOOMSH',
+  oops:  'HSSMMSSH',
+};
 const POSE_MOUTH = { idle: 'flat', wave: 'smile', happy: 'smile', cheer: 'open', oops: 'oops' };
 
 const rep = (row, n) => Array(n).fill(row);
-const TORSO = [...rep('CCCCCCCC', 3), ...rep('CCCcCCCC', 6), ...rep('CCCCCCCC', 3)];
-// 两条腿各 4 宽，中间留 1 列缝——连成一块会像裙子
-const LEGS = [...rep('PPP.PPPP', 10), ...rep('OOO.OOOO', 2)];
-const ARM = [...rep('SSSS', 2), ...rep('SSsS', 8), ...rep('SSSS', 2)];
+// 衬衫：右侧一列压暗做体积，不要中间竖缝（那会读成拉链）
+const TORSO = [...rep('CCCCCCCc', 12)];
+// 两条腿各 4 宽，中间留 1 列缝——连成一块会像裙子；底部两行是鞋
+const LEGS = [...rep('PPP.PPPP', 5), ...rep('PPp.pPPP', 5), ...rep('OOO.OOOO', 2)];
+// 手臂：史蒂夫穿短袖 —— 上 4 行是青色袖子，下 8 行才是皮肤。
+// 前一版整条画成皮肤，等于给他穿了无袖背心。
+const ARM = [...rep('CCCC', 4), ...rep('SSsS', 7), ...rep('SSSS', 1)];
 
 const W = 24, H = 40; // 上方留 8 行给举过头顶的手臂
 
@@ -49,7 +70,7 @@ function build(pose) {
     rows.forEach((row, dy) => [...row].forEach((ch, dx) => { if (ch !== '.') g[y0 + dy][x0 + dx] = ch; }));
 
   const head = [...HEAD];
-  head[5] = MOUTH[POSE_MOUTH[pose]];
+  head[6] = MOUTH[POSE_MOUTH[pose]]; // 索引 6 = 胡子行；写成 5 会盖掉鼻子并让胡子变两行
   put(head, 8, 8);
   put(TORSO, 8, 16);
   put(LEGS, 8, 28);
