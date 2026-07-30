@@ -1,4 +1,4 @@
-import type { Question } from '../core/types';
+import type { Ores, Question } from '../core/types';
 
 // 三屏状态机与关内/轮内会话状态（App 持有，Quiz/Result 消费）。
 // 独立成模块以避免 App ↔ Quiz 的运行时循环导入。
@@ -30,6 +30,7 @@ export interface Session {
   ttLit?: number;                     // 当前已点亮 X/36
   ttReveal?: TtReveal | null;         // 答错揭示阶段（口诀 + 阵列），点击继续后清空
   resultTimes?: { correct: number; newLit: number; lit: number }; // timestable 结算数据
+  resultGains?: Partial<Ores>; // 本局材料增量（结算入账行；M1：只在结算处出现一次）
 }
 
 // 当前题选择器：campaign 读预生成数组，endless/timed/timestable 读流式 current。

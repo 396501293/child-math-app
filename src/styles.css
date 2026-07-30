@@ -1566,3 +1566,30 @@ body {
   font-weight: 900;
   color: var(--color-white-85);
 }
+
+/* 结算入账行（M1：静态、一次性、无滚动无音效） */
+.mn-result-gains {
+  display: flex;
+  gap: 22px;
+  font-size: 22px;
+  font-weight: 900;
+  color: var(--color-amber);
+}
+.mn-result-gain {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+/* 地图夜空层：pointer-events 穿透，星为方点（像素语言） */
+.mn-sky {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.mn-sky-star {
+  fill: #ffe9a8;
+}
+.mn-sky-line {
+  stroke: rgba(255, 233, 168, 0.4);
+  stroke-width: 2;
+}

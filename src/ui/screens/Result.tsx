@@ -1,11 +1,17 @@
 import type { ComponentChildren } from 'preact';
+import type { Ores } from '../../core/types';
 import { Steve } from '../components/Steve';
+import { ORE_CN, ORE_SRC } from '../components/oreAssets';
 import { Ico } from '../components/Ico';
 
 // 结算屏（README §3 + 题库设计 §7-5）。dumb 组件：所有数值由 App 计算后经 props 传入。
 // 三种变体：campaign（星级）/ endless（本轮答对 + 连对纪录）/ timed（时间到 + 个人最佳）。
-// 四变体共用：史蒂夫穿当前装备进结算（评审遗留 2 已批准——衣服非奖励标牌）
-type ResultCommon = { equipped: import('../../core/types').RewardsSlice['equipped'] };
+// 四变体共用：史蒂夫穿当前装备进结算（评审遗留 2 已批准——衣服非奖励标牌）；
+// gains = 本局材料增量（M1：静态出现、无滚动数字、无音效，只在结算屏这一处）
+type ResultCommon = {
+  equipped: import('../../core/types').RewardsSlice['equipped'];
+  gains?: Partial<Ores>;
+};
 type ResultProps = ResultCommon &
   (
   | { variant: 'campaign'; level: number; stars: 1 | 2 | 3; onBackToMap: () => void; onNextLevel?: () => void; onReplaySub: () => void }
@@ -30,10 +36,22 @@ function nextLabel(level: number): string {
 
 // 结算卡片外壳：四个变体共用。内容原先直接浮在夜空上缺少承托，
 // 动森化后收拢成一张有描边的卡（.mn-result-card）。
-function ResultCard({ children }: { children: ComponentChildren }) {
+function ResultCard({ children, gains }: { children: ComponentChildren; gains?: Partial<Ores> }) {
+  const entries = gains ? (Object.entries(gains) as [keyof Ores, number][]) : [];
   return (
     <div class="mn-result">
-      <div class="mn-result-card">{children}</div>
+      <div class="mn-result-card">
+        {children}
+        {entries.length > 0 && (
+          <div class="mn-result-gains">
+            {entries.map(([k, n]) => (
+              <span key={k} class="mn-result-gain">
+                <img class="mn-ico" src={ORE_SRC[k]} alt="" />+{n} {ORE_CN[k]}
+              </span>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
@@ -44,7 +62,7 @@ export function Result(props: ResultProps) {
     const starStr = '★★★'.slice(0, stars) + '☆☆☆'.slice(0, 3 - stars);
     const pose = stars === 3 ? 'cheer' : 'happy';
     return (
-      <ResultCard>
+      <ResultCard gains={props.gains}>
         <div class="mn-result-steve">
           <Steve pose={pose} scale={1.15} equipped={props.equipped} />
         </div>
@@ -70,7 +88,7 @@ export function Result(props: ResultProps) {
   if (props.variant === 'endless') {
     const { answered, runBestStreak, historyBestStreak, broke, onBackToMap } = props;
     return (
-      <ResultCard>
+      <ResultCard gains={props.gains}>
         <div class="mn-result-steve">
           <Steve pose={broke ? 'cheer' : 'happy'} scale={1.15} equipped={props.equipped} />
         </div>
@@ -97,7 +115,7 @@ export function Result(props: ResultProps) {
     const { answered, newLit, lit, onBackToStarChart, onBackToMap, onReplaySub } = props;
     const cleared = lit >= 36;
     return (
-      <ResultCard>
+      <ResultCard gains={props.gains}>
         <div class="mn-result-steve">
           <Steve pose={newLit > 0 ? 'cheer' : 'happy'} scale={1.15} equipped={props.equipped} />
         </div>
@@ -122,7 +140,7 @@ export function Result(props: ResultProps) {
   // props.variant === 'timed'
   const { answered, bestCount, broke, onBackToMap } = props;
   return (
-    <ResultCard>
+    <ResultCard gains={props.gains}>
       <div class="mn-result-steve">
         <Steve pose={broke ? 'cheer' : 'happy'} scale={1.15} equipped={props.equipped} />
       </div>

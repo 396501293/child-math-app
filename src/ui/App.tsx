@@ -6,7 +6,7 @@ import { applyHardMode, generateLevel, generateQuestion } from '../core/generato
 import { chapterOf, effectiveLevel, endlessBand, starsFor, timedPool, unlockAfterWin } from '../core/progression';
 import { defaultProgress, loadProgress, saveProgress } from '../core/storage';
 import { koujue, TimesTableSession } from '../core/timesTable';
-import { craft, lightStar, recordAnswer, setEquipped, trade } from '../core/rewards';
+import { balance as oreBalance, craft, income, lightStar, recordAnswer, setEquipped, trade } from '../core/rewards';
 import { CATALOG_BY_ID, SKY_PATTERNS } from '../core/rewardsCatalog';
 import { SteveScreen } from './screens/SteveScreen';
 import { onAvailabilityChange, speak, stopTTS, ttsAvailable } from '../audio/tts';
@@ -85,6 +85,19 @@ export function App() {
   const progressRef = useRef<Progress>(progress);
   progressRef.current = progress;
 
+  // 本局材料入账（M1：只在结算屏出现一次）：会话开始时快照收入，
+  // 结算时 diff。快照在各 start* 里打，读 progressRef 保证新鲜。
+  const incomeStartRef = useRef(income(defaultProgress()));
+  const snapIncome = () => { incomeStartRef.current = income(progressRef.current); };
+  const gainsSince = (p: Progress) => {
+    const now = income(p);
+    const base = incomeStartRef.current;
+    const out: Partial<typeof now> = {};
+    for (const k of ['coal', 'iron', 'gold', 'diamond', 'emerald'] as const)
+      if (now[k] > base[k]) out[k] = now[k] - base[k];
+    return Object.keys(out).length ? out : undefined;
+  };
+
   // 九九星图会话对象：有状态、活在 Preact state 之外（ref-truth），
   // Session 只镜像顶栏/揭示/结算所需最小字段（同 useCountdown 的 ref+display 范式）。
   const ttSessionRef = useRef<TimesTableSession | null>(null);
@@ -98,6 +111,10 @@ export function App() {
   useEffect(() => () => clearTimer(), []);
 
   const updateProgress = (p: Progress) => {
+    // 同步刷 ref：setProgressState 是异步的，同一事件回调里
+    // 紧接着读 progressRef 必须拿到新值（结算入账 diff 依赖这一点——
+    // endless/星图结算更新的 bestStreak/litBest 会立刻影响绿宝石收入）。
+    progressRef.current = p;
     setProgressState(p);
     saveProgress(p);
   };
@@ -118,6 +135,7 @@ export function App() {
   });
 
   const startLevel = (level: number) => {
+    snapIncome();
     const questions = generateLevel(applyIfHard(bandOf(level)), progress.settings.questionCount, Math.random);
     speak(questions[0].ttsText, { interrupt: true }); // 进新题自动朗读
     setSession({ ...blankRun('campaign'), level, questions });
@@ -138,6 +156,7 @@ export function App() {
   };
 
   const startEndless = () => {
+    snapIncome();
     const current = nextModeQuestion('endless', 0, []);
     speak(VOICE.endlessIntro, { interrupt: true }); // 模式入口介绍（进入前一句）
     speak(current.ttsText);                           // 队列在介绍之后朗读首题
@@ -146,6 +165,7 @@ export function App() {
   };
 
   const startTimed = () => {
+    snapIncome();
     countdown.reset(TIMED_START_MS);
     const current = nextModeQuestion('timed', 0, []);
     speak(VOICE.timedStart, { interrupt: true }); // 单句开场，少吃倒计时
@@ -187,7 +207,13 @@ export function App() {
     // 整体落盘会回滚会话期间的养成埋点（rewards/weekly 在每题作答时都在更新）。
     updateProgress({ ...progressRef.current, timesTable: committed.timesTable });
     speak(ttResultLine(correctCount, newLit, lit), { interrupt: true }); // 结算祝贺
-    setSession({ ...s, feedback: null, ttReveal: null, resultTimes: { correct: correctCount, newLit, lit } });
+    setSession({
+      ...s,
+      feedback: null,
+      ttReveal: null,
+      resultTimes: { correct: correctCount, newLit, lit },
+      resultGains: gainsSince(progressRef.current),
+    });
     setScreen('result');
   };
 
@@ -247,6 +273,7 @@ export function App() {
   };
 
   const startTimesTable = () => {
+    snapIncome();
     const tt = new TimesTableSession(progress, Math.random);
     ttSessionRef.current = tt;
     if (tt.isDone()) { ttSessionRef.current = null; setScreen('starchart'); return; } // 活跃池为空兜底（CTA 已禁用，理论不触发）
@@ -277,7 +304,7 @@ export function App() {
       updateProgress(next);
       speak(CAMPAIGN_SUB[stars], { interrupt: true }); // 结算祝贺（按星级副文案）
       if (chapterUp) speak(VOICE.unlockChapter);        // 章节解锁祝贺
-      setSession({ ...s, feedback: null, resultStars: stars });
+      setSession({ ...s, feedback: null, resultStars: stars, resultGains: gainsSince(next) });
       setScreen('result');
     } else {
       const next = s.questions![s.qIndex + 1];
@@ -363,7 +390,7 @@ export function App() {
     });
     speak(VOICE.endlessResult(s.correctCount), { interrupt: true }); // 无尽结算祝贺
     if (broke) speak(VOICE.record);
-    setSession({ ...s, feedback: null, resultBroke: broke });
+    setSession({ ...s, feedback: null, resultBroke: broke, resultGains: gainsSince(progressRef.current) });
     setScreen('result');
   };
 
@@ -377,7 +404,7 @@ export function App() {
     updateProgress({ ...progressRef.current, timed: { bestCount: Math.max(oldBest, s.correctCount) } });
     speak(VOICE.timedResult(s.correctCount), { interrupt: true }); // 冲刺结算祝贺
     if (broke) speak(VOICE.record);
-    setSession({ ...s, feedback: null, resultBroke: broke });
+    setSession({ ...s, feedback: null, resultBroke: broke, resultGains: gainsSince(progressRef.current) });
     setScreen('result');
   };
 
@@ -551,6 +578,7 @@ export function App() {
           session.mode === 'campaign' ? (
             <Result
               equipped={progress.rewards.equipped}
+              gains={progress.settings.steveRaise ? session.resultGains : undefined}
               variant="campaign"
               level={session.level!}
               stars={session.resultStars ?? starsFor(session.wrongTotal)}
@@ -561,6 +589,7 @@ export function App() {
           ) : session.mode === 'endless' ? (
             <Result
               equipped={progress.rewards.equipped}
+              gains={progress.settings.steveRaise ? session.resultGains : undefined}
               variant="endless"
               answered={session.correctCount}
               runBestStreak={session.runBestStreak}
@@ -571,6 +600,7 @@ export function App() {
           ) : session.mode === 'timestable' ? (
             <Result
               equipped={progress.rewards.equipped}
+              gains={progress.settings.steveRaise ? session.resultGains : undefined}
               variant="timestable"
               answered={session.resultTimes?.correct ?? session.correctCount}
               newLit={session.resultTimes?.newLit ?? 0}
@@ -582,6 +612,7 @@ export function App() {
           ) : (
             <Result
               equipped={progress.rewards.equipped}
+              gains={progress.settings.steveRaise ? session.resultGains : undefined}
               variant="timed"
               answered={session.correctCount}
               bestCount={progress.timed.bestCount}
