@@ -24,6 +24,7 @@ export function defaultProgress(): Progress {
       owned: [],
       equipped: { boots: null, helm: null, legs: null, chest: null, accessories: [] },
       skyStars: 0,
+      homeGrid: Array(144).fill(null),
       traded: { coalToIron: 0, ironToGold: 0, goldToDiamond: 0, diamondToEmerald: 0 },
     },
     weekly: { weekStart: 0, answered: 0, firstTry: 0 },

@@ -72,6 +72,28 @@ export const SKY_PATTERNS: { id: string; name: string; stars: number }[] = [
   { id: 'sky-whale', name: '鲸鱼座', stars: 12 },
 ];
 
+// ── 建造层（评审 2026-07-31 表 A）──
+// 1 煤 = 1 方块是**铁则**：永久统一价，禁差异定价（贵方块会催生
+// 「贵 = 好」的评判轴，玩具边界失守）——所以价格是常量不是字段。
+// 方块永远只收煤：装备阶梯的稀缺由品阶矿承担，与建造层结构性隔离。
+export const BLOCK_PRICE_COAL = 1;
+export const HOME_COLS = 16;
+export const HOME_ROWS = 9;
+export const HOME_SIZE = HOME_COLS * HOME_ROWS;
+export const BLOCKS: { id: string; name: string }[] = [
+  { id: 'blk-grass', name: '草方块' },
+  { id: 'blk-dirt', name: '泥土' },
+  { id: 'blk-wood', name: '木板' },
+  { id: 'blk-stone', name: '石头' },
+  { id: 'blk-glass', name: '玻璃' },
+  { id: 'blk-fence', name: '栅栏' },
+  { id: 'blk-flower', name: '花' },
+  { id: 'blk-torch', name: '火把' },
+  { id: 'blk-wool-white', name: '白羊毛' },
+  { id: 'blk-wool-red', name: '红羊毛' },
+  { id: 'blk-wool-blue', name: '蓝羊毛' },
+];
+
 // 兑换（评审表 E）：4:1 只向上。3:1 是唯一调参备用旋钮。
 export const TRADE_CHAIN: { kind: TradeKind; from: OreKind; to: OreKind; rate: number }[] = [
   { kind: 'coalToIron', from: 'coal', to: 'iron', rate: 4 },

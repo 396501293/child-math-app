@@ -54,6 +54,9 @@ export interface RewardsSlice {
     accessories: string[];                     // 每锚点同时 ≤1，由 craft/穿脱维护
   };
   skyStars: number;                            // 已点亮星数（按图样顺序）
+  // 家园地皮（16×9 行优先）。方块是煤的「陈列形态」：非空格数计入 spent.coal，
+  // 收回即回落——净零消耗（评审 2026-07-31：玩具不是游戏）。
+  homeGrid: (string | null)[];
   traded: Record<TradeKind, number>;
 }
 

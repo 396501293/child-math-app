@@ -1,8 +1,11 @@
 import type { EquipTier, Ores, Progress, RewardsSlice, TradeKind } from './types';
 import {
   ACCESSORIES,
+  BLOCKS,
+  BLOCK_PRICE_COAL,
   CATALOG_BY_ID,
   EQUIPMENT,
+  HOME_SIZE,
   SLOT_ORDER,
   STAR_PRICE_COAL,
   TIER_ORDER,
@@ -41,6 +44,8 @@ export function spent(r: RewardsSlice): Ores {
     if (item) out[item.material] += item.cost;
   }
   out.coal += r.skyStars * STAR_PRICE_COAL;
+  // 家园：非空格数 ×1（收回即回落——净零消耗，无退款操作）
+  out.coal += r.homeGrid.reduce((n, b) => n + (b ? BLOCK_PRICE_COAL : 0), 0);
   for (const t of TRADE_CHAIN) {
     out[t.from] += t.rate * r.traded[t.kind];
     out[t.to] -= r.traded[t.kind]; // 兑换所得记为负消耗
@@ -111,6 +116,26 @@ export function trade(p: Progress, kind: TradeKind): Progress {
 export function lightStar(p: Progress): Progress {
   if (balance(p).coal < STAR_PRICE_COAL) return p;
   return { ...p, rewards: { ...p.rewards, skyStars: p.rewards.skyStars + 1 } };
+}
+
+// ── 建造层（评审 2026-07-31）：放置扣煤、收回即回落，全部派生自愈 ──
+export function placeBlock(p: Progress, index: number, blockId: string): Progress {
+  const r = p.rewards;
+  if (index < 0 || index >= HOME_SIZE) return p;
+  if (r.homeGrid[index] !== null) return p;
+  if (!BLOCKS.some((b) => b.id === blockId)) return p;
+  if (balance(p).coal < BLOCK_PRICE_COAL) return p;
+  const homeGrid = [...r.homeGrid];
+  homeGrid[index] = blockId;
+  return { ...p, rewards: { ...r, homeGrid } };
+}
+
+export function removeBlock(p: Progress, index: number): Progress {
+  const r = p.rewards;
+  if (index < 0 || index >= HOME_SIZE || r.homeGrid[index] === null) return p;
+  const homeGrid = [...r.homeGrid];
+  homeGrid[index] = null;
+  return { ...p, rewards: { ...r, homeGrid } };
 }
 
 // ── 埋点（App.answer 每次首答/重试调用，纯函数）──

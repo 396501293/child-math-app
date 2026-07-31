@@ -6,7 +6,7 @@ import { applyHardMode, generateLevel, generateQuestion } from '../core/generato
 import { chapterOf, effectiveLevel, endlessBand, starsFor, timedPool, unlockAfterWin } from '../core/progression';
 import { defaultProgress, loadProgress, saveProgress } from '../core/storage';
 import { koujue, TimesTableSession } from '../core/timesTable';
-import { balance as oreBalance, craft, income, lightStar, recordAnswer, setEquipped, trade } from '../core/rewards';
+import { balance as oreBalance, craft, income, lightStar, placeBlock, recordAnswer, removeBlock, setEquipped, trade } from '../core/rewards';
 import { CATALOG_BY_ID, SKY_PATTERNS } from '../core/rewardsCatalog';
 import { SteveScreen } from './screens/SteveScreen';
 import { onAvailabilityChange, speak, stopTTS, ttsAvailable } from '../audio/tts';
@@ -39,7 +39,7 @@ const VOICE = {
   ttResultLit: (n: number, lit: number) => `本轮答对 ${n} 题，新点亮 ${lit} 句口诀！`,
   ttComplete: '星图点亮！九九口诀你全会了！',
   streakN: (n: number) => `连对 ${n} 题！`,
-  steveWelcome: '这是你的伙伴史蒂夫！做完的题都变成材料啦。',
+  steveWelcome: '这是史蒂夫的家园。用你的煤搭点什么吧，怎么搭都行。不想要了就收回来，煤会还给你。',
   crafted: (name: string) => `${name}做好了！`,
   starLit: '点亮一颗星！',
   constellation: (name: string) => `${name}连起来了！`,
@@ -522,6 +522,22 @@ export function App() {
   const doTrade = (kind: Parameters<typeof trade>[1]) => {
     updateProgress(trade(progressRef.current, kind));
   };
+  // 建造（评审 2026-07-31）：放置静默；收回前 3 次念「煤收回来了」建立可逆心智，
+  // 之后静默（逐块播报会把孩子逼疯）。会话内计数即可，不持久化。
+  const reclaimCountRef = useRef(0);
+  const doPlaceBlock = (index: number, blockId: string) => {
+    updateProgress(placeBlock(progressRef.current, index, blockId));
+  };
+  const doRemoveBlock = (index: number) => {
+    const next = removeBlock(progressRef.current, index);
+    if (next === progressRef.current) return;
+    updateProgress(next);
+    if (reclaimCountRef.current < 3) {
+      reclaimCountRef.current += 1;
+      speak('煤收回来了。', { interrupt: true });
+    }
+  };
+
   const doLightStar = () => {
     const next = lightStar(progressRef.current);
     if (next === progressRef.current) return;
@@ -564,6 +580,8 @@ export function App() {
             onToggleWear={doToggleWear}
             onTrade={doTrade}
             onLightStar={doLightStar}
+            onPlaceBlock={doPlaceBlock}
+            onRemoveBlock={doRemoveBlock}
             onSpeak={(line) => speak(line, { interrupt: true })}
           />
         )}

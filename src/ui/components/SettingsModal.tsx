@@ -142,7 +142,7 @@ export function SettingsModal({ settings, weekly, onUpdateSettings, onResetProgr
         </button>
         {/* 评审硬要求：重置会连带清掉派生的养成数据，必须明说 */}
         {confirmReset && (
-          <div class="mn-set-reset-warn">史蒂夫的装备和你点亮的星星也会一起消失</div>
+          <div class="mn-set-reset-warn">史蒂夫的家、装备和你点亮的星星都会一起消失</div>
         )}
       </div>
     </div>
