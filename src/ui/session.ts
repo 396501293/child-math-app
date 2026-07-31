@@ -1,9 +1,9 @@
-import type { Question } from '../core/types';
+import type { Ores, Question } from '../core/types';
 
 // 三屏状态机与关内/轮内会话状态（App 持有，Quiz/Result 消费）。
 // 独立成模块以避免 App ↔ Quiz 的运行时循环导入。
 
-export type Screen = 'map' | 'quiz' | 'result' | 'starchart';
+export type Screen = 'map' | 'quiz' | 'result' | 'starchart' | 'steve';
 export type Mode = 'campaign' | 'endless' | 'timed' | 'timestable';
 
 // 九九星图答错揭示阶段的最小数据（口诀 + 阵列由 fact 推得），点击继续后清空。
@@ -17,7 +17,9 @@ export interface Session {
   wrongTotal: number;
   excluded: number[];                 // 本题已排除的错误选项
   lastWrong?: number;                 // 最近一次点错的选项值（仅该项在 wrong 反馈期抖动）
-  feedback: 'right' | 'wrong' | null;
+  // right = 完整反馈（大卡 + 语音 + 1.1s）；right-lite = 轻量（透明拦截 + 选项闪绿 + 0.45s，
+  // 无语音——下一题的自动朗读本身就是确认）。连续答对走 lite，每 5 连对回到完整庆祝。
+  feedback: 'right' | 'right-lite' | 'wrong' | null;
   correctCount: number;
   streak: number;
   runBestStreak: number;
@@ -30,6 +32,7 @@ export interface Session {
   ttLit?: number;                     // 当前已点亮 X/36
   ttReveal?: TtReveal | null;         // 答错揭示阶段（口诀 + 阵列），点击继续后清空
   resultTimes?: { correct: number; newLit: number; lit: number }; // timestable 结算数据
+  resultGains?: Partial<Ores>; // 本局材料增量（结算入账行；M1：只在结算处出现一次）
 }
 
 // 当前题选择器：campaign 读预生成数组，endless/timed/timestable 读流式 current。

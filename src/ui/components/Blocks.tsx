@@ -1,6 +1,7 @@
 import type { JSX } from 'preact';
 import { useState } from 'preact/hooks';
 import type { BlocksPlan } from '../../core/types';
+import { Ico } from './Ico';
 
 interface BlocksProps {
   plan: BlocksPlan;
@@ -132,7 +133,7 @@ export function Blocks({ plan, hint, show, onHintClick }: BlocksProps) {
           </div>
         ))}
       </div>
-      <div class="mn-blocks-hint" onClick={onHintClick}>🔊 {hint}</div>
+      <div class="mn-blocks-hint" onClick={onHintClick}><Ico name="sound" /> {hint}</div>
     </div>
   );
 }

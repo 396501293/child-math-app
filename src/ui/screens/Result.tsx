@@ -1,12 +1,23 @@
-import { Mascot } from '../components/Mascot';
+import type { ComponentChildren } from 'preact';
+import type { Ores } from '../../core/types';
+import { Steve } from '../components/Steve';
+import { ORE_CN, ORE_SRC } from '../components/oreAssets';
+import { Ico } from '../components/Ico';
 
 // 结算屏（README §3 + 题库设计 §7-5）。dumb 组件：所有数值由 App 计算后经 props 传入。
 // 三种变体：campaign（星级）/ endless（本轮答对 + 连对纪录）/ timed（时间到 + 个人最佳）。
-type ResultProps =
+// 四变体共用：史蒂夫穿当前装备进结算（评审遗留 2 已批准——衣服非奖励标牌）；
+// gains = 本局材料增量（M1：静态出现、无滚动数字、无音效，只在结算屏这一处）
+type ResultCommon = {
+  equipped: import('../../core/types').RewardsSlice['equipped'];
+  gains?: Partial<Ores>;
+};
+type ResultProps = ResultCommon &
+  (
   | { variant: 'campaign'; level: number; stars: 1 | 2 | 3; onBackToMap: () => void; onNextLevel?: () => void; onReplaySub: () => void }
   | { variant: 'endless'; answered: number; runBestStreak: number; historyBestStreak: number; broke: boolean; onBackToMap: () => void }
   | { variant: 'timed'; answered: number; bestCount: number; broke: boolean; onBackToMap: () => void }
-  | { variant: 'timestable'; answered: number; newLit: number; lit: number; onBackToStarChart: () => void; onBackToMap: () => void; onReplaySub: () => void };
+  | { variant: 'timestable'; answered: number; newLit: number; lit: number; onBackToStarChart: () => void; onBackToMap: () => void; onReplaySub: () => void });
 
 // campaign 副文案常量表（按星级）。App 结算时读同一份文案朗读（Task 13）。
 export const CAMPAIGN_SUB: Record<1 | 2 | 3, string> = {
@@ -23,48 +34,70 @@ function nextLabel(level: number): string {
   return '下一关 ▶';
 }
 
+// 结算卡片外壳：四个变体共用。内容原先直接浮在夜空上缺少承托，
+// 动森化后收拢成一张有描边的卡（.mn-result-card）。
+function ResultCard({ children, gains }: { children: ComponentChildren; gains?: Partial<Ores> }) {
+  const entries = gains ? (Object.entries(gains) as [keyof Ores, number][]) : [];
+  return (
+    <div class="mn-result">
+      <div class="mn-result-card">
+        {children}
+        {entries.length > 0 && (
+          <div class="mn-result-gains">
+            {entries.map(([k, n]) => (
+              <span key={k} class="mn-result-gain">
+                <img class="mn-ico" src={ORE_SRC[k]} alt="" />+{n} {ORE_CN[k]}
+              </span>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export function Result(props: ResultProps) {
   if (props.variant === 'campaign') {
     const { level, stars, onBackToMap, onNextLevel, onReplaySub } = props;
     const starStr = '★★★'.slice(0, stars) + '☆☆☆'.slice(0, 3 - stars);
     const pose = stars === 3 ? 'cheer' : 'happy';
     return (
-      <div class="mn-result">
-        <div class="mn-result-mascot">
-          <Mascot pose={pose} scale={1.15} />
+      <ResultCard gains={props.gains}>
+        <div class="mn-result-steve">
+          <Steve pose={pose} scale={1.15} equipped={props.equipped} />
         </div>
         <div class="mn-result-title">第 {level} 关完成！</div>
         <div class="mn-result-stars">{starStr}</div>
         <div class="mn-result-sub">
           {CAMPAIGN_SUB[stars]}
           {/* 点击重播结算祝贺（App speak 同一句副文案） */}
-          <span class="mn-result-sub-tts" role="button" aria-label="重播祝贺语" onClick={onReplaySub}>🔊</span>
+          <span class="mn-result-sub-tts" role="button" aria-label="重播祝贺语" onClick={onReplaySub}><Ico name="sound" /></span>
         </div>
         <div class="mn-result-actions">
-          <button class="mn-result-btn mn-result-btn--ghost" onClick={onBackToMap}>回地图</button>
+          <button class="mn-btn mn-result-btn mn-result-btn--ghost" onClick={onBackToMap}>回地图</button>
           {onNextLevel && (
-            <button class="mn-result-btn mn-result-btn--next" onClick={onNextLevel}>
+            <button class="mn-btn mn-btn--coral mn-result-btn" onClick={onNextLevel}>
               {nextLabel(level)}
             </button>
           )}
         </div>
-      </div>
+      </ResultCard>
     );
   }
 
   if (props.variant === 'endless') {
     const { answered, runBestStreak, historyBestStreak, broke, onBackToMap } = props;
     return (
-      <div class="mn-result">
-        <div class="mn-result-mascot">
-          <Mascot pose={broke ? 'cheer' : 'happy'} scale={1.15} />
+      <ResultCard gains={props.gains}>
+        <div class="mn-result-steve">
+          <Steve pose={broke ? 'cheer' : 'happy'} scale={1.15} equipped={props.equipped} />
         </div>
         <div class="mn-result-title">本轮答对 {answered} 题！</div>
-        {broke && <div class="mn-result-record">🎉 新纪录！</div>}
+        {broke && <div class="mn-result-record"><Ico name="party" /> 新纪录！</div>}
         <div class="mn-result-stats">
           <div class="mn-result-stat">
-            <span class="mn-result-stat-num">🔥 {runBestStreak}</span>
-            <span class="mn-result-stat-label">本轮最高连对</span>
+            <span class="mn-result-stat-num"><Ico name="fire" /> {runBestStreak}</span>
+            <span class="mn-result-stat-label">最高连对</span>
           </div>
           <div class="mn-result-stat">
             <span class="mn-result-stat-num">{historyBestStreak}</span>
@@ -72,9 +105,9 @@ export function Result(props: ResultProps) {
           </div>
         </div>
         <div class="mn-result-actions">
-          <button class="mn-result-btn mn-result-btn--next" onClick={onBackToMap}>回地图</button>
+          <button class="mn-btn mn-btn--coral mn-result-btn" onClick={onBackToMap}>回地图</button>
         </div>
-      </div>
+      </ResultCard>
     );
   }
 
@@ -82,37 +115,37 @@ export function Result(props: ResultProps) {
     const { answered, newLit, lit, onBackToStarChart, onBackToMap, onReplaySub } = props;
     const cleared = lit >= 36;
     return (
-      <div class="mn-result">
-        <div class="mn-result-mascot">
-          <Mascot pose={newLit > 0 ? 'cheer' : 'happy'} scale={1.15} />
+      <ResultCard gains={props.gains}>
+        <div class="mn-result-steve">
+          <Steve pose={newLit > 0 ? 'cheer' : 'happy'} scale={1.15} equipped={props.equipped} />
         </div>
         <div class="mn-result-title">本轮答对 {answered} 题！</div>
         {cleared ? (
-          <div class="mn-result-record">🎉 星图点亮！全会啦！</div>
+          <div class="mn-result-record"><Ico name="party" /> 星图点亮！全会啦！</div>
         ) : newLit > 0 ? (
-          <div class="mn-result-record">✨ 新点亮 {newLit} 格！</div>
+          <div class="mn-result-record"><Ico name="sparkle" /> 新点亮 {newLit} 格！</div>
         ) : null}
         <div class="mn-result-sub">
           已点亮 {lit} / 36
-          <span class="mn-result-sub-tts" role="button" aria-label="重播祝贺语" onClick={onReplaySub}>🔊</span>
+          <span class="mn-result-sub-tts" role="button" aria-label="重播祝贺语" onClick={onReplaySub}><Ico name="sound" /></span>
         </div>
         <div class="mn-result-actions">
-          <button class="mn-result-btn mn-result-btn--ghost" onClick={onBackToMap}>回地图</button>
-          <button class="mn-result-btn mn-result-btn--next" onClick={onBackToStarChart}>回星图</button>
+          <button class="mn-btn mn-result-btn mn-result-btn--ghost" onClick={onBackToMap}>回地图</button>
+          <button class="mn-btn mn-btn--coral mn-result-btn" onClick={onBackToStarChart}>回星图</button>
         </div>
-      </div>
+      </ResultCard>
     );
   }
 
   // props.variant === 'timed'
   const { answered, bestCount, broke, onBackToMap } = props;
   return (
-    <div class="mn-result">
-      <div class="mn-result-mascot">
-        <Mascot pose={broke ? 'cheer' : 'happy'} scale={1.15} />
+    <ResultCard gains={props.gains}>
+      <div class="mn-result-steve">
+        <Steve pose={broke ? 'cheer' : 'happy'} scale={1.15} equipped={props.equipped} />
       </div>
       <div class="mn-result-title">时间到！你答对了 {answered} 题！</div>
-      {broke && <div class="mn-result-record">🎉 新纪录！</div>}
+      {broke && <div class="mn-result-record"><Ico name="party" /> 新纪录！</div>}
       <div class="mn-result-stats">
         <div class="mn-result-stat">
           <span class="mn-result-stat-num">{bestCount}</span>
@@ -120,8 +153,8 @@ export function Result(props: ResultProps) {
         </div>
       </div>
       <div class="mn-result-actions">
-        <button class="mn-result-btn mn-result-btn--next" onClick={onBackToMap}>回地图</button>
+        <button class="mn-btn mn-btn--coral mn-result-btn" onClick={onBackToMap}>回地图</button>
       </div>
-    </div>
+    </ResultCard>
   );
 }

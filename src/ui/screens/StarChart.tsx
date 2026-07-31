@@ -2,6 +2,7 @@ import { useState } from 'preact/hooks';
 import type { Progress } from '../../core/types';
 import { activeFacts, allFacts, factKey, koujue, learnedTables, type Fact } from '../../core/timesTable';
 import { ArrayGrid } from '../components/ArrayGrid';
+import { Ico } from '../components/Ico';
 
 interface StarChartProps {
   progress: Progress;
@@ -54,12 +55,12 @@ export function StarChart({ progress, onStartSession, onBack, onSpeak }: StarCha
         <div class="mn-sc-corner">×</div>
         {nums.map((c) => (
           <div key={`h${c}`} class={headerLocked(c) ? 'mn-sc-head is-locked' : 'mn-sc-head'}>
-            {headerLocked(c) ? '🔒' : c}
+            {headerLocked(c) ? <Ico name="lock" /> : c}
           </div>
         ))}
         {nums.map((r) => [
           <div key={`v${r}`} class={headerLocked(r) ? 'mn-sc-head is-locked' : 'mn-sc-head'}>
-            {headerLocked(r) ? '🔒' : r}
+            {headerLocked(r) ? <Ico name="lock" /> : r}
           </div>,
           ...nums.map((c) => {
             const isSel = !!sel && sel.a === Math.min(r, c) && sel.b === Math.max(r, c);
@@ -78,7 +79,7 @@ export function StarChart({ progress, onStartSession, onBack, onSpeak }: StarCha
 
       {/* ─── 右面板 ─── */}
       <div style={{ position: 'absolute', top: 130, left: 664, width: 280, bottom: 44, display: 'flex', flexDirection: 'column', gap: 20 }}>
-        <div class="mn-sc-counter">✨ 已点亮 {lit} / 36</div>
+        <div class="mn-sc-counter"><Ico name="sparkle" /> 已点亮 {lit} / 36</div>
 
         {/* 点格弹卡（听口诀 + 看阵列）。keyed 于 fact → 每次选格重挂载，口诀 pop 复现。 */}
         <div class="mn-sc-card">
@@ -87,18 +88,22 @@ export function StarChart({ progress, onStartSession, onBack, onSpeak }: StarCha
               <div class="mn-sc-card-eq">{sel.a} × {sel.b} = {sel.a * sel.b}</div>
               <div class="mn-sc-card-koujue">{koujue(sel.a, sel.b)}</div>
               <ArrayGrid rows={sel.a} cols={sel.b} cell={16} gap={4} />
-              <div class="mn-sc-card-tts" role="button" aria-label="重播口诀" onClick={() => onSpeak(koujue(sel.a, sel.b))}>🔊 再听一次</div>
+              <div class="mn-sc-card-tts" role="button" aria-label="重播口诀" onClick={() => onSpeak(koujue(sel.a, sel.b))}><Ico name="sound" /> 再听一次</div>
             </div>
           ) : (
             <div class="mn-sc-card-hint">点一个格子<br />听口诀 · 看阵列</div>
           )}
         </div>
 
-        <button class={canStart ? 'mn-cta' : 'mn-cta is-disabled'} disabled={!canStart} onClick={canStart ? onStartSession : undefined}>
+        <button
+          class={canStart ? 'mn-btn mn-btn--coral mn-cta' : 'mn-btn mn-cta is-disabled'}
+          disabled={!canStart}
+          onClick={canStart ? onStartSession : undefined}
+        >
           开始练习 ▶
         </button>
         {!canStart && <div class="mn-sc-hint">先在地图上学习乘法表</div>}
-        <button class="mn-mode-btn" onClick={onBack}>回地图</button>
+        <button class="mn-btn mn-mode-btn" onClick={onBack}>回地图</button>
       </div>
     </>
   );

@@ -3,6 +3,7 @@ import type { Progress } from '../../core/types';
 
 interface SettingsModalProps {
   settings: Progress['settings'];
+  weekly: Progress['weekly'];
   onUpdateSettings: (patch: Partial<Progress['settings']>) => void;
   onResetProgress: () => void;
   onUnlockAll: () => void;
@@ -28,7 +29,9 @@ function Toggle({ on, label, onToggle }: { on: boolean; label: string; onToggle:
   );
 }
 
-export function SettingsModal({ settings, onUpdateSettings, onResetProgress, onUnlockAll, onClose }: SettingsModalProps) {
+export function SettingsModal({ settings, weekly, onUpdateSettings, onResetProgress, onUnlockAll, onClose }: SettingsModalProps) {
+  // 观察清单（评审 M6 硬性交付）：折叠在设置内，家长按需展开
+  const [showChecklist, setShowChecklist] = useState(false);
   // 重置进度二次确认：首点变红提示，5s 内再点执行，超时还原。
   const [confirmReset, setConfirmReset] = useState(false);
   const resetTimer = useRef<number | undefined>(undefined);
@@ -67,7 +70,7 @@ export function SettingsModal({ settings, onUpdateSettings, onResetProgress, onU
       {/* 阻止冒泡：点卡片内部不关闭 */}
       <div class="mn-set-card" onClick={(e) => e.stopPropagation()}>
         <button class="mn-set-close" onClick={onClose} aria-label="关闭设置">✕</button>
-        <div class="mn-set-title">家长设置</div>
+        <div class="mn-ribbon mn-set-title">家长设置</div>
 
         {/* 每关题数（仅主线）3–10 步进 */}
         <div class="mn-set-row">
@@ -94,6 +97,35 @@ export function SettingsModal({ settings, onUpdateSettings, onResetProgress, onU
           on={settings.showBlocksTimed}
           onToggle={() => onUpdateSettings({ showBlocksTimed: !settings.showBlocksTimed })}
         />
+        {/* 史蒂夫养成开关（评审 M6）：关 = 隐藏入口与计数；
+            史蒂夫保持当前装扮——扒衣服等于没收，禁止。 */}
+        <Toggle
+          label="史蒂夫养成"
+          on={settings.steveRaise}
+          onToggle={() => onUpdateSettings({ steveRaise: !settings.steveRaise })}
+        />
+
+        {/* 每周小结（P0-2-lite）：观察清单的关键指标 */}
+        <div class="mn-set-week">
+          本周答题 {weekly.answered} 题
+          {weekly.answered > 0 && ` · 首答正确率 ${Math.round((weekly.firstTry / weekly.answered) * 100)}%`}
+        </div>
+
+        <button class="mn-set-checklist-toggle" onClick={() => setShowChecklist(!showChecklist)}>
+          {showChecklist ? '收起观察清单 ▲' : '查看观察清单 ▼'}
+        </button>
+        {showChecklist && (
+          <div class="mn-set-checklist">
+            <p>出现下列任一，先关掉养成两周（史蒂夫会保持装扮）：</p>
+            <p>1. 做题前先问「这关给几块矿」，再决定玩不玩；</p>
+            <p>2. 答题明显变快变糙——首答正确率下降，或催着跳过计数块和朗读；</p>
+            <p>3. 每次大半时间停在养成屏，本周答题量连着往下走；</p>
+            <p>4. 因为「还做不了下一件」发脾气，或用不做题威胁要装备；</p>
+            <p>5. 答题中途反复退回养成屏——先看退出位置：若都卡在同一类新题型，是难度问题，别急着关养成；</p>
+            <p>6. 一边把煤全点了星空、一边抱怨装备升不了级——陪他看一遍工作台的换材料说明。</p>
+            <p>健康信号（放心）：给装备编故事、主动展示、指认星座；换装在会话头尾且答题量不降；练习模式玩得更多。每两周对照一次即可。</p>
+          </div>
+        )}
 
         <button
           class={'mn-set-reset' + (confirmUnlock ? ' is-confirm' : '')}
@@ -108,6 +140,10 @@ export function SettingsModal({ settings, onUpdateSettings, onResetProgress, onU
         >
           {confirmReset ? '再点一次确认重置' : '重置进度'}
         </button>
+        {/* 评审硬要求：重置会连带清掉派生的养成数据，必须明说 */}
+        {confirmReset && (
+          <div class="mn-set-reset-warn">史蒂夫的家、装备和你点亮的星星都会一起消失</div>
+        )}
       </div>
     </div>
   );

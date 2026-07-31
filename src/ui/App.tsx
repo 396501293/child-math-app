@@ -6,6 +6,9 @@ import { applyHardMode, generateLevel, generateQuestion } from '../core/generato
 import { chapterOf, effectiveLevel, endlessBand, starsFor, timedPool, unlockAfterWin } from '../core/progression';
 import { defaultProgress, loadProgress, saveProgress } from '../core/storage';
 import { koujue, TimesTableSession } from '../core/timesTable';
+import { balance as oreBalance, craft, income, lightStar, placeBlock, recordAnswer, removeBlock, setEquipped, trade } from '../core/rewards';
+import { CATALOG_BY_ID, SKY_PATTERNS } from '../core/rewardsCatalog';
+import { SteveScreen } from './screens/SteveScreen';
 import { onAvailabilityChange, speak, stopTTS, ttsAvailable } from '../audio/tts';
 import { currentQuestion, type Mode, type Screen, type Session } from './session';
 import { useCountdown } from './useCountdown';
@@ -35,6 +38,11 @@ const VOICE = {
   ttResult: (n: number) => `本轮答对 ${n} 题！`,
   ttResultLit: (n: number, lit: number) => `本轮答对 ${n} 题，新点亮 ${lit} 句口诀！`,
   ttComplete: '星图点亮！九九口诀你全会了！',
+  streakN: (n: number) => `连对 ${n} 题！`,
+  steveWelcome: '这是史蒂夫的家园。用你的煤搭点什么吧，怎么搭都行。不想要了就收回来，煤会还给你。',
+  crafted: (name: string) => `${name}做好了！`,
+  starLit: '点亮一颗星！',
+  constellation: (name: string) => `${name}连起来了！`,
 } as const;
 
 // 九九星图结算祝贺语（集齐 > 有新点亮 > 普通完成）。结算与重播读同一句。
@@ -73,6 +81,23 @@ export function App() {
   // 供定时器/倒计时回调读取最新 session（避免闭包读到旧值）。
   const sessionRef = useRef<Session | null>(session);
   sessionRef.current = session;
+  // 同理的 progress ref：养成埋点会在答题中途更新 progress，
+  // 结算 setTimeout 回调若读闭包 progress 会丢掉最后一题的埋点。
+  const progressRef = useRef<Progress>(progress);
+  progressRef.current = progress;
+
+  // 本局材料入账（M1：只在结算屏出现一次）：会话开始时快照收入，
+  // 结算时 diff。快照在各 start* 里打，读 progressRef 保证新鲜。
+  const incomeStartRef = useRef(income(defaultProgress()));
+  const snapIncome = () => { incomeStartRef.current = income(progressRef.current); };
+  const gainsSince = (p: Progress) => {
+    const now = income(p);
+    const base = incomeStartRef.current;
+    const out: Partial<typeof now> = {};
+    for (const k of ['coal', 'iron', 'gold', 'diamond', 'emerald'] as const)
+      if (now[k] > base[k]) out[k] = now[k] - base[k];
+    return Object.keys(out).length ? out : undefined;
+  };
 
   // 九九星图会话对象：有状态、活在 Preact state 之外（ref-truth），
   // Session 只镜像顶栏/揭示/结算所需最小字段（同 useCountdown 的 ref+display 范式）。
@@ -87,6 +112,10 @@ export function App() {
   useEffect(() => () => clearTimer(), []);
 
   const updateProgress = (p: Progress) => {
+    // 同步刷 ref：setProgressState 是异步的，同一事件回调里
+    // 紧接着读 progressRef 必须拿到新值（结算入账 diff 依赖这一点——
+    // endless/星图结算更新的 bestStreak/litBest 会立刻影响绿宝石收入）。
+    progressRef.current = p;
     setProgressState(p);
     saveProgress(p);
   };
@@ -107,6 +136,7 @@ export function App() {
   });
 
   const startLevel = (level: number) => {
+    snapIncome();
     const questions = generateLevel(applyIfHard(bandOf(level)), progress.settings.questionCount, Math.random);
     speak(questions[0].ttsText, { interrupt: true }); // 进新题自动朗读
     setSession({ ...blankRun('campaign'), level, questions });
@@ -127,14 +157,16 @@ export function App() {
   };
 
   const startEndless = () => {
+    snapIncome();
     const current = nextModeQuestion('endless', 0, []);
     speak(VOICE.endlessIntro, { interrupt: true }); // 模式入口介绍（进入前一句）
     speak(current.ttsText);                           // 队列在介绍之后朗读首题
-    setSession({ ...blankRun('endless'), current });
+    setSession({ ...blankRun('endless'), current, streak: progress.endless.streak });
     setScreen('quiz');
   };
 
   const startTimed = () => {
+    snapIncome();
     countdown.reset(TIMED_START_MS);
     const current = nextModeQuestion('timed', 0, []);
     speak(VOICE.timedStart, { interrupt: true }); // 单句开场，少吃倒计时
@@ -165,16 +197,24 @@ export function App() {
     const tt = ttSessionRef.current;
     if (!s || s.mode !== 'timestable' || !tt) return;
     clearTimer();
-    const before = progress.timesTable.facts;
+    const before = progressRef.current.timesTable.facts;
     const committed = tt.commit();
     const after = committed.timesTable.facts;
     let newLit = 0;
     for (const [k, st] of Object.entries(after))
       if (st.s === 3 && (before[k]?.s ?? 0) !== 3) newLit++;
     const lit = Object.values(after).filter((f) => f.s === 3).length;
-    updateProgress(committed);
+    // 只取 commit 的 timesTable 切片：committed 基于会话构造时的快照，
+    // 整体落盘会回滚会话期间的养成埋点（rewards/weekly 在每题作答时都在更新）。
+    updateProgress({ ...progressRef.current, timesTable: committed.timesTable });
     speak(ttResultLine(correctCount, newLit, lit), { interrupt: true }); // 结算祝贺
-    setSession({ ...s, feedback: null, ttReveal: null, resultTimes: { correct: correctCount, newLit, lit } });
+    setSession({
+      ...s,
+      feedback: null,
+      ttReveal: null,
+      resultTimes: { correct: correctCount, newLit, lit },
+      resultGains: gainsSince(progressRef.current),
+    });
     setScreen('result');
   };
 
@@ -211,6 +251,13 @@ export function App() {
     const q = tt.currentQuestion();
     const fact = tt.currentFact();
     clearTimer();
+    updateProgress(
+      recordAnswer(
+        progressRef.current,
+        { practice: true, firstTry: s.excluded.length === 0, correct: option === q.answer },
+        Date.now(),
+      ),
+    );
     speak(koujue(fact.a, fact.b), { interrupt: true }); // 答对=庆祝口诀 / 答错=揭示口诀（同句）
     if (option === q.answer) {
       setSession({ ...s, feedback: 'right' });
@@ -227,6 +274,7 @@ export function App() {
   };
 
   const startTimesTable = () => {
+    snapIncome();
     const tt = new TimesTableSession(progress, Math.random);
     ttSessionRef.current = tt;
     if (tt.isDone()) { ttSessionRef.current = null; setScreen('starchart'); return; } // 活跃池为空兜底（CTA 已禁用，理论不触发）
@@ -252,12 +300,12 @@ export function App() {
       // 结算：星级一次算定并立即落盘（不在结算 render / 按钮点击时算），
       // 这样即便玩家在结算屏退出 App，本次胜利与解锁也已保存。
       const stars = starsFor(s.wrongTotal);
-      const next = unlockAfterWin(progress, s.level!, stars);
-      const chapterUp = chapterOf(next.unlocked) > chapterOf(progress.unlocked); // 完成 15/30 关跨章
+      const next = unlockAfterWin(progressRef.current, s.level!, stars);
+      const chapterUp = chapterOf(next.unlocked) > chapterOf(progressRef.current.unlocked); // 完成 15/30 关跨章
       updateProgress(next);
       speak(CAMPAIGN_SUB[stars], { interrupt: true }); // 结算祝贺（按星级副文案）
       if (chapterUp) speak(VOICE.unlockChapter);        // 章节解锁祝贺
-      setSession({ ...s, feedback: null, resultStars: stars });
+      setSession({ ...s, feedback: null, resultStars: stars, resultGains: gainsSince(next) });
       setScreen('result');
     } else {
       const next = s.questions![s.qIndex + 1];
@@ -269,7 +317,7 @@ export function App() {
     const s = sessionRef.current;
     if (!s || s.mode === 'campaign') return;
     const correctCount = s.correctCount + 1;
-    const streak = s.streak + 1;
+    const streak = s.streak; // answer() 已 +1（分级反馈需要提前知道连对数），这里只读
     const recentKeys = [...s.recentKeys, itemKey(s.current!)].slice(-5);
     // 限时答对 +8s（上限 90s）。此刻反馈刚清除、时间条重新可见，宽度增大触发回弹动画。
     if (s.mode === 'timed') countdown.addTime(TIMED_BONUS_MS);
@@ -296,12 +344,39 @@ export function App() {
     if (s.feedback !== null) return; // 反馈展示期间忽略（含答对 1.1s 窗口，防止二次触发）
     const q = currentQuestion(s);
     clearTimer();
+    // 养成埋点（评审 P 定义 = 练习模式首答即对；weekly 计全模式首答题量）
+    let nextP = recordAnswer(
+      progressRef.current,
+      { practice: s.mode !== 'campaign', firstTry: s.excluded.length === 0, correct: option === q.answer },
+      Date.now(),
+    );
+    // 无尽连对活持久化：每题作答即落盘（搭埋点写盘的顺风车），
+    // 中途强退也不丢；答错清零同样立即落盘。
+    if (s.mode === 'endless') {
+      nextP = {
+        ...nextP,
+        endless: { ...nextP.endless, streak: option === q.answer ? s.streak + 1 : 0 },
+      };
+    }
+    updateProgress(nextP);
     if (option === q.answer) {
-      speak(VOICE.right, { interrupt: true }); // 答对反馈
-      setSession({ ...s, feedback: 'right' });
+      // 反馈分级：连续答对降为轻量（0.45s 快进、无语音——下一题朗读即确认），
+      // 每 5 连对回到完整庆祝。首题/答错后重新开始给完整反馈（确认机制在）。
+      // 表扬每题都给会通胀贬值，且 1.1s×N 的强制等待正是「被打断」感的来源。
+      const streakNext = s.streak + 1;
+      const milestone = streakNext >= 5 && streakNext % 5 === 0;
+      const lite = streakNext >= 2 && !milestone;
+      if (milestone) speak(VOICE.streakN(streakNext), { interrupt: true });
+      else if (!lite) speak(VOICE.right, { interrupt: true });
+      setSession({
+        ...s,
+        feedback: lite ? 'right-lite' : 'right',
+        streak: streakNext,
+        runBestStreak: Math.max(s.runBestStreak, streakNext),
+      });
       timerRef.current = window.setTimeout(
         s.mode === 'campaign' ? advanceCampaign : advanceModeCorrect,
-        1100,
+        lite ? 450 : milestone ? 1400 : 1100, // 里程碑句更长，窗口给足
       );
     } else {
       speak(VOICE.wrong, { interrupt: true }); // 答错反馈
@@ -324,18 +399,19 @@ export function App() {
     const s = sessionRef.current;
     if (!s || s.mode !== 'endless') return;
     clearTimer();
-    const oldBest = progress.endless.bestStreak;
+    const oldBest = progressRef.current.endless.bestStreak;
     const broke = s.runBestStreak > oldBest;
     updateProgress({
-      ...progress,
+      ...progressRef.current,
       endless: {
         bestStreak: Math.max(oldBest, s.runBestStreak),
-        totalAnswered: progress.endless.totalAnswered + s.correctCount,
+        totalAnswered: progressRef.current.endless.totalAnswered + s.correctCount,
+        streak: s.streak, // 退出保持连对（下次进无尽从这里继续）
       },
     });
     speak(VOICE.endlessResult(s.correctCount), { interrupt: true }); // 无尽结算祝贺
     if (broke) speak(VOICE.record);
-    setSession({ ...s, feedback: null, resultBroke: broke });
+    setSession({ ...s, feedback: null, resultBroke: broke, resultGains: gainsSince(progressRef.current) });
     setScreen('result');
   };
 
@@ -344,12 +420,12 @@ export function App() {
     const s = sessionRef.current;
     if (!s || s.mode !== 'timed') return;
     clearTimer();
-    const oldBest = progress.timed.bestCount;
+    const oldBest = progressRef.current.timed.bestCount;
     const broke = s.correctCount > oldBest;
-    updateProgress({ ...progress, timed: { bestCount: Math.max(oldBest, s.correctCount) } });
+    updateProgress({ ...progressRef.current, timed: { bestCount: Math.max(oldBest, s.correctCount) } });
     speak(VOICE.timedResult(s.correctCount), { interrupt: true }); // 冲刺结算祝贺
     if (broke) speak(VOICE.record);
-    setSession({ ...s, feedback: null, resultBroke: broke });
+    setSession({ ...s, feedback: null, resultBroke: broke, resultGains: gainsSince(progressRef.current) });
     setScreen('result');
   };
 
@@ -428,6 +504,53 @@ export function App() {
     ttSessionRef.current = null;
     setScreen('map');
   };
+  // ── 史蒂夫养成（呈现纪律 M1/M2/M7：无角标无催促；措辞「做」；结算处才入账）──
+  const openSteve = () => {
+    setScreen('steve');
+    speak(VOICE.steveWelcome, { interrupt: true });
+  };
+  const doCraft = (id: string) => {
+    const next = craft(progressRef.current, id);
+    if (next === progressRef.current) return;
+    updateProgress(next);
+    speak(VOICE.crafted(CATALOG_BY_ID[id]?.name ?? ''), { interrupt: true });
+  };
+  const doToggleWear = (slot: 'boots' | 'helm' | 'legs' | 'chest', id: string) => {
+    const cur = progressRef.current.rewards.equipped[slot];
+    updateProgress(setEquipped(progressRef.current, { [slot]: cur === id ? null : id }));
+  };
+  const doTrade = (kind: Parameters<typeof trade>[1]) => {
+    updateProgress(trade(progressRef.current, kind));
+  };
+  // 建造（评审 2026-07-31）：放置静默；收回前 3 次念「煤收回来了」建立可逆心智，
+  // 之后静默（逐块播报会把孩子逼疯）。会话内计数即可，不持久化。
+  const reclaimCountRef = useRef(0);
+  const doPlaceBlock = (index: number, blockId: string) => {
+    updateProgress(placeBlock(progressRef.current, index, blockId));
+  };
+  const doRemoveBlock = (index: number) => {
+    const next = removeBlock(progressRef.current, index);
+    if (next === progressRef.current) return;
+    updateProgress(next);
+    if (reclaimCountRef.current < 3) {
+      reclaimCountRef.current += 1;
+      speak('煤收回来了。', { interrupt: true });
+    }
+  };
+
+  const doLightStar = () => {
+    const next = lightStar(progressRef.current);
+    if (next === progressRef.current) return;
+    updateProgress(next);
+    // 星座集齐 = 连线亮起 + 一句语音，无其他奖励（评审表 C）
+    let acc = 0;
+    for (const pat of SKY_PATTERNS) {
+      acc += pat.stars;
+      if (next.rewards.skyStars === acc) { speak(VOICE.constellation(pat.name), { interrupt: true }); return; }
+    }
+    speak(VOICE.starLit, { interrupt: true });
+  };
+
   // 解锁全部关卡（家长设置）：拉满 unlocked，不动星星；关面板回地图。
   const unlockAll = () => {
     updateProgress({ ...progress, unlocked: 60 });
@@ -445,7 +568,21 @@ export function App() {
             onStartTimed={startTimed}
             onOpenStarChart={openStarChart}
             onOpenSettings={openSettings}
+            onOpenSteve={openSteve}
             onWelcome={(line) => speak(line, { interrupt: true })}
+          />
+        )}
+        {screen === 'steve' && (
+          <SteveScreen
+            progress={progress}
+            onBack={exitToMap}
+            onCraft={doCraft}
+            onToggleWear={doToggleWear}
+            onTrade={doTrade}
+            onLightStar={doLightStar}
+            onPlaceBlock={doPlaceBlock}
+            onRemoveBlock={doRemoveBlock}
+            onSpeak={(line) => speak(line, { interrupt: true })}
           />
         )}
         {screen === 'starchart' && (
@@ -479,6 +616,8 @@ export function App() {
         {screen === 'result' && session && (
           session.mode === 'campaign' ? (
             <Result
+              equipped={progress.rewards.equipped}
+              gains={progress.settings.steveRaise ? session.resultGains : undefined}
               variant="campaign"
               level={session.level!}
               stars={session.resultStars ?? starsFor(session.wrongTotal)}
@@ -488,6 +627,8 @@ export function App() {
             />
           ) : session.mode === 'endless' ? (
             <Result
+              equipped={progress.rewards.equipped}
+              gains={progress.settings.steveRaise ? session.resultGains : undefined}
               variant="endless"
               answered={session.correctCount}
               runBestStreak={session.runBestStreak}
@@ -497,6 +638,8 @@ export function App() {
             />
           ) : session.mode === 'timestable' ? (
             <Result
+              equipped={progress.rewards.equipped}
+              gains={progress.settings.steveRaise ? session.resultGains : undefined}
               variant="timestable"
               answered={session.resultTimes?.correct ?? session.correctCount}
               newLit={session.resultTimes?.newLit ?? 0}
@@ -507,6 +650,8 @@ export function App() {
             />
           ) : (
             <Result
+              equipped={progress.rewards.equipped}
+              gains={progress.settings.steveRaise ? session.resultGains : undefined}
               variant="timed"
               answered={session.correctCount}
               bestCount={progress.timed.bestCount}
@@ -518,6 +663,7 @@ export function App() {
         {settingsOpen && (
           <SettingsModal
             settings={progress.settings}
+            weekly={progress.weekly}
             onUpdateSettings={updateSettings}
             onResetProgress={resetProgress}
             onUnlockAll={unlockAll}

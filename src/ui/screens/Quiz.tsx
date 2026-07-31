@@ -6,6 +6,7 @@ import { FeedbackOverlay } from '../components/FeedbackOverlay';
 import { StreakBar } from '../components/StreakBar';
 import { TimerBar } from '../components/TimerBar';
 import { ArrayGrid } from '../components/ArrayGrid';
+import { Ico } from '../components/Ico';
 
 interface QuizProps {
   session: Session;
@@ -33,7 +34,7 @@ export function Quiz({ session, showBlocks, timeLeftMs, timeMaxMs, onAnswer, onE
 
   return (
     <div style={{ position: 'absolute', inset: 0 }}>
-      <button class="mn-quiz-back" onClick={onExit} aria-label={exitLabel}>←</button>
+      <button class="mn-btn mn-btn--square mn-quiz-back" onClick={onExit} aria-label={exitLabel}>←</button>
       {campaign && (
         <>
           <div class="mn-quiz-progress">
@@ -47,10 +48,10 @@ export function Quiz({ session, showBlocks, timeLeftMs, timeMaxMs, onAnswer, onE
       {session.mode === 'timestable' && (
         <div class="mn-tt-topbar">
           <span class="mn-tt-pill">第 {session.qIndex + 1} 题 / 共 {session.ttTotal ?? 0}</span>
-          <span class="mn-tt-pill mn-tt-pill--lit">✨ 已点亮 {session.ttLit ?? 0}/36</span>
+          <span class="mn-tt-pill mn-tt-pill--lit"><Ico name="sparkle" /> 已点亮 {session.ttLit ?? 0}/36</span>
         </div>
       )}
-      <button class="mn-quiz-replay" onClick={onReplay} aria-label="重播读题">🔊</button>
+      <button class="mn-btn mn-btn--square mn-quiz-replay" onClick={onReplay} aria-label="重播读题"><Ico name="sound" /></button>
 
       <QuestionRow q={q} />
 
