@@ -1438,8 +1438,20 @@ body {
   width: 400px;
   bottom: 40px;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
+  gap: 18px;
+}
+.mn-steve-stage .mn-bench-ores {
+  width: 100%;
+  margin-bottom: 0;
+}
+/* tab 顶部说明行：一句大白话，界面必须自解释 */
+.mn-steve-explain {
+  font-size: 17px;
+  color: var(--color-white-55);
+  padding: 2px 10px 10px;
 }
 .mn-steve-panel {
   position: absolute;
@@ -1487,6 +1499,18 @@ body {
   margin-left: auto;
   font-size: 17px;
   color: var(--color-white-55);
+}
+/* 「换上」按钮化：行本身是 button，内部用视觉按钮样式（嵌套 button 非法） */
+.mn-gear-state.is-btn {
+  color: var(--color-white-100);
+  background: var(--face-2);
+  border: 3px solid;
+  border-color: var(--bevel-lit) var(--bevel-dim) var(--bevel-dim) var(--bevel-lit);
+  padding: 4px 16px;
+}
+.mn-gear-state.is-worn-tag {
+  color: var(--color-leaf);
+  font-weight: 900;
 }
 .mn-gear-craft {
   margin-left: auto;

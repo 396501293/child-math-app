@@ -27,6 +27,15 @@ interface SteveScreenProps {
 
 const TIER_CN: Record<string, string> = { leather: '皮革', iron: '铁', gold: '金', diamond: '钻石' };
 
+// 缺料提示：必须带材料图标——「还差 3」不说差什么，成人都要想一下
+function Lack({ n, ore }: { n: number; ore: OreKind }) {
+  return (
+    <span class="mn-gear-lack">
+      还差 <img class="mn-ico" src={ORE_SRC[ore]} alt={ORE_CN[ore]} /> ×{n}
+    </span>
+  );
+}
+
 // 价格点阵（M3 近端化）：数量按 5 个一组渲染成小方块，
 // 让「12 煤」在视觉上就是「两组 5 加 2」——价格本身是数学教具。
 function PriceDots({ n, ore }: { n: number; ore: OreKind }) {
@@ -76,7 +85,7 @@ export function SteveScreen({ progress, onBack, onCraft, onToggleWear, onTrade, 
       return (
         <button key={e.id} class={'mn-gear-row is-owned' + (worn ? ' is-worn' : '')} onClick={() => onToggleWear(e.slot, e.id)}>
           <span>{e.name}</span>
-          <span class="mn-gear-state">{worn ? '穿着' : '换上'}</span>
+          <span class={'mn-gear-state' + (worn ? ' is-worn-tag' : ' is-btn')}>{worn ? '穿着 ✓' : '换上'}</span>
         </button>
       );
     }
@@ -88,7 +97,7 @@ export function SteveScreen({ progress, onBack, onCraft, onToggleWear, onTrade, 
         <PriceDots n={e.cost} ore={e.material} />
         {can
           ? <button class="mn-btn mn-btn--leaf mn-gear-craft" onClick={() => onCraft(e.id)}>做</button>
-          : <span class="mn-gear-lack">还差 {lack}</span>}
+          : <Lack n={lack} ore={e.material} />}
       </div>
     );
   };
@@ -102,13 +111,25 @@ export function SteveScreen({ progress, onBack, onCraft, onToggleWear, onTrade, 
         <button class={'mn-btn mn-steve-tab' + (tab === 'bench' ? ' is-on' : '')} onClick={() => setTab('bench')}>工作台</button>
       </div>
 
-      {/* 中央立绘（两个标签共用）：点件换装即时反映 */}
+      {/* 中央立绘（两个标签共用）：点件换装即时反映。
+          材料栏常驻立绘下方——「我有什么」必须永远可见，
+          这是理解整个经济的前提，藏在某个标签里成人都会迷路。 */}
       <div class="mn-steve-stage">
         <Steve pose="idle" scale={2} equipped={r.equipped} />
+        <div class="mn-bench-ores">
+          {(Object.keys(ORE_SRC) as OreKind[]).map((k) => (
+            <button key={k} class="mn-bench-ore" onClick={() => onSpeak(ORE_SOURCE_LINE[k])}>
+              <img class="mn-ico" src={ORE_SRC[k]} alt={ORE_CN[k]} />
+              <b>{bal[k]}</b>
+            </button>
+          ))}
+        </div>
+        <div class="mn-gear-hint">做题攒材料 · 点材料听它从哪来</div>
       </div>
 
       {tab === 'gear' && (
         <div class="mn-steve-panel mn-panel">
+          <div class="mn-steve-explain">材料够了就能做装备，做好了直接穿上</div>
           {tiers.map(({ tier, state }) =>
             state === 'open' ? (
               <div key={tier} class="mn-gear-tier">
@@ -127,17 +148,9 @@ export function SteveScreen({ progress, onBack, onCraft, onToggleWear, onTrade, 
 
       {tab === 'bench' && (
         <div class="mn-steve-panel mn-panel">
-          {/* 材料行：点图标念来源（informational——「你做过什么」的记录） */}
-          <div class="mn-bench-ores">
-            {(Object.keys(ORE_SRC) as OreKind[]).map((k) => (
-              <button key={k} class="mn-bench-ore" onClick={() => onSpeak(ORE_SOURCE_LINE[k])}>
-                <img class="mn-ico" src={ORE_SRC[k]} alt={ORE_CN[k]} />
-                <b>{bal[k]}</b>
-              </button>
-            ))}
-          </div>
+          <div class="mn-steve-explain">给史蒂夫做点小玩意 · 材料多了换一换 · 攒煤点亮夜空</div>
 
-          <div class="mn-bench-sec">做点什么</div>
+          <div class="mn-bench-sec">做点小玩意</div>
           {visibleAccessories(r)
             .filter((id) => !r.owned.includes(id))
             .map((id) => {
@@ -149,12 +162,12 @@ export function SteveScreen({ progress, onBack, onCraft, onToggleWear, onTrade, 
                   <PriceDots n={a.cost} ore={a.material} />
                   {can
                     ? <button class="mn-btn mn-btn--leaf mn-gear-craft" onClick={() => onCraft(id)}>做</button>
-                    : <span class="mn-gear-lack">还差 {a.cost - bal[a.material]}</span>}
+                    : <Lack n={a.cost - bal[a.material]} ore={a.material} />}
                 </div>
               );
             })}
 
-          <div class="mn-bench-sec">换材料（4 换 1）</div>
+          <div class="mn-bench-sec">换材料：4 个换 1 个更稀有的</div>
           {TRADE_CHAIN.map((t) => (
             <div key={t.kind} class="mn-gear-row">
               <span class="mn-trade-eq">
@@ -163,7 +176,7 @@ export function SteveScreen({ progress, onBack, onCraft, onToggleWear, onTrade, 
               </span>
               {bal[t.from] >= t.rate
                 ? <button class="mn-btn mn-gear-craft" onClick={() => onTrade(t.kind)}>换</button>
-                : <span class="mn-gear-lack">还差 {t.rate - bal[t.from]}</span>}
+                : <Lack n={t.rate - bal[t.from]} ore={t.from} />}
             </div>
           ))}
 
@@ -173,7 +186,7 @@ export function SteveScreen({ progress, onBack, onCraft, onToggleWear, onTrade, 
             <PriceDots n={STAR_PRICE_COAL} ore="coal" />
             {bal.coal >= STAR_PRICE_COAL
               ? <button class="mn-btn mn-btn--leaf mn-gear-craft" onClick={onLightStar}>点亮</button>
-              : <span class="mn-gear-lack">还差 {STAR_PRICE_COAL - bal.coal}</span>}
+              : <Lack n={STAR_PRICE_COAL - bal.coal} ore="coal" />}
           </div>
           <div class="mn-gear-hint">点亮的星会出现在地图的夜空里</div>
         </div>
