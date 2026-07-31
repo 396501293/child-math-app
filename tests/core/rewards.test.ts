@@ -124,6 +124,12 @@ test('配件不受阶限制，只看余额；锚点自动摆放', () => {
   expect(p.rewards.equipped.accessories).toContain('ac-torch');
 });
 
+test('宠物类配件 craft 后不进 equipped——宠物住在家园，不锚定在身上', () => {
+  const p = craft(richProgress(), 'ac-chick'); // 4 铁 宠物
+  expect(p.rewards.owned).toContain('ac-chick');
+  expect(p.rewards.equipped.accessories).not.toContain('ac-chick');
+});
+
 test('trade：4 煤→1 铁，余额守恒；不足拒绝；余额恒非负', () => {
   const p = richProgress();
   const b0 = balance(p);

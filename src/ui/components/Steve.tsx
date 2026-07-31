@@ -1,4 +1,5 @@
 import type { RewardsSlice } from '../../core/types';
+import { PET_IDS } from '../../core/rewardsCatalog';
 import { steveSrc, type StevePose } from './steveAssets';
 import { ACC_ANCHORS, ACC_META, ACC_SRC, PIECE_META, PIECE_SRC, POSE_META } from './steveMeta';
 
@@ -26,7 +27,9 @@ export function Steve({
   const pieces = equipped
     ? ([equipped.boots, equipped.helm, equipped.legs, equipped.chest].filter(Boolean) as string[])
     : [];
-  const accs = equipped?.accessories ?? [];
+  // 过滤宠物：它们住家园（Pet 层负责渲染），不贴身——兼容旧存档里
+  // craft 曾把宠物写进 accessories 的情况。
+  const accs = (equipped?.accessories ?? []).filter((id) => !PET_IDS.includes(id));
   return (
     <div class="mn-steve" style={{ transform: `scale(${scale})` }}>
       <div class="mn-steve-box" style={{ width: pm.w * K, height: pm.h * K }}>

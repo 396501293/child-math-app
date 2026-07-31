@@ -8,6 +8,7 @@ import { defaultProgress, loadProgress, saveProgress } from '../core/storage';
 import { koujue, TimesTableSession } from '../core/timesTable';
 import { balance as oreBalance, craft, income, lightStar, placeBlock, recordAnswer, removeBlock, setEquipped, trade } from '../core/rewards';
 import { CATALOG_BY_ID, SKY_PATTERNS } from '../core/rewardsCatalog';
+import type { AccessoryItem } from '../core/rewardsCatalog';
 import { SteveScreen } from './screens/SteveScreen';
 import { onAvailabilityChange, speak, stopTTS, ttsAvailable } from '../audio/tts';
 import { currentQuestion, type Mode, type Screen, type Session } from './session';
@@ -40,6 +41,7 @@ const VOICE = {
   ttComplete: '星图点亮！九九口诀你全会了！',
   streakN: (n: number) => `连对 ${n} 题！`,
   steveWelcome: '这是史蒂夫的家园。用你的煤搭点什么吧，怎么搭都行。不想要了就收回来，煤会还给你。',
+  steveHint: '点上面的方块按钮，就能开始搭。',
   crafted: (name: string) => `${name}做好了！`,
   starLit: '点亮一颗星！',
   constellation: (name: string) => `${name}连起来了！`,
@@ -507,7 +509,10 @@ export function App() {
   // ── 史蒂夫养成（呈现纪律 M1/M2/M7：无角标无催促；措辞「做」；结算处才入账）──
   const openSteve = () => {
     setScreen('steve');
-    speak(VOICE.steveWelcome, { interrupt: true });
+    // 家园还空着时补一句操作指引（教操作不是催消费——评审验收标准 1：
+    // 首次进家园要能不看提示自己完成第一次放置）
+    const empty = progressRef.current.rewards.homeGrid.every((b) => b === null);
+    speak(empty ? VOICE.steveWelcome + VOICE.steveHint : VOICE.steveWelcome, { interrupt: true });
   };
   const doCraft = (id: string) => {
     const next = craft(progressRef.current, id);
@@ -518,6 +523,15 @@ export function App() {
   const doToggleWear = (slot: 'boots' | 'helm' | 'legs' | 'chest', id: string) => {
     const cur = progressRef.current.rewards.equipped[slot];
     updateProgress(setEquipped(progressRef.current, { [slot]: cur === id ? null : id }));
+  };
+  // 配件摆出/收起（免费可逆无确认，同换装）；同锚点只留一个
+  const doToggleAccessory = (id: string) => {
+    const eq = progressRef.current.rewards.equipped;
+    const anchor = (CATALOG_BY_ID[id] as AccessoryItem | undefined)?.anchor;
+    const accessories = eq.accessories.includes(id)
+      ? eq.accessories.filter((a) => a !== id)
+      : [...eq.accessories.filter((a) => (CATALOG_BY_ID[a] as AccessoryItem | undefined)?.anchor !== anchor), id];
+    updateProgress(setEquipped(progressRef.current, { accessories }));
   };
   const doTrade = (kind: Parameters<typeof trade>[1]) => {
     updateProgress(trade(progressRef.current, kind));
@@ -578,6 +592,7 @@ export function App() {
             onBack={exitToMap}
             onCraft={doCraft}
             onToggleWear={doToggleWear}
+            onToggleAccessory={doToggleAccessory}
             onTrade={doTrade}
             onLightStar={doLightStar}
             onPlaceBlock={doPlaceBlock}

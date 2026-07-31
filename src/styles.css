@@ -1842,3 +1842,10 @@ body {
   padding: 44px 22px 18px;
   overflow-y: auto;
 }
+
+/* 建造模式：角色/宠物/工作台虚化且不拦点击——格子全部可点 */
+.is-ghost,
+.is-ghost-wrap {
+  opacity: 0.35;
+  pointer-events: none;
+}
