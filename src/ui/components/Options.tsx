@@ -4,7 +4,7 @@ interface OptionsProps {
   question: Question;
   excluded: number[]; // 本题已答错、排除的选项值
   lastWrong?: number; // 最近一次点错的选项值（仅它在 wrong 反馈期抖动）
-  feedback: 'right' | 'wrong' | null;
+  feedback: 'right' | 'right-lite' | 'wrong' | null;
   onPick: (value: number) => void;
 }
 
@@ -15,7 +15,7 @@ export function Options({ question, excluded, lastWrong, feedback, onPick }: Opt
     <div class="mn-opts">
       {question.options.map((v, i) => {
         const isExcluded = excluded.includes(v);
-        const isCorrectFlash = feedback === 'right' && v === question.answer;
+        const isCorrectFlash = (feedback === 'right' || feedback === 'right-lite') && v === question.answer;
         let cls = 'mn-btn mn-opt';
         if (isCorrectFlash) cls = 'mn-btn mn-opt mn-opt--correct';
         else if (isExcluded) cls = 'mn-btn mn-opt mn-opt--excluded' + (feedback === 'wrong' && v === lastWrong ? ' mn-opt--shake' : '');

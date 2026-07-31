@@ -888,6 +888,10 @@ body {
   align-items: center;
   justify-content: center;
 }
+/* 轻量档：只拦截点击，不遮不显——连续答对的节奏不被打断 */
+.mn-feedback-mask--lite {
+  background: transparent;
+}
 .mn-feedback-card {
   border-radius: 0;
   border: var(--bw-strong) solid;

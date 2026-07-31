@@ -38,6 +38,7 @@ const VOICE = {
   ttResult: (n: number) => `本轮答对 ${n} 题！`,
   ttResultLit: (n: number, lit: number) => `本轮答对 ${n} 题，新点亮 ${lit} 句口诀！`,
   ttComplete: '星图点亮！九九口诀你全会了！',
+  streakN: (n: number) => `连对 ${n} 题！`,
   steveWelcome: '这是你的伙伴史蒂夫！做完的题都变成材料啦。',
   crafted: (name: string) => `${name}做好了！`,
   starLit: '点亮一颗星！',
@@ -316,7 +317,7 @@ export function App() {
     const s = sessionRef.current;
     if (!s || s.mode === 'campaign') return;
     const correctCount = s.correctCount + 1;
-    const streak = s.streak + 1;
+    const streak = s.streak; // answer() 已 +1（分级反馈需要提前知道连对数），这里只读
     const recentKeys = [...s.recentKeys, itemKey(s.current!)].slice(-5);
     // 限时答对 +8s（上限 90s）。此刻反馈刚清除、时间条重新可见，宽度增大触发回弹动画。
     if (s.mode === 'timed') countdown.addTime(TIMED_BONUS_MS);
@@ -359,11 +360,23 @@ export function App() {
     }
     updateProgress(nextP);
     if (option === q.answer) {
-      speak(VOICE.right, { interrupt: true }); // 答对反馈
-      setSession({ ...s, feedback: 'right' });
+      // 反馈分级：连续答对降为轻量（0.45s 快进、无语音——下一题朗读即确认），
+      // 每 5 连对回到完整庆祝。首题/答错后重新开始给完整反馈（确认机制在）。
+      // 表扬每题都给会通胀贬值，且 1.1s×N 的强制等待正是「被打断」感的来源。
+      const streakNext = s.streak + 1;
+      const milestone = streakNext >= 5 && streakNext % 5 === 0;
+      const lite = streakNext >= 2 && !milestone;
+      if (milestone) speak(VOICE.streakN(streakNext), { interrupt: true });
+      else if (!lite) speak(VOICE.right, { interrupt: true });
+      setSession({
+        ...s,
+        feedback: lite ? 'right-lite' : 'right',
+        streak: streakNext,
+        runBestStreak: Math.max(s.runBestStreak, streakNext),
+      });
       timerRef.current = window.setTimeout(
         s.mode === 'campaign' ? advanceCampaign : advanceModeCorrect,
-        1100,
+        lite ? 450 : milestone ? 1400 : 1100, // 里程碑句更长，窗口给足
       );
     } else {
       speak(VOICE.wrong, { interrupt: true }); // 答错反馈

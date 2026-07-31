@@ -17,7 +17,9 @@ export interface Session {
   wrongTotal: number;
   excluded: number[];                 // 本题已排除的错误选项
   lastWrong?: number;                 // 最近一次点错的选项值（仅该项在 wrong 反馈期抖动）
-  feedback: 'right' | 'wrong' | null;
+  // right = 完整反馈（大卡 + 语音 + 1.1s）；right-lite = 轻量（透明拦截 + 选项闪绿 + 0.45s，
+  // 无语音——下一题的自动朗读本身就是确认）。连续答对走 lite，每 5 连对回到完整庆祝。
+  feedback: 'right' | 'right-lite' | 'wrong' | null;
   correctCount: number;
   streak: number;
   runBestStreak: number;
