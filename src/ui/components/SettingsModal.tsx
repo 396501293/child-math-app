@@ -4,6 +4,7 @@ import type { Progress } from '../../core/types';
 interface SettingsModalProps {
   settings: Progress['settings'];
   weekly: Progress['weekly'];
+  insight: Progress['insight'];
   onUpdateSettings: (patch: Partial<Progress['settings']>) => void;
   onResetProgress: () => void;
   onUnlockAll: () => void;
@@ -29,9 +30,21 @@ function Toggle({ on, label, onToggle }: { on: boolean; label: string; onToggle:
   );
 }
 
-export function SettingsModal({ settings, weekly, onUpdateSettings, onResetProgress, onUnlockAll, onClose }: SettingsModalProps) {
+export function SettingsModal({ settings, weekly, insight, onUpdateSettings, onResetProgress, onUnlockAll, onClose }: SettingsModalProps) {
   // 观察清单（评审 M6 硬性交付）：折叠在设置内，家长按需展开
   const [showChecklist, setShowChecklist] = useState(false);
+  // 家长小结完整版（审查 D2）：近 7 天分章正确率 + 最近错题，折叠展开
+  const [showErrors, setShowErrors] = useState(false);
+  const CH_LABEL: Record<string, string> = { 1: '第一章', 2: '第二章', 3: '第三章', 4: '第四章', 5: '第五章', tt: '九九星图' };
+  const byChapter = new Map<string, { n: number; ok: number }>();
+  for (const day of insight.days)
+    for (const [ch, v] of Object.entries(day.ch)) {
+      const cur = byChapter.get(ch) ?? { n: 0, ok: 0 };
+      byChapter.set(ch, { n: cur.n + v.n, ok: cur.ok + v.ok });
+    }
+  const chRows = Object.keys(CH_LABEL)
+    .filter((ch) => byChapter.has(ch))
+    .map((ch) => ({ label: CH_LABEL[ch], ...byChapter.get(ch)! }));
   // 重置进度二次确认：首点变红提示，5s 内再点执行，超时还原。
   const [confirmReset, setConfirmReset] = useState(false);
   const resetTimer = useRef<number | undefined>(undefined);
@@ -110,6 +123,33 @@ export function SettingsModal({ settings, weekly, onUpdateSettings, onResetProgr
           本周答题 {weekly.answered} 题
           {weekly.answered > 0 && ` · 首答正确率 ${Math.round((weekly.firstTry / weekly.answered) * 100)}%`}
         </div>
+
+        {/* 近 7 天分章首答正确率（审查 D2）：回答「他卡在哪一类题」 */}
+        {chRows.length > 0 && (
+          <div class="mn-set-insight">
+            {chRows.map((r) => (
+              <div key={r.label} class="mn-set-insight-row">
+                {r.label} 首答正确率 {Math.round((r.ok / r.n) * 100)}%（{r.n} 题 / 近 7 天）
+              </div>
+            ))}
+          </div>
+        )}
+        {insight.errors.length > 0 && (
+          <>
+            <button class="mn-set-checklist-toggle" onClick={() => setShowErrors(!showErrors)}>
+              {showErrors ? '收起最近错题 ▲' : `最近错题（${insight.errors.length}）▼`}
+            </button>
+            {showErrors && (
+              <div class="mn-set-errlog">
+                {[...insight.errors].reverse().map((e, i) => (
+                  <div key={i} class="mn-set-errlog-row">
+                    {e.text}　孩子选了 {e.picked}
+                  </div>
+                ))}
+              </div>
+            )}
+          </>
+        )}
 
         <button class="mn-set-checklist-toggle" onClick={() => setShowChecklist(!showChecklist)}>
           {showChecklist ? '收起观察清单 ▲' : '查看观察清单 ▼'}

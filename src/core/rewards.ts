@@ -144,21 +144,50 @@ export function removeBlock(p: Progress, index: number): Progress {
 // practice = 三练习模式（非 campaign）；firstTry = 本题首次作答（excluded 为空）。
 // weekly 只在首答时计题量（重试不重复计入答题量）；翻周即重置（P0-2-lite）。
 const WEEK_MS = 7 * 24 * 3600 * 1000;
+const DAY_MS = 24 * 3600 * 1000;
 export function recordAnswer(
   p: Progress,
-  a: { practice: boolean; firstTry: boolean; correct: boolean },
+  a: {
+    practice: boolean;
+    firstTry: boolean;
+    correct: boolean;
+    chapter?: string; // '1'–'4' 章 / 'tt' 九九——家长小结分章聚合（审查 D2）
+    qText?: string;   // 题面（eqText）——仅首答错误时进错题缓冲
+    picked?: number;  // 孩子的错选项
+  },
   now: number,
 ): Progress {
   const fresh = now - p.weekly.weekStart >= WEEK_MS;
   const w = fresh ? { weekStart: now, answered: 0, firstTry: 0 } : { ...p.weekly };
+  let insight = p.insight;
   if (a.firstTry) {
     w.answered += 1;
     if (a.correct) w.firstTry += 1;
+    // 家长小结：近 7 天日桶滚动（只在首答时记，重试不重复计）
+    const d = Math.floor(now / DAY_MS);
+    const days = insight.days
+      .filter((b) => d - b.d < 7)
+      .map((b) => (b.d === d ? { d: b.d, ch: { ...b.ch } } : b));
+    let today = days.find((b) => b.d === d);
+    if (!today) {
+      today = { d, ch: {} };
+      days.push(today);
+    }
+    if (a.chapter) {
+      const cur = today.ch[a.chapter] ?? { n: 0, ok: 0 };
+      today.ch[a.chapter] = { n: cur.n + 1, ok: cur.ok + (a.correct ? 1 : 0) };
+    }
+    const errors =
+      !a.correct && a.qText !== undefined
+        ? [...insight.errors, { text: a.qText, picked: a.picked ?? 0, at: now }].slice(-20)
+        : insight.errors;
+    insight = { days, errors };
   }
   const firstTryCorrect = a.practice && a.firstTry && a.correct;
   return {
     ...p,
     weekly: w,
+    insight,
     rewards: firstTryCorrect
       ? { ...p.rewards, practiceFirstTry: p.rewards.practiceFirstTry + 1 }
       : p.rewards,

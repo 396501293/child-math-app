@@ -13,6 +13,7 @@ import { SteveScreen } from './screens/SteveScreen';
 import { onAvailabilityChange, speak, stopTTS, ttsAvailable } from '../audio/tts';
 import { currentQuestion, type Mode, type Screen, type Session } from './session';
 import { sfx } from './sound';
+import { eqText } from '../core/insight';
 import { useCountdown } from './useCountdown';
 import { useStageScale } from './scale';
 import { Map } from './screens/Map';
@@ -152,13 +153,13 @@ export function App() {
   const nextModeQuestion = (mode: Mode, correctCount: number, recentKeys: string[]): Question => {
     if (mode === 'endless') {
       const band = endlessBand(correctCount, effectiveLevel(progress));
-      return generateQuestion(applyIfHard(bandOf(band)), Math.random, recentKeys);
+      return { ...generateQuestion(applyIfHard(bandOf(band)), Math.random, recentKeys), band };
     }
     const pool = timedPool(progress);
     // 兜底：正常状态下 timedUnlocked 时题池必非空（锚点恒含最高得星档所在章）；
     // 万一异常数据导致为空，回落最温和的档 1，而非家长可能拉满的 unlocked。
     const band = pool.length ? pool[Math.floor(Math.random() * pool.length)] : 1;
-    return generateQuestion(applyIfHard(bandOf(band)), Math.random, recentKeys);
+    return { ...generateQuestion(applyIfHard(bandOf(band)), Math.random, recentKeys), band };
   };
 
   const startEndless = () => {
@@ -261,7 +262,14 @@ export function App() {
     updateProgress(
       recordAnswer(
         progressRef.current,
-        { practice: true, firstTry: s.excluded.length === 0, correct: option === q.answer },
+        {
+          practice: true,
+          firstTry: s.excluded.length === 0,
+          correct: option === q.answer,
+          chapter: 'tt',
+          qText: eqText(q),
+          picked: option,
+        },
         Date.now(),
       ),
     );
@@ -358,7 +366,15 @@ export function App() {
     // 养成埋点（评审 P 定义 = 练习模式首答即对；weekly 计全模式首答题量）
     let nextP = recordAnswer(
       progressRef.current,
-      { practice: s.mode !== 'campaign', firstTry: s.excluded.length === 0, correct: option === q.answer },
+      {
+        practice: s.mode !== 'campaign',
+        firstTry: s.excluded.length === 0,
+        correct: option === q.answer,
+        // 家长小结（审查 D2）：主线按关卡章、练习按出题档位章
+        chapter: s.mode === 'campaign' ? String(chapterOf(s.level!)) : q.band !== undefined ? String(chapterOf(q.band)) : undefined,
+        qText: eqText(q),
+        picked: option,
+      },
       Date.now(),
     );
     // 无尽连对活持久化：每题作答即落盘（搭埋点写盘的顺风车），
@@ -701,6 +717,7 @@ export function App() {
           <SettingsModal
             settings={progress.settings}
             weekly={progress.weekly}
+            insight={progress.insight}
             onUpdateSettings={updateSettings}
             onResetProgress={resetProgress}
             onUnlockAll={unlockAll}

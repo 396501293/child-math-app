@@ -1629,6 +1629,26 @@ body {
   text-align: center;
   padding: 2px 0;
 }
+/* 家长小结完整版（审查 D2）：分章正确率行 + 错题列表，同 weekly 的低调灰 */
+.mn-set-insight { padding: 2px 0; }
+.mn-set-insight-row {
+  font-size: 16px;
+  color: var(--color-white-55);
+  text-align: center;
+  line-height: 1.6;
+}
+.mn-set-errlog {
+  max-height: 180px;
+  overflow-y: auto;
+  padding: 4px 0;
+}
+.mn-set-errlog-row {
+  font-size: 16px;
+  color: var(--color-white-55);
+  text-align: center;
+  line-height: 1.7;
+  font-variant-numeric: tabular-nums;
+}
 .mn-set-checklist-toggle {
   font-family: inherit;
   font-size: 16px;

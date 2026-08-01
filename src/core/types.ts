@@ -22,6 +22,7 @@ export interface Question {
   ttsText: string;
   blocksHint?: string;       // 计数块提示行文案（🔊 行），第三章无
   blocksPlan?: BlocksPlan;   // 第三章为 undefined
+  band?: number;             // 出题档位（练习模式出题处点缀；家长小结按章聚合用）
 }
 
 export interface PoolSpec {
@@ -78,4 +79,11 @@ export interface Progress {
   rewards: RewardsSlice;
   // 每周小结（P0-2-lite）：仅保留当周，翻周即重置
   weekly: { weekStart: number; answered: number; firstTry: number };
+  // 家长小结（审查 D2）：本地只读，无任何面向孩子的呈现。
+  // days = 近 7 天按日分桶的首答数（d 为 UTC 日序号；ch 键 '1'–'4' 章 / 'tt' 九九）；
+  // errors = 最近 20 道首答错题（题面 + 孩子错选），环形缓冲约 2KB。
+  insight: {
+    days: { d: number; ch: Record<string, { n: number; ok: number }> }[];
+    errors: { text: string; picked: number; at: number }[];
+  };
 }

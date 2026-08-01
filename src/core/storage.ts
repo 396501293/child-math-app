@@ -28,6 +28,7 @@ export function defaultProgress(): Progress {
       traded: { coalToIron: 0, ironToGold: 0, goldToDiamond: 0, diamondToEmerald: 0 },
     },
     weekly: { weekStart: 0, answered: 0, firstTry: 0 },
+    insight: { days: [], errors: [] },
   };
 }
 
@@ -137,6 +138,9 @@ export function loadProgress(store: StorageLike = safeStore()): Progress {
           }
         : { ...d.rewards, practiceFirstTry: parsed.endless?.totalAnswered ?? 0 },
       weekly: { ...d.weekly, ...parsed.weekly },
+      insight: parsed.insight
+        ? { days: parsed.insight.days ?? [], errors: parsed.insight.errors ?? [] }
+        : d.insight,
       version: 2,
     };
   }
