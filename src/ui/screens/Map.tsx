@@ -213,7 +213,10 @@ export function Map({ progress, onStartLevel, onStartEndless, onStartTimed, onOp
           </div>
         </div>
 
-        <button class="mn-btn mn-btn--coral mn-cta" onClick={() => onStartLevel(current)}>挑战第 {current} 关 ▶</button>
+        {/* 通关后语义从「没做完」变「自选挑战」（审查 A4）；仍指第 60 关 */}
+        <button class="mn-btn mn-btn--coral mn-cta" onClick={() => onStartLevel(current)}>
+          {(progress.stars[60] ?? 0) >= 1 ? '再战银河大挑战 ▶' : `挑战第 ${current} 关 ▶`}
+        </button>
 
         {/* 三个模式键分配琥珀/青绿/叶绿：既是动森的色彩性格，
             也让 4–7 岁能靠颜色而非文字辨认模式。 */}

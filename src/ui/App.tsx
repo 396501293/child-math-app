@@ -45,11 +45,13 @@ const VOICE = {
   crafted: (name: string) => `${name}做好了！`,
   starLit: '点亮一颗星！',
   constellation: (name: string) => `${name}连起来了！`,
+  galaxyDone: '银河走完了！六十关你都闯过来了！',
 } as const;
 
-// 九九星图结算祝贺语（集齐 > 有新点亮 > 普通完成）。结算与重播读同一句。
-const ttResultLine = (correct: number, newLit: number, lit: number): string =>
-  lit >= 36 ? VOICE.ttComplete : newLit > 0 ? VOICE.ttResultLit(correct, newLit) : VOICE.ttResult(correct);
+// 九九星图结算祝贺语（首次集齐 > 有新点亮 > 普通完成）。结算与重播读同一句。
+// 集齐庆祝只在 litBest 首达 36 的那一场播（审查 C2：最高光的话天天重复必然贬值）。
+const ttResultLine = (correct: number, newLit: number, firstComplete: boolean): string =>
+  firstComplete ? VOICE.ttComplete : newLit > 0 ? VOICE.ttResultLit(correct, newLit) : VOICE.ttResult(correct);
 
 function usePortrait(): boolean {
   const [portrait, setPortrait] = useState(() => window.innerHeight > window.innerWidth);
@@ -206,15 +208,17 @@ export function App() {
     for (const [k, st] of Object.entries(after))
       if (st.s === 3 && (before[k]?.s ?? 0) !== 3) newLit++;
     const lit = Object.values(after).filter((f) => f.s === 3).length;
+    // 集齐庆祝只属于 litBest 首达 36 的那一场（落盘前判定，之后回落普通句）
+    const firstComplete = lit >= 36 && (progressRef.current.timesTable.litBest ?? 0) < 36;
     // 只取 commit 的 timesTable 切片：committed 基于会话构造时的快照，
     // 整体落盘会回滚会话期间的养成埋点（rewards/weekly 在每题作答时都在更新）。
     updateProgress({ ...progressRef.current, timesTable: committed.timesTable });
-    speak(ttResultLine(correctCount, newLit, lit), { interrupt: true }); // 结算祝贺
+    speak(ttResultLine(correctCount, newLit, firstComplete), { interrupt: true }); // 结算祝贺
     setSession({
       ...s,
       feedback: null,
       ttReveal: null,
-      resultTimes: { correct: correctCount, newLit, lit },
+      resultTimes: { correct: correctCount, newLit, lit, firstComplete },
       resultGains: gainsSince(progressRef.current),
     });
     setScreen('result');
@@ -304,10 +308,13 @@ export function App() {
       const stars = starsFor(s.wrongTotal);
       const next = unlockAfterWin(progressRef.current, s.level!, stars);
       const chapterUp = chapterOf(next.unlocked) > chapterOf(progressRef.current.unlocked); // 完成 15/30 关跨章
+      // 第 60 关首次得星 = 主线毕业时刻，一次性庆祝不重播（审查 A4）
+      const galaxyFirst = s.level === 60 && (progressRef.current.stars[60] ?? 0) === 0;
       updateProgress(next);
       speak(CAMPAIGN_SUB[stars], { interrupt: true }); // 结算祝贺（按星级副文案）
       if (chapterUp) speak(VOICE.unlockChapter);        // 章节解锁祝贺
-      setSession({ ...s, feedback: null, resultStars: stars, resultGains: gainsSince(next) });
+      if (galaxyFirst) speak(VOICE.galaxyDone);         // 通关庆祝（排队在祝贺语后）
+      setSession({ ...s, feedback: null, resultStars: stars, resultGalaxyFirst: galaxyFirst, resultGains: gainsSince(next) });
       setScreen('result');
     } else {
       const next = s.questions![s.qIndex + 1];
@@ -456,7 +463,7 @@ export function App() {
     if (s?.mode === 'campaign') speak(CAMPAIGN_SUB[s.resultStars ?? starsFor(s.wrongTotal)], { interrupt: true });
     else if (s?.mode === 'timestable' && s.resultTimes) {
       const rt = s.resultTimes;
-      speak(ttResultLine(rt.correct, rt.newLit, rt.lit), { interrupt: true });
+      speak(ttResultLine(rt.correct, rt.newLit, rt.firstComplete), { interrupt: true });
     }
   };
 
@@ -636,6 +643,7 @@ export function App() {
               variant="campaign"
               level={session.level!}
               stars={session.resultStars ?? starsFor(session.wrongTotal)}
+              galaxyFirst={session.resultGalaxyFirst}
               onReplaySub={replaySubTts}
               onBackToMap={exitToMap}
               onNextLevel={session.level! < 60 ? () => startLevel(session.level! + 1) : undefined}
@@ -659,6 +667,7 @@ export function App() {
               answered={session.resultTimes?.correct ?? session.correctCount}
               newLit={session.resultTimes?.newLit ?? 0}
               lit={session.resultTimes?.lit ?? 0}
+              firstComplete={session.resultTimes?.firstComplete ?? false}
               onBackToStarChart={backToStarChart}
               onBackToMap={exitToMap}
               onReplaySub={replaySubTts}

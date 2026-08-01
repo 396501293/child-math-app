@@ -14,10 +14,10 @@ type ResultCommon = {
 };
 type ResultProps = ResultCommon &
   (
-  | { variant: 'campaign'; level: number; stars: 1 | 2 | 3; onBackToMap: () => void; onNextLevel?: () => void; onReplaySub: () => void }
+  | { variant: 'campaign'; level: number; stars: 1 | 2 | 3; galaxyFirst?: boolean; onBackToMap: () => void; onNextLevel?: () => void; onReplaySub: () => void }
   | { variant: 'endless'; answered: number; runBestStreak: number; historyBestStreak: number; broke: boolean; onBackToMap: () => void }
   | { variant: 'timed'; answered: number; bestCount: number; broke: boolean; onBackToMap: () => void }
-  | { variant: 'timestable'; answered: number; newLit: number; lit: number; onBackToStarChart: () => void; onBackToMap: () => void; onReplaySub: () => void });
+  | { variant: 'timestable'; answered: number; newLit: number; lit: number; firstComplete: boolean; onBackToStarChart: () => void; onBackToMap: () => void; onReplaySub: () => void });
 
 // campaign 副文案常量表（按星级）。App 结算时读同一份文案朗读（Task 13）。
 export const CAMPAIGN_SUB: Record<1 | 2 | 3, string> = {
@@ -58,15 +58,17 @@ function ResultCard({ children, gains }: { children: ComponentChildren; gains?: 
 
 export function Result(props: ResultProps) {
   if (props.variant === 'campaign') {
-    const { level, stars, onBackToMap, onNextLevel, onReplaySub } = props;
+    const { level, stars, galaxyFirst, onBackToMap, onNextLevel, onReplaySub } = props;
     const starStr = '★★★'.slice(0, stars) + '☆☆☆'.slice(0, 3 - stars);
-    const pose = stars === 3 ? 'cheer' : 'happy';
+    const pose = stars === 3 || galaxyFirst ? 'cheer' : 'happy';
     return (
       <ResultCard gains={props.gains}>
         <div class="mn-result-steve">
           <Steve pose={pose} scale={1.15} equipped={props.equipped} />
         </div>
         <div class="mn-result-title">第 {level} 关完成！</div>
+        {/* 第 60 关首次得星的一次性毕业横幅（审查 A4），此后不再出现 */}
+        {galaxyFirst && <div class="mn-result-record"><Ico name="party" /> 银河走完了！</div>}
         <div class="mn-result-stars">{starStr}</div>
         <div class="mn-result-sub">
           {CAMPAIGN_SUB[stars]}
@@ -112,21 +114,21 @@ export function Result(props: ResultProps) {
   }
 
   if (props.variant === 'timestable') {
-    const { answered, newLit, lit, onBackToStarChart, onBackToMap, onReplaySub } = props;
-    const cleared = lit >= 36;
+    const { answered, newLit, lit, firstComplete, onBackToStarChart, onBackToMap, onReplaySub } = props;
     return (
       <ResultCard gains={props.gains}>
         <div class="mn-result-steve">
           <Steve pose={newLit > 0 ? 'cheer' : 'happy'} scale={1.15} equipped={props.equipped} />
         </div>
         <div class="mn-result-title">本轮答对 {answered} 题！</div>
-        {cleared ? (
+        {/* 集齐横幅只在 litBest 首达 36 的那一场出现（审查 C2），之后回落日常副文案 */}
+        {firstComplete ? (
           <div class="mn-result-record"><Ico name="party" /> 星图点亮！全会啦！</div>
         ) : newLit > 0 ? (
           <div class="mn-result-record"><Ico name="sparkle" /> 新点亮 {newLit} 格！</div>
         ) : null}
         <div class="mn-result-sub">
-          已点亮 {lit} / 36
+          {lit >= 36 && !firstComplete ? '36 句口诀都亮着呢' : `已点亮 ${lit} / 36`}
           <span class="mn-result-sub-tts" role="button" aria-label="重播祝贺语" onClick={onReplaySub}><Ico name="sound" /></span>
         </div>
         <div class="mn-result-actions">

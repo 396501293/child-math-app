@@ -31,7 +31,8 @@ export interface Session {
   ttTotal?: number;                   // 当前 queue 长度（再见面会实时增长）
   ttLit?: number;                     // 当前已点亮 X/36
   ttReveal?: TtReveal | null;         // 答错揭示阶段（口诀 + 阵列），点击继续后清空
-  resultTimes?: { correct: number; newLit: number; lit: number }; // timestable 结算数据
+  resultTimes?: { correct: number; newLit: number; lit: number; firstComplete: boolean }; // timestable 结算数据
+  resultGalaxyFirst?: boolean; // 第 60 关首次得星：一次性通关庆祝（审查 A4）
   resultGains?: Partial<Ores>; // 本局材料增量（结算入账行；M1：只在结算处出现一次）
 }
 
