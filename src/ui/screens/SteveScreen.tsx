@@ -149,9 +149,12 @@ export function SteveScreen(props: SteveScreenProps) {
       <div key={e.id} class="mn-gear-row">
         <span>{e.name}</span>
         <PriceDots n={e.cost} ore={e.material} />
+        {e.cost2 && <PriceDots n={e.cost2.cost} ore={e.cost2.material} />}
         {can
           ? <button class="mn-btn mn-btn--leaf mn-gear-craft" onClick={() => onCraft(e.id)}>做</button>
-          : <Lack n={e.cost - bal[e.material]} ore={e.material} />}
+          : e.cost - bal[e.material] > 0
+            ? <Lack n={e.cost - bal[e.material]} ore={e.material} />
+            : <Lack n={e.cost2!.cost - bal[e.cost2!.material]} ore={e.cost2!.material} />}
       </div>
     );
   };
@@ -160,6 +163,20 @@ export function SteveScreen(props: SteveScreenProps) {
     if (tool === 'hammer') onRemoveBlock(i);
     else onPlaceBlock(i, tool);
   };
+
+  // 第五章方块（规范 §8.3）：解锁第五章后免费入托盘（M5 事后惊喜，地图不预告）
+  const netherOn = progress.unlocked > 60;
+  const trayBlocks = BLOCKS.filter((b) => netherOn || !['blk-nether', 'blk-glowstone'].includes(b.id));
+  useEffect(() => {
+    if (!tray || !netherOn) return;
+    try {
+      const K = 'math_nightsail_seen_nether_blocks';
+      if (!globalThis.localStorage?.getItem(K)) {
+        globalThis.localStorage?.setItem(K, '1');
+        onSpeak('新方块到了：下界岩、荧石。');
+      }
+    } catch { /* 私密模式：静默 */ }
+  }, [tray, netherOn]);
 
   return (
     <>
@@ -216,7 +233,7 @@ export function SteveScreen(props: SteveScreenProps) {
           <span class="mn-tray-coal">
             <img class="mn-ico" src={ORE_SRC.coal} alt="煤" /> {bal.coal}
           </span>
-          {BLOCKS.map((b) => (
+          {trayBlocks.map((b) => (
             <button
               key={b.id}
               class={'mn-tray-slot' + (tool === b.id ? ' is-on' : '')}

@@ -238,6 +238,15 @@ export function App() {
     setSession({ ...mirrorNextTt(s, tt), correctCount });
   };
 
+  // 除法揭示卡点击继续：回题面原地重试（选项排除已生效），重播读题。
+  const continueFromDivReveal = () => {
+    const s = sessionRef.current;
+    if (!s || !s.divReveal) return;
+    const q = currentQuestion(s);
+    speak(q.ttsText, { interrupt: true });
+    setSession({ ...s, divReveal: null });
+  };
+
   // 揭示阶段点击继续：记账答错（内部已排「再见面」、idx++）→ 结算 or 下一题。
   const continueFromReveal = () => {
     const s = sessionRef.current;
@@ -329,7 +338,8 @@ export function App() {
     } else {
       const next = s.questions![s.qIndex + 1];
       speak(next.ttsText, { interrupt: true }); // 进新题自动朗读
-      setSession({ ...s, qIndex: s.qIndex + 1, feedback: null, excluded: [], lastWrong: undefined });
+      setSession({ ...s, qIndex: s.qIndex + 1, feedback: null, excluded: [], lastWrong: undefined,
+        divReveal: null, divRevealed: false });
     }
   };
   const advanceModeCorrect = () => {
@@ -352,6 +362,8 @@ export function App() {
       feedback: null,
       excluded: [],
       lastWrong: undefined,
+      divReveal: null,
+      divRevealed: false,
     });
   };
 
@@ -410,6 +422,9 @@ export function App() {
         lite ? 450 : milestone ? 1400 : 1100, // 里程碑句更长，窗口给足
       );
     } else {
+      // 除法分组揭示卡（规范 §5）：首次答错 → 0.9s 重试反馈清除后展示；每题至多一次
+      const isDivQ = q.kind === 'div' || q.kind === 'missing-div-a' || q.kind === 'missing-div-b';
+      const willReveal = isDivQ && s.excluded.length === 0 && !s.divRevealed;
       speak(VOICE.wrong, { interrupt: true }); // 答错反馈
       setSession({
         ...s,
@@ -418,9 +433,23 @@ export function App() {
         streak: 0, // 答错中断连对（模式用；主线不读）
         excluded: [...s.excluded, option],
         lastWrong: option, // 仅这一项在 wrong 反馈期抖动，旧排除项保持静止半透明
+        divRevealed: s.divRevealed || willReveal,
       });
       timerRef.current = window.setTimeout(() => {
-        setSession((prev) => (prev && prev.feedback === 'wrong' ? { ...prev, feedback: null } : prev));
+        const prev = sessionRef.current;
+        if (!prev || prev.feedback !== 'wrong') return;
+        if (willReveal) {
+          const c = q.operands[0], db = q.operands[1], da = c / db;
+          // 段 1（档 61–63）念「分一分」句（等分语义先行）；档 64 起念「想口诀」句
+          const band = prev.mode === 'campaign' ? prev.level! : (q.band ?? 64);
+          const line = band <= 63
+            ? `${c} 个，平均分成 ${db} 份，每份 ${da} 个。`
+            : `想口诀：${koujue(da, db)}。${c} 除以 ${db}，等于 ${da}。`;
+          speak(line, { interrupt: true });
+          setSession({ ...prev, feedback: null, divReveal: { c, b: db, a: da, koujue: koujue(da, db) } });
+        } else {
+          setSession({ ...prev, feedback: null });
+        }
       }, 900);
     }
   };
@@ -664,6 +693,7 @@ export function App() {
             onReplay={replayTts}
             onHint={hintTts}
             onContinueReveal={continueFromReveal}
+            onContinueDivReveal={continueFromDivReveal}
           />
         )}
         {/* 结算屏对三种 mode 穷举，无静默空屏。 */}

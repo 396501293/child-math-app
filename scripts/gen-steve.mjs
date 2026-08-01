@@ -37,6 +37,7 @@ const C = {
   I: [0xc9, 0xc9, 0xc9], i: [0x8f, 0x8f, 0x8f], // 铁
   G: [0xf5, 0xcf, 0x2a], g: [0xc8, 0xa2, 0x06], // 金
   D: [0x8f, 0xf0, 0xe2], d: [0x4f, 0xc0, 0xb0], // 钻石（刻意调浅：#4fd9c7 与衬衫青撞色，穿没穿胸甲肉眼难分）
+  T: [0x5a, 0x52, 0x58], t: [0x3a, 0x34, 0x38], // 下界合金（暗紫灰，与鞋色 O 区分靠紫调）
   // 配件用色
   N: [0xa8, 0x76, 0x44], n: [0x6b, 0x48, 0x24], // 木
   R: [0xd8, 0x5a, 0x3a], // 火橙 / 花瓣
@@ -97,7 +98,7 @@ function build(pose) {
 // helm 盖 y8–11（眼睛 y12 保持可见）；chest 盖躯干 y16–27；
 // legs 盖 y28–35；boots 盖 y36–39（裤脚 + 鞋）。腿部件保留两腿间缝。
 function armorGrid(tier, slot) {
-  const [a, b] = { leather: ['L', 'l'], iron: ['I', 'i'], gold: ['G', 'g'], diamond: ['D', 'd'] }[tier];
+  const [a, b] = { leather: ['L', 'l'], iron: ['I', 'i'], gold: ['G', 'g'], diamond: ['D', 'd'], netherite: ['T', 't'] }[tier];
   const solid = a.repeat(7) + b; // 右缘压暗一列做体积
   const legRow = `${a}${a}${b}.${a}${a}${a}${b}`;
   if (slot === 'helm') return { x: 8, y: 8, rows: [...rep(solid, 3), `${a}......${b}`] };
@@ -116,6 +117,12 @@ const ACC_GRIDS = {
   'ac-lantern': ['.NNN.', 'NAAAN', 'NAAAN', '.NNN.'],
   'ac-cake': ['RRRRR', 'WWWWW', 'NNNNN'],
   'ac-banner': ['NCCC', 'NCCC', 'NCCC', 'NCcC', 'N.C.', 'N...'],
+  // 第五章「下界」配件（规范 §8.2）
+  'ac-nethershroom': ['.RR.', 'RRRR', '.WW.', 'NNNN', '.NN.'],
+  'ac-blazerod': ['RA', 'AA', 'AR', 'AA', 'RA'],
+  'ac-magmalamp': ['.NNN.', 'NRARN', 'NARAN', '.NNN.'],
+  'ac-netherbanner': ['NRRR', 'NRRR', 'NRRR', 'NRMR', 'N.R.', 'N...'],
+  'ac-strider': ['RRRRR', 'RMRMR', 'RRRRR', '.A.A.', '.A.A.'],
   'ac-shield': ['NNNNN', 'NCCCN', 'NCCCN', '.NNN.', '..N..'],
   'ac-chick': ['.YY.', 'YYYY', '.AA.'],
   'ac-dog': ['N..N', 'NNNN', 'NNNN', 'N..N'],
@@ -134,6 +141,8 @@ const ACC_ANCHOR_OF = {
   'ac-flowerpot': 'feet', 'ac-lantern': 'feet', 'ac-cake': 'feet',
   'ac-chick': 'feet', 'ac-dog': 'feet', 'ac-cat': 'feet',
   'ac-parrot': 'shoulder', 'ac-banner': 'side',
+  'ac-nethershroom': 'feet', 'ac-blazerod': 'hand', 'ac-magmalamp': 'feet',
+  'ac-netherbanner': 'side', 'ac-strider': 'feet',
 };
 
 // ── 输出 ──
@@ -167,7 +176,7 @@ for (const pose of POSES) {
 }
 
 const pieceMeta = {};
-for (const tier of ['leather', 'iron', 'gold', 'diamond']) {
+for (const tier of ['leather', 'iron', 'gold', 'diamond', 'netherite']) {
   for (const slot of ['boots', 'helm', 'legs', 'chest']) {
     const id = `eq-${tier}-${slot}`;
     const { x, y, rows } = armorGrid(tier, slot);

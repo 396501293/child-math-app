@@ -45,7 +45,7 @@ export interface Item { kind: QuestionKind; operands: number[]; ops: Op[] }
 export type OreKind = 'coal' | 'iron' | 'gold' | 'diamond' | 'emerald';
 export type Ores = Record<OreKind, number>;
 export type EquipSlot = 'boots' | 'helm' | 'legs' | 'chest';
-export type EquipTier = 'leather' | 'iron' | 'gold' | 'diamond';
+export type EquipTier = 'leather' | 'iron' | 'gold' | 'diamond' | 'netherite';
 export type TradeKind = 'coalToIron' | 'ironToGold' | 'goldToDiamond' | 'diamondToEmerald';
 
 export interface RewardsSlice {

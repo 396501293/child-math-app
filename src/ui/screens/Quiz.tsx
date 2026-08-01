@@ -18,11 +18,12 @@ interface QuizProps {
   onReplay: () => void; // 顶栏 🔊 重播读题（App speak(q.ttsText)）
   onHint: () => void; // 计数块提示行点击（App speak(q.blocksHint)）
   onContinueReveal: () => void; // 星图答错揭示阶段点击继续（App 推进到下一题）
+  onContinueDivReveal: () => void; // 除法分组揭示卡点击继续（回题面原地重试）
 }
 
 // 答题屏。dumb 组件：题目 / 教具 / 选项 / 反馈全部由 session 与回调驱动。
 // 顶栏四变体：campaign=进度条+n/N；endless=StreakBar；timed=TimerBar；timestable=n/总 + 已点亮 X/36。
-export function Quiz({ session, showBlocks, timeLeftMs, timeMaxMs, onAnswer, onExit, onReplay, onHint, onContinueReveal }: QuizProps) {
+export function Quiz({ session, showBlocks, timeLeftMs, timeMaxMs, onAnswer, onExit, onReplay, onHint, onContinueReveal, onContinueDivReveal }: QuizProps) {
   const campaign = session.mode === 'campaign';
   const q = currentQuestion(session);
   const total = campaign ? session.questions!.length : 0;
@@ -77,6 +78,29 @@ export function Quiz({ session, showBlocks, timeLeftMs, timeMaxMs, onAnswer, onE
             <div class="mn-tt-reveal-koujue">{reveal.koujue}</div>
             <div class="mn-tt-reveal-eq">{reveal.a} × {reveal.b} = {reveal.a * reveal.b}</div>
             <ArrayGrid rows={reveal.a} cols={reveal.b} cell={28} gap={6} />
+            <div class="mn-tt-reveal-hint">点一下继续 ▶</div>
+          </div>
+        </div>
+      )}
+
+      {/* 除法分组揭示卡（规范 §5）：c 个方块圈成 b 组、每组 a 个，静态描边圈组。
+          与星图揭示同壳；点击后回题面原地重试（不推进）。 */}
+      {session.divReveal && (
+        <div class="mn-tt-reveal-mask" onClick={onContinueDivReveal}>
+          <div class="mn-tt-reveal-card">
+            <div class="mn-tt-reveal-koujue">{session.divReveal.koujue}</div>
+            <div class="mn-tt-reveal-eq">
+              {session.divReveal.c} ÷ {session.divReveal.b} = {session.divReveal.a}
+            </div>
+            <div class="mn-div-groups">
+              {Array.from({ length: session.divReveal.b }, (_, g) => (
+                <div key={g} class="mn-div-group">
+                  {Array.from({ length: session.divReveal!.a }, (_, i) => (
+                    <span key={i} class="mn-div-cell" />
+                  ))}
+                </div>
+              ))}
+            </div>
             <div class="mn-tt-reveal-hint">点一下继续 ▶</div>
           </div>
         </div>

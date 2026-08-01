@@ -42,7 +42,11 @@ export function spent(r: RewardsSlice): Ores {
   const out = { ...ZERO };
   for (const id of r.owned) {
     const item = CATALOG_BY_ID[id];
-    if (item) out[item.material] += item.cost;
+    if (item) {
+      out[item.material] += item.cost;
+      // 双材料定价（下界合金腿/胸 +1 绿）
+      if ('cost2' in item && item.cost2) out[item.cost2.material] += item.cost2.cost;
+    }
   }
   out.coal += r.skyStars * STAR_PRICE_COAL;
   // 家园：非空格数 ×1（收回即回落——净零消耗，无退款操作）
@@ -74,7 +78,9 @@ export function craftable(p: Progress, id: string): boolean {
   const item = CATALOG_BY_ID[id];
   if (!item || p.rewards.owned.includes(id)) return false;
   if ('tier' in item && !tierUnlocked(p.rewards, item.tier)) return false;
-  return balance(p)[item.material] >= item.cost;
+  const bal = balance(p);
+  if (bal[item.material] < item.cost) return false;
+  return !('cost2' in item) || !item.cost2 || bal[item.cost2.material] >= item.cost2.cost;
 }
 
 // 制作即穿上/摆出（穿脱是另外的可逆操作，见 setEquipped）。不可制作时原样返回。

@@ -1629,6 +1629,29 @@ body {
   text-align: center;
   padding: 2px 0;
 }
+/* 除法分组揭示卡（第五章规范 §5）：b 组 × 每组 a 块，静态描边圈组 */
+.mn-div-groups {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 14px;
+  max-width: 620px;
+}
+.mn-div-group {
+  display: grid;
+  grid-template-columns: repeat(3, 18px);
+  gap: 4px;
+  padding: 8px;
+  border: 3px solid var(--color-white-55);
+  background: rgba(255, 255, 255, 0.06);
+}
+.mn-div-cell {
+  width: 18px;
+  height: 18px;
+  background: var(--color-amber, #e8b43c);
+  box-shadow: inset 2px 2px 0 rgba(255,255,255,.3), inset -2px -2px 0 rgba(0,0,0,.3);
+}
+
 /* 家长小结完整版（审查 D2）：分章正确率行 + 错题列表，同 weekly 的低调灰 */
 .mn-set-insight { padding: 2px 0; }
 .mn-set-insight-row {
@@ -1752,6 +1775,12 @@ body {
   box-shadow: inset 3px 3px 0 rgba(255,255,255,.28), inset -3px -3px 0 rgba(0,0,0,.26); }
 .mn-blk-wool-black { background: #2e2e33;
   box-shadow: inset 3px 3px 0 rgba(255,255,255,.12), inset -3px -3px 0 rgba(0,0,0,.4); }
+/* 第五章方块（规范 §8.3）：下界岩暗红纹理；荧石自发光 */
+.mn-blk-nether { background: #6b2f2f;
+  box-shadow: inset 3px 3px 0 rgba(255,150,120,.18), inset -3px -3px 0 rgba(0,0,0,.4); }
+.mn-blk-glowstone { background: #e8c96a;
+  box-shadow: inset 3px 3px 0 rgba(255,255,255,.4), inset -3px -3px 0 rgba(160,110,20,.5),
+    0 0 18px 4px rgba(232, 200, 90, 0.35); }
 
 /* 史蒂夫与宠物：住在场景里（M8：无需求，只是在） */
 .mn-home-steve {
