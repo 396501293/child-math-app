@@ -24,6 +24,14 @@ export function effectiveLevel(p: Progress): number {
   return Math.min(Math.max(Math.min(p.unlocked, maxStarred + 1), 1), 60);
 }
 
+// 地图节点状态（审查 A1）：可点性由 unlocked 决定，「当前关」脉冲锚 effectiveLevel——
+// unlock-all 把 unlocked 拉满后，前沿标记仍落在孩子真实掌握度 +1 处，不消失。
+export function mapNodeState(p: Progress, n: number): 'done' | 'current' | 'locked' {
+  if (n > p.unlocked) return 'locked';
+  if (n === effectiveLevel(p) && (p.stars[n] ?? 0) === 0) return 'current';
+  return 'done';
+}
+
 export function timedPool(p: Progress): number[] {
   const cur = chapterOf(effectiveLevel(p));
   const out: number[] = [];

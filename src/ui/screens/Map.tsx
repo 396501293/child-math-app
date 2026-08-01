@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'preact/hooks';
 import type { Progress } from '../../core/types';
-import { chapterOf, chapterStart, endlessUnlocked, timedUnlocked, timesTableUnlocked } from '../../core/progression';
+import { chapterOf, chapterStart, effectiveLevel, endlessUnlocked, mapNodeState, timedUnlocked, timesTableUnlocked } from '../../core/progression';
 import { Steve } from '../components/Steve';
 import nodeLocked from '../../assets/ico-lock.png';
 import { balance } from '../../core/rewards';
@@ -85,7 +85,8 @@ function NodeCell({ level, state, stars, onTap }: {
 
 export function Map({ progress, onStartLevel, onStartEndless, onStartTimed, onOpenStarChart, onOpenSteve, onOpenSettings, onWelcome }: MapProps) {
   const maxChapter = chapterOf(progress.unlocked);
-  const [viewChapter, setViewChapter] = useState<number>(maxChapter);
+  // 落地章跟随真实前沿（审查 A1）：unlock-all 后仍打开孩子正在学的那一章
+  const [viewChapter, setViewChapter] = useState<number>(chapterOf(effectiveLevel(progress)));
   const [seen, setSeen] = useState<Record<string, boolean>>(loadSeen);
 
   const cnNum = CN_NUM[viewChapter - 1];
@@ -93,18 +94,15 @@ export function Map({ progress, onStartLevel, onStartEndless, onStartTimed, onOp
   const start = chapterStart(viewChapter);
   const levels = Array.from({ length: 15 }, (_, i) => start + i);
 
-  const stateOf = (n: number): NodeState => {
-    if (n > progress.unlocked) return 'locked';
-    if (n === progress.unlocked && (progress.stars[n] ?? 0) === 0) return 'current';
-    return 'done';
-  };
+  const stateOf = (n: number): NodeState => mapNodeState(progress, n);
 
   const doneCount = levels.filter((n) => (progress.stars[n] ?? 0) > 0).length;
   const chapterStars = levels.reduce((sum, n) => sum + (progress.stars[n] ?? 0), 0);
 
   const rows = [levels.slice(0, 5), levels.slice(5, 10).reverse(), levels.slice(10, 15)];
 
-  const current = Math.min(progress.unlocked, 60);
+  // CTA 与台词轮换锚真实前沿，unlocked 只决定节点可点性（审查 A1）
+  const current = effectiveLevel(progress);
   const steveLine = STEVE_LINES[current % STEVE_LINES.length];
 
   const leftDisabled = viewChapter <= 1;

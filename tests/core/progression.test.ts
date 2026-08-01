@@ -4,6 +4,7 @@ import {
   effectiveLevel,
   endlessBand,
   endlessUnlocked,
+  mapNodeState,
   starsFor,
   timedPool,
   timedUnlocked,
@@ -123,4 +124,31 @@ test('timedPool: unlock-all does not empty the pool — anchors on real mastery'
   for (let l = 1; l <= 16; l++) p.stars[l] = 1;
   p.unlocked = 60; // 家长「解锁全部关卡」：不应把限时锚定到章 4
   expect(timedPool(p)).toEqual([...Array(16)].map((_, i) => i + 1));
+});
+
+// ── 地图节点状态（全面审查 A1）：可点性看 unlocked，「当前关」脉冲锚 effectiveLevel ──
+
+test('mapNodeState: 正常推进——unlocked 关为 current，其余不变', () => {
+  const p = defaultProgress();
+  p.stars = { 1: 3, 2: 2 };
+  p.unlocked = 3;
+  expect(mapNodeState(p, 2)).toBe('done');
+  expect(mapNodeState(p, 3)).toBe('current');
+  expect(mapNodeState(p, 4)).toBe('locked');
+});
+
+test('mapNodeState: unlock-all 后前沿标记仍落在真实掌握度+1，不再消失', () => {
+  const p = defaultProgress();
+  for (let i = 1; i <= 49; i++) p.stars[i] = 1;
+  p.unlocked = 60; // 家长「解锁全部关卡」
+  expect(mapNodeState(p, 50)).toBe('current'); // 真实前沿
+  expect(mapNodeState(p, 60)).toBe('done');    // 可点但非前沿
+  expect(mapNodeState(p, 49)).toBe('done');
+});
+
+test('mapNodeState: 前沿关已得星（全通关）→ 无 current 节点', () => {
+  const p = defaultProgress();
+  for (let i = 1; i <= 60; i++) p.stars[i] = 1;
+  p.unlocked = 60;
+  for (let n = 1; n <= 60; n++) expect(mapNodeState(p, n)).toBe('done');
 });
