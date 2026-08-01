@@ -4,6 +4,7 @@ import { balance, craftable, tierUnlocked, visibleAccessories } from '../../core
 import {
   ACCESSORIES,
   BLOCKS,
+  PET_IDS,
   EQUIPMENT,
   HOME_COLS,
   SKY_PATTERNS,
@@ -22,6 +23,7 @@ interface SteveScreenProps {
   onBack: () => void;
   onCraft: (id: string) => void;
   onToggleWear: (slot: EquipSlot, id: string) => void;
+  onToggleAccessory: (id: string) => void; // 摆出/收起配件（非宠物）
   onTrade: (kind: TradeKind) => void;
   onLightStar: () => void;
   onPlaceBlock: (index: number, blockId: string) => void;
@@ -30,7 +32,6 @@ interface SteveScreenProps {
 }
 
 const TIER_CN: Record<string, string> = { leather: '皮革', iron: '铁', gold: '金', diamond: '钻石' };
-const PETS = ['ac-chick', 'ac-dog', 'ac-parrot', 'ac-cat'];
 
 function Lack({ n, ore }: { n: number; ore: OreKind }) {
   return (
@@ -86,7 +87,7 @@ function Pet({ id, min, max, bottom }: { id: string; min: number; max: number; b
 // 衣柜/工作台是抽屉；场景内点史蒂夫=衣柜、点工作台方块=工作台（双通道）。
 // M9：无任何完成度表征——托盘上唯一的数字是煤余额。
 export function SteveScreen(props: SteveScreenProps) {
-  const { progress, onBack, onCraft, onToggleWear, onTrade, onLightStar, onPlaceBlock, onRemoveBlock, onSpeak } = props;
+  const { progress, onBack, onCraft, onToggleWear, onToggleAccessory, onTrade, onLightStar, onPlaceBlock, onRemoveBlock, onSpeak } = props;
   const [drawer, setDrawer] = useState<'none' | 'wardrobe' | 'bench'>('none');
   const [tray, setTray] = useState(false);
   const [tool, setTool] = useState<string>('blk-wood'); // 方块 id 或 'hammer'（收回模式）
@@ -98,6 +99,10 @@ export function SteveScreen(props: SteveScreenProps) {
   const [sflip, setSflip] = useState(false);
   const walking = drawer === 'none' && !tray; // 建造/翻抽屉时站住，避免点不中
   const walkRef = useRef<number | undefined>(undefined);
+  // 开抽屉时走到左侧展示位——抽屉占右半屏，他得「走过来给你看」
+  useEffect(() => {
+    if (drawer !== 'none') { setSflip(sx > 160); setSx(160); }
+  }, [drawer]);
   useEffect(() => {
     if (!walking) return;
     walkRef.current = window.setInterval(() => {
@@ -110,7 +115,7 @@ export function SteveScreen(props: SteveScreenProps) {
     return () => window.clearInterval(walkRef.current);
   }, [walking]);
 
-  const pets = PETS.filter((id) => r.owned.includes(id));
+  const pets = PET_IDS.filter((id) => r.owned.includes(id));
 
   const tiers: { tier: (typeof TIER_ORDER)[number]; state: 'open' | 'next' }[] = [];
   for (const tier of TIER_ORDER) {
@@ -175,7 +180,7 @@ export function SteveScreen(props: SteveScreenProps) {
 
       {/* 史蒂夫（点他 = 开衣柜的同义入口） */}
       <div
-        class={'mn-home-steve' + (sflip ? ' is-flip' : '')}
+        class={'mn-home-steve' + (sflip ? ' is-flip' : '') + (tray ? ' is-ghost' : '')}
         style={{ left: sx }}
         onClick={() => setDrawer('wardrobe')}
         role="button"
@@ -183,12 +188,14 @@ export function SteveScreen(props: SteveScreenProps) {
       >
         <Steve pose={drawer === 'wardrobe' ? 'wave' : 'idle'} equipped={r.equipped} />
       </div>
-      {pets.map((id, i) => (
-        <Pet key={id} id={id} min={520 + i * 60} max={940} bottom={182 - (i % 2) * 6} />
-      ))}
+      <div class={tray ? 'is-ghost-wrap' : ''}>
+        {pets.map((id, i) => (
+          <Pet key={id} id={id} min={520 + i * 60} max={940} bottom={182 - (i % 2) * 6} />
+        ))}
+      </div>
 
       {/* 场景内工作台方块（同义入口） */}
-      <div class="mn-home-bench" onClick={() => setDrawer('bench')} role="button" aria-label="打开工作台">
+      <div class={'mn-home-bench' + (tray ? ' is-ghost' : '')} onClick={() => setDrawer('bench')} role="button" aria-label="打开工作台">
         <div class="mn-home-bench-top" />
         <div class="mn-home-bench-body" />
       </div>
@@ -248,6 +255,21 @@ export function SteveScreen(props: SteveScreenProps) {
                     </div>
                   ),
                 )}
+                {/* 已拥有的小玩意：摆出/收起（宠物住家园，不在此列） */}
+                {ACCESSORIES.some((a) => r.owned.includes(a.id) && !PET_IDS.includes(a.id)) && (
+                  <div class="mn-gear-tier">
+                    <div class="mn-gear-tier-name">小玩意</div>
+                    {ACCESSORIES.filter((a) => r.owned.includes(a.id) && !PET_IDS.includes(a.id)).map((a) => {
+                      const out = r.equipped.accessories.includes(a.id);
+                      return (
+                        <button key={a.id} class={'mn-gear-row is-owned' + (out ? ' is-worn' : '')} onClick={() => onToggleAccessory(a.id)}>
+                          <span>{a.name}</span>
+                          <span class={'mn-gear-state' + (out ? ' is-worn-tag' : ' is-btn')}>{out ? '带着 ✓' : '带上'}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
               </>
             )}
 
@@ -270,7 +292,9 @@ export function SteveScreen(props: SteveScreenProps) {
                   ))}
                 </div>
 
-                <div class="mn-bench-sec">做点小玩意</div>
+                {visibleAccessories(r).some((id) => !r.owned.includes(id)) && (
+                  <div class="mn-bench-sec">做点小玩意</div>
+                )}
                 {visibleAccessories(r)
                   .filter((id) => !r.owned.includes(id))
                   .map((id) => {

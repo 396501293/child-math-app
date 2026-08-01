@@ -3,6 +3,7 @@ import {
   ACCESSORIES,
   BLOCKS,
   BLOCK_PRICE_COAL,
+  PET_IDS,
   CATALOG_BY_ID,
   EQUIPMENT,
   HOME_SIZE,
@@ -84,8 +85,9 @@ export function craft(p: Progress, id: string): Progress {
   const equipped = { ...r.equipped, accessories: [...r.equipped.accessories] };
   if ('tier' in item) {
     equipped[item.slot] = id;
-  } else {
-    // 同锚点只摆一个：换下旧的（仍拥有，可在工作台重新摆出）
+  } else if (!PET_IDS.includes(id)) {
+    // 同锚点只摆一个：换下旧的（仍拥有，可在衣柜重新摆出）。
+    // 宠物例外：住家园自由走动，不进 equipped。
     equipped.accessories = equipped.accessories.filter(
       (a) => (CATALOG_BY_ID[a] as { anchor?: string })?.anchor !== item.anchor,
     );

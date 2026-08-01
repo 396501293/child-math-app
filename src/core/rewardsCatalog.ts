@@ -62,6 +62,9 @@ export const ACCESSORIES: AccessoryItem[] = [
   { id: 'ac-cat', anchor: 'feet', material: 'emerald', cost: 3, name: '小猫' },
 ];
 
+// 宠物类配件：住在家园里自由走动（评审 2026-07-31 表 A），不锚定在史蒂夫身上。
+export const PET_IDS = ['ac-chick', 'ac-dog', 'ac-parrot', 'ac-cat'];
+
 // 星空（评审表 C）：只收煤、固定价；图样按序点亮，45 星之后自由点星。
 export const STAR_PRICE_COAL = 10;
 export const SKY_PATTERNS: { id: string; name: string; stars: number }[] = [
