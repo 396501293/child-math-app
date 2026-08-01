@@ -30,23 +30,40 @@ test('chapterOf boundaries', () => {
   expect(chapterOf(60)).toBe(4);
 });
 
-test('endlessBand: starts at current chapter first band, +1 per 4 correct, capped', () => {
+test('endlessBand: 起始 max(章首, 有效档−3)，+1/4 连对，封顶（§六-1 修订 2026-08-01 批准）', () => {
+  // 章前段：effectiveLevel−3 < 章首 → 取章首，行为与修订前逐位一致
   expect(endlessBand(0, 4)).toBe(1);
   expect(endlessBand(3, 4)).toBe(1);
   expect(endlessBand(4, 4)).toBe(2);
-  expect(endlessBand(99, 4)).toBe(4); // 封顶 maxUnlocked
+  expect(endlessBand(99, 4)).toBe(4); // 封顶
   expect(endlessBand(0, 17)).toBe(16); // 第二章起步档 16
   expect(endlessBand(4, 17)).toBe(17);
+  // 章后段：热身收敛为 3 档 × 4 题，不再重走全章
+  expect(endlessBand(0, 58)).toBe(55);  // max(46, 55)
+  expect(endlessBand(12, 58)).toBe(58); // 55+3 封顶 58
+  expect(endlessBand(0, 75)).toBe(72);  // 第五章尾部同理
 });
 
-test('mode unlock gates: stars on level 3 / level 9', () => {
+test('mode unlock gates: 得星关数 ≥3 / ≥9（§六-2 修订 2026-08-01 批准）', () => {
   const p = defaultProgress();
   expect(endlessUnlocked(p)).toBe(false);
   expect(timedUnlocked(p)).toBe(false);
-  p.stars[3] = 1;
+  // 线性推进：完成第 3 关时恰好得星关数 = 3，行为与旧条文逐位一致
+  p.stars = { 1: 1, 2: 3, 3: 1 };
   expect(endlessUnlocked(p)).toBe(true);
-  p.stars[9] = 2;
+  expect(timedUnlocked(p)).toBe(false);
+  for (let i = 4; i <= 9; i++) p.stars[i] = 2;
   expect(timedUnlocked(p)).toBe(true);
+});
+
+test('mode unlock gates: 跳级孩子玩满 3/9 关新内容即解锁，不必回刷第 3/9 关', () => {
+  const p = defaultProgress();
+  p.unlocked = 75; // unlock-all 跳级画像，从第 46 关起步
+  p.stars = { 46: 1, 47: 2, 48: 1 };
+  expect(endlessUnlocked(p)).toBe(true);  // 旧条文下永远 false（第 3 关无星）
+  expect(timedUnlocked(p)).toBe(false);
+  for (let i = 49; i <= 54; i++) p.stars[i] = 1;
+  expect(timedUnlocked(p)).toBe(true);    // 旧条文下永远 false（第 9 关无星）
 });
 
 test('timedPool: completed bands within current + previous chapter only', () => {
