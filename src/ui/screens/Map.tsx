@@ -5,7 +5,7 @@ import { Steve } from '../components/Steve';
 import nodeLocked from '../../assets/ico-lock.png';
 import { balance } from '../../core/rewards';
 import { ORE_SRC } from '../components/oreAssets';
-import { skyState } from '../components/skyPatterns';
+import { SkyLayer } from '../components/SkyLayer';
 import icoEndless from '../../assets/ico-mode-endless.png';
 import icoStar from '../../assets/ico-mode-chart.png';
 import icoTimed from '../../assets/ico-mode-timed.png';
@@ -133,29 +133,11 @@ export function Map({ progress, onStartLevel, onStartEndless, onStartTimed, onOp
   };
   useEffect(() => () => window.clearTimeout(gearTimer.current), []);
 
-  const sky = skyState(progress.rewards.skyStars);
 
   return (
     <>
       {/* ─── 夜空层：点亮的星常驻地图背景（评审：终局层 = 环境级展示物） ─── */}
-      <svg class="mn-sky" width="1024" height="768" aria-hidden="true">
-        {sky.map(({ pattern, lit, complete }) => (
-          <g key={pattern.id}>
-            {complete &&
-              pattern.lines.map(([a, b], i) => (
-                <line
-                  key={i}
-                  x1={pattern.stars[a].x} y1={pattern.stars[a].y}
-                  x2={pattern.stars[b].x} y2={pattern.stars[b].y}
-                  class="mn-sky-line"
-                />
-              ))}
-            {pattern.stars.slice(0, lit).map((st, i) => (
-              <rect key={i} x={st.x - 3} y={st.y - 3} width="6" height="6" class="mn-sky-star" />
-            ))}
-          </g>
-        ))}
-      </svg>
+      <SkyLayer skyStars={progress.rewards.skyStars} />
       {/* ─── 顶栏 ─── */}
       <div style={{ position: 'absolute', top: 32, left: 40, right: 40, display: 'flex', alignItems: 'center', gap: 20 }}>
         <div style={{ fontSize: 38, fontWeight: 900, color: 'var(--color-white-100)' }}>

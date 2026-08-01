@@ -61,6 +61,32 @@ export const SKY_LAYOUT: SkyPattern[] = [
   },
 ];
 
+export const PATTERN_STAR_TOTAL = SKY_LAYOUT.reduce((s, p) => s + p.stars.length, 0); // 45
+
+// 自由点星（第 46 颗起，审查 D1）：坐标由星序号确定性派生，散布在图样间的
+// 4 条空隙带（x 区间与所有图样零重叠，天然不撞星）。仍是同一 skyStars 计数——
+// 铁则：不得分裂出第二种星。
+const FREE_BANDS = [
+  { x0: 184, w: 58 }, // 小船—北斗之间
+  { x0: 404, w: 52 }, // 北斗—灯塔之间
+  { x0: 538, w: 68 }, // 灯塔—月亮之间
+  { x0: 672, w: 80 }, // 月亮—鲸鱼之间
+];
+
+export function freeStarPositions(skyStars: number): { x: number; y: number }[] {
+  const n = Math.max(0, skyStars - PATTERN_STAR_TOTAL);
+  const out: { x: number; y: number }[] = [];
+  for (let k = 0; k < n; k++) {
+    const band = FREE_BANDS[k % FREE_BANDS.length];
+    const j = Math.floor(k / FREE_BANDS.length);
+    out.push({
+      x: band.x0 + ((j * 37 + k * 11) % band.w),
+      y: 44 + ((j * 53 + (k % FREE_BANDS.length) * 19) % 80),
+    });
+  }
+  return out;
+}
+
 // skyStars（全局累计）→ 每个图样的点亮数与是否集齐
 export function skyState(skyStars: number): { pattern: SkyPattern; lit: number; complete: boolean }[] {
   let left = skyStars;
