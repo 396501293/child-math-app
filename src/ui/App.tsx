@@ -4,7 +4,7 @@ import { bandOf } from '../core/bands';
 import { itemKey } from '../core/enumerate';
 import { applyHardMode, generateLevel, generateQuestion, isSameAddChain } from '../core/generator';
 import { chapterOf, effectiveLevel, endlessBand, starsFor, timedPool, unlockAfterWin } from '../core/progression';
-import { defaultProgress, loadProgress, saveProgress } from '../core/storage';
+import { addProfile, defaultProgress, loadProgress, profileMeta, saveProgress, setActiveProfile } from '../core/storage';
 import { koujue, TimesTableSession } from '../core/timesTable';
 import { balance as oreBalance, craft, income, lightStar, placeBlock, recordAnswer, removeBlock, setEquipped, trade } from '../core/rewards';
 import { CATALOG_BY_ID, SKY_PATTERNS } from '../core/rewardsCatalog';
@@ -22,6 +22,7 @@ import { StarChart } from './screens/StarChart';
 import { CAMPAIGN_SUB, Result } from './screens/Result';
 import { RotateOverlay } from './components/RotateOverlay';
 import { SettingsModal } from './components/SettingsModal';
+import { ProfilePicker } from './components/ProfilePicker';
 
 const TIMED_START_MS = 60_000;
 const TIMED_MAX_MS = 90_000;
@@ -74,6 +75,26 @@ export function App() {
   const [screen, setScreen] = useState<Screen>('map');
   const [session, setSession] = useState<Session | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  // 选人屏（审查 D3）：≥2 档案且本次会话未选过 → 启动先选人。
+  // 选同一档案直接进入；选其他档案切 active 后整页重载（干净重置全部会话态）。
+  const [needPick, setNeedPick] = useState(
+    () => profileMeta().count > 1 && !globalThis.sessionStorage?.getItem('mn_profile_picked'),
+  );
+  const pickProfile = (i: number) => {
+    try { globalThis.sessionStorage?.setItem('mn_profile_picked', '1'); } catch { /* 私密模式 */ }
+    if (i === profileMeta().active) { setNeedPick(false); return; }
+    setActiveProfile(i);
+    location.reload();
+  };
+  // 家长设置入口：添加船员（上限 3）/ 切换船员（清选人标记后重载出选人屏）
+  const doAddProfile = () => {
+    addProfile();
+    setSettingsOpen(false);
+  };
+  const doSwitchProfile = () => {
+    try { globalThis.sessionStorage?.removeItem('mn_profile_picked'); } catch { /* 私密模式 */ }
+    location.reload();
+  };
   const scale = useStageScale();
   const portrait = usePortrait();
 
@@ -639,6 +660,17 @@ export function App() {
     setSettingsOpen(false);
   };
 
+  // 选人屏优先于一切（含地图）：选完才进应用
+  if (needPick) {
+    return (
+      <div class="mn-viewport">
+        <div class="mn-stage" style={{ transform: `scale(${scale})` }}>
+          <ProfilePicker onPick={pickProfile} />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div class="mn-viewport">
       <div class={ttsReady ? 'mn-stage' : 'mn-stage mn-tts-off'} style={{ transform: `scale(${scale})` }}>
@@ -754,6 +786,8 @@ export function App() {
             onUpdateSettings={updateSettings}
             onResetProgress={resetProgress}
             onUnlockAll={unlockAll}
+            onAddProfile={doAddProfile}
+            onSwitchProfile={doSwitchProfile}
             onClose={() => setSettingsOpen(false)}
           />
         )}

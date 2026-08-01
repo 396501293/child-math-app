@@ -10,6 +10,68 @@ const V1_KEY = 'math_nightsail_v1';
 const V2_KEY = 'math_nightsail_v2';
 const V2_CORRUPT_KEY = 'math_nightsail_v2_corrupt';
 
+// ── 多档案（审查 D3，二孩「拆家」）──────────────────────────────────
+// 档案 0 沿用 V2_KEY（老用户零迁移）；档案 1/2 分片 `${V2_KEY}_p{i}`。
+// active/count 存元数据 key；无元数据 = 单档案 active 0，行为逐位等于多档案之前。
+const PROFILE_META_KEY = 'math_nightsail_profiles';
+export const MAX_PROFILES = 3;
+
+export function profileMeta(store: StorageLike = safeStore()): { active: number; count: number } {
+  try {
+    const raw = store.getItem(PROFILE_META_KEY);
+    if (raw) {
+      const m = JSON.parse(raw) as { active?: unknown; count?: unknown };
+      const count = Math.min(MAX_PROFILES, Math.max(1, Number(m.count) || 1));
+      const active = Math.min(count - 1, Math.max(0, Number(m.active) || 0));
+      return { active, count };
+    }
+  } catch {
+    // 解析失败按单档案处理
+  }
+  return { active: 0, count: 1 };
+}
+
+function saveMeta(m: { active: number; count: number }, store: StorageLike): void {
+  try {
+    store.setItem(PROFILE_META_KEY, JSON.stringify(m));
+  } catch {
+    // 私密模式：静默降级为单档案
+  }
+}
+
+export function addProfile(store: StorageLike = safeStore()): void {
+  const m = profileMeta(store);
+  if (m.count >= MAX_PROFILES) return;
+  saveMeta({ ...m, count: m.count + 1 }, store);
+}
+
+export function setActiveProfile(i: number, store: StorageLike = safeStore()): void {
+  const m = profileMeta(store);
+  if (i < 0 || i >= m.count) return;
+  saveMeta({ ...m, active: i }, store);
+  mem = null; // 切档后内存兜底失效（属于旧档案）
+}
+
+const keyFor = (i: number): string => (i === 0 ? V2_KEY : `${V2_KEY}_p${i}`);
+
+// 选人屏头像用：窥视某档案的装扮与前沿（不改 active、不触发迁移）。
+export function peekProfile(i: number, store: StorageLike = safeStore()):
+  { equipped: Progress['rewards']['equipped']; unlocked: number; starred: number } | null {
+  try {
+    const raw = store.getItem(keyFor(i));
+    if (!raw) return null;
+    const p = JSON.parse(raw) as Partial<Progress>;
+    const d = defaultProgress();
+    return {
+      equipped: { ...d.rewards.equipped, ...p.rewards?.equipped },
+      unlocked: Number(p.unlocked) || 1,
+      starred: Object.values(p.stars ?? {}).filter((s) => (s ?? 0) >= 1).length,
+    };
+  } catch {
+    return null;
+  }
+}
+
 export function defaultProgress(): Progress {
   return {
     version: 2,
@@ -74,7 +136,7 @@ type V2Result =
 function tryLoadV2(store: StorageLike): V2Result {
   let raw: string | null;
   try {
-    raw = store.getItem(V2_KEY);
+    raw = store.getItem(keyFor(profileMeta(store).active));
   } catch {
     return { kind: 'broken' };
   }
@@ -147,7 +209,8 @@ export function loadProgress(store: StorageLike = safeStore()): Progress {
   if (v2.kind === 'corrupt') return defaultProgress(); // already backed up to _corrupt key
 
   // v2.kind === 'missing': no v2 data yet, try prototype v1 migration
-  const v1 = tryLoadV1(store);
+  // （v1 迁移只属于档案 0；新增档案的 missing 就是空进度）
+  const v1 = profileMeta(store).active === 0 ? tryLoadV1(store) : null;
   if (v1) {
     const merged = defaultProgress();
     // prototype data isn't validated: clamp stars to 0..3 and unlocked to 1..60
@@ -165,7 +228,7 @@ export function loadProgress(store: StorageLike = safeStore()): Progress {
 export function saveProgress(p: Progress, store: StorageLike = safeStore()): void {
   mem = deepClone(p);
   try {
-    store.setItem(V2_KEY, JSON.stringify(p));
+    store.setItem(keyFor(profileMeta(store).active), JSON.stringify(p));
   } catch {
     // in-memory fallback (mem) already updated above; ignore storage failure
   }

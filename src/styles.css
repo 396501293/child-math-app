@@ -1629,6 +1629,33 @@ body {
   text-align: center;
   padding: 2px 0;
 }
+/* 选人屏（审查 D3 多档案）：启动全屏，大卡可点 */
+.mn-profile-mask {
+  position: absolute;
+  inset: 0;
+  z-index: 40;
+  background: var(--color-night, #17313e);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 40px;
+}
+.mn-profile-title { font-size: 30px; }
+.mn-profile-cards { display: flex; gap: 36px; }
+.mn-profile-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  padding: 30px 40px;
+  cursor: pointer;
+  font-family: inherit;
+}
+.mn-profile-card:active { transform: translateY(2px); }
+.mn-profile-name { font-size: 26px; font-weight: 700; color: var(--color-white-100); }
+.mn-profile-sub { font-size: 18px; color: var(--color-white-55); }
+
 /* 除法分组揭示卡（第五章规范 §5）：b 组 × 每组 a 块，静态描边圈组 */
 .mn-div-groups {
   display: flex;
