@@ -1728,6 +1728,10 @@ body {
   box-shadow: inset 3px 3px 0 rgba(255,255,255,.22), inset -3px -3px 0 rgba(0,0,0,.3); }
 .mn-blk-wool-blue { background: #3d5aac;
   box-shadow: inset 3px 3px 0 rgba(255,255,255,.22), inset -3px -3px 0 rgba(0,0,0,.3); }
+.mn-blk-wool-yellow { background: #d9b83c;
+  box-shadow: inset 3px 3px 0 rgba(255,255,255,.28), inset -3px -3px 0 rgba(0,0,0,.26); }
+.mn-blk-wool-black { background: #2e2e33;
+  box-shadow: inset 3px 3px 0 rgba(255,255,255,.12), inset -3px -3px 0 rgba(0,0,0,.4); }
 
 /* 史蒂夫与宠物：住在场景里（M8：无需求，只是在） */
 .mn-home-steve {

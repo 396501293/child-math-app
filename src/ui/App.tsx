@@ -12,6 +12,7 @@ import type { AccessoryItem } from '../core/rewardsCatalog';
 import { SteveScreen } from './screens/SteveScreen';
 import { onAvailabilityChange, speak, stopTTS, ttsAvailable } from '../audio/tts';
 import { currentQuestion, type Mode, type Screen, type Session } from './session';
+import { sfx } from './sound';
 import { useCountdown } from './useCountdown';
 import { useStageScale } from './scale';
 import { Map } from './screens/Map';
@@ -266,6 +267,7 @@ export function App() {
     );
     speak(koujue(fact.a, fact.b), { interrupt: true }); // 答对=庆祝口诀 / 答错=揭示口诀（同句）
     if (option === q.answer) {
+      sfx.right();
       setSession({ ...s, feedback: 'right' });
       timerRef.current = window.setTimeout(advanceTimesTable, 1100);
     } else {
@@ -369,6 +371,7 @@ export function App() {
     }
     updateProgress(nextP);
     if (option === q.answer) {
+      sfx.right(); // 轻软叮（审查 C1）；答错分支无音效
       // 反馈分级：连续答对降为轻量（0.45s 快进、无语音——下一题朗读即确认），
       // 每 5 连对回到完整庆祝。首题/答错后重新开始给完整反馈（确认机制在）。
       // 表扬每题都给会通胀贬值，且 1.1s×N 的强制等待正是「被打断」感的来源。
@@ -525,6 +528,7 @@ export function App() {
     const next = craft(progressRef.current, id);
     if (next === progressRef.current) return;
     updateProgress(next);
+    sfx.craft();
     speak(VOICE.crafted(CATALOG_BY_ID[id]?.name ?? ''), { interrupt: true });
   };
   const doToggleWear = (slot: 'boots' | 'helm' | 'legs' | 'chest', id: string) => {
@@ -547,12 +551,16 @@ export function App() {
   // 之后静默（逐块播报会把孩子逼疯）。会话内计数即可，不持久化。
   const reclaimCountRef = useRef(0);
   const doPlaceBlock = (index: number, blockId: string) => {
-    updateProgress(placeBlock(progressRef.current, index, blockId));
+    const next = placeBlock(progressRef.current, index, blockId);
+    if (next === progressRef.current) return; // 占用/煤不足：静默拒绝，不响
+    updateProgress(next);
+    sfx.place();
   };
   const doRemoveBlock = (index: number) => {
     const next = removeBlock(progressRef.current, index);
     if (next === progressRef.current) return;
     updateProgress(next);
+    sfx.reclaim();
     if (reclaimCountRef.current < 3) {
       reclaimCountRef.current += 1;
       speak('煤收回来了。', { interrupt: true });
@@ -567,8 +575,13 @@ export function App() {
     let acc = 0;
     for (const pat of SKY_PATTERNS) {
       acc += pat.stars;
-      if (next.rewards.skyStars === acc) { speak(VOICE.constellation(pat.name), { interrupt: true }); return; }
+      if (next.rewards.skyStars === acc) {
+        sfx.chord();
+        speak(VOICE.constellation(pat.name), { interrupt: true });
+        return;
+      }
     }
+    sfx.star();
     speak(VOICE.starLit, { interrupt: true });
   };
 

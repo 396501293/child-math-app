@@ -14,9 +14,9 @@ function rich(): Progress {
   return { ...p, stars }; // 煤 20
 }
 
-test('方块目录：11 种 id 唯一，统一价 1 煤，地皮 144 格', () => {
-  expect(BLOCKS.length).toBe(11);
-  expect(new Set(BLOCKS.map((b) => b.id)).size).toBe(11);
+test('方块目录：13 种 id 唯一（11 + 黄/黑羊毛，审查 D4），统一价 1 煤，地皮 144 格', () => {
+  expect(BLOCKS.length).toBe(13);
+  expect(new Set(BLOCKS.map((b) => b.id)).size).toBe(13);
   expect(BLOCKS.every((b) => b.id.startsWith('blk-'))).toBe(true);
   expect(BLOCK_PRICE_COAL).toBe(1); // 铁则：永久统一价，价格是常量不是字段
   expect(HOME_SIZE).toBe(144);

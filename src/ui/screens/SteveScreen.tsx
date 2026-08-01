@@ -14,6 +14,7 @@ import {
   type EquipItem,
 } from '../../core/rewardsCatalog';
 import { Steve } from '../components/Steve';
+import { Ico } from '../components/Ico';
 import { SkyLayer } from '../components/SkyLayer';
 import { ORE_CN, ORE_SOURCE_LINE, ORE_SRC } from '../components/oreAssets';
 import { ACC_SRC } from '../components/steveMeta';
@@ -229,7 +230,7 @@ export function SteveScreen(props: SteveScreenProps) {
             class={'mn-tray-slot mn-tray-hammer' + (tool === 'hammer' ? ' is-on' : '')}
             onClick={() => setTool('hammer')}
             aria-label="收回"
-          >⛏</button>
+          ><Ico name="pickaxe" /></button>
         </div>
       )}
 

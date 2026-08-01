@@ -95,6 +95,9 @@ export const BLOCKS: { id: string; name: string }[] = [
   { id: 'blk-wool-white', name: '白羊毛' },
   { id: 'blk-wool-red', name: '红羊毛' },
   { id: 'blk-wool-blue', name: '蓝羊毛' },
+  // 审查 D4：像素画基础色补全（太阳/小鸡/眼睛/轮廓），羊毛补丁不等新章先例
+  { id: 'blk-wool-yellow', name: '黄羊毛' },
+  { id: 'blk-wool-black', name: '黑羊毛' },
 ];
 
 // 兑换（评审表 E）：4:1 只向上。3:1 是唯一调参备用旋钮。
