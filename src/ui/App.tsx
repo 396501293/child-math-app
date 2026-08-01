@@ -2,9 +2,9 @@ import { useEffect, useRef, useState } from 'preact/hooks';
 import type { BandConfig, Progress, Question } from '../core/types';
 import { bandOf } from '../core/bands';
 import { itemKey } from '../core/enumerate';
-import { applyHardMode, generateLevel, generateQuestion } from '../core/generator';
+import { applyHardMode, generateLevel, generateQuestion, isSameAddChain } from '../core/generator';
 import { chapterOf, effectiveLevel, endlessBand, starsFor, timedPool, unlockAfterWin } from '../core/progression';
-import { defaultProgress, loadProgress, saveProgress } from '../core/storage';
+import { addProfile, defaultProgress, loadProgress, profileMeta, saveProgress, setActiveProfile } from '../core/storage';
 import { koujue, TimesTableSession } from '../core/timesTable';
 import { balance as oreBalance, craft, income, lightStar, placeBlock, recordAnswer, removeBlock, setEquipped, trade } from '../core/rewards';
 import { CATALOG_BY_ID, SKY_PATTERNS } from '../core/rewardsCatalog';
@@ -12,6 +12,8 @@ import type { AccessoryItem } from '../core/rewardsCatalog';
 import { SteveScreen } from './screens/SteveScreen';
 import { onAvailabilityChange, speak, stopTTS, ttsAvailable } from '../audio/tts';
 import { currentQuestion, type Mode, type Screen, type Session } from './session';
+import { sfx } from './sound';
+import { eqText } from '../core/insight';
 import { useCountdown } from './useCountdown';
 import { useStageScale } from './scale';
 import { Map } from './screens/Map';
@@ -20,6 +22,7 @@ import { StarChart } from './screens/StarChart';
 import { CAMPAIGN_SUB, Result } from './screens/Result';
 import { RotateOverlay } from './components/RotateOverlay';
 import { SettingsModal } from './components/SettingsModal';
+import { ProfilePicker } from './components/ProfilePicker';
 
 const TIMED_START_MS = 60_000;
 const TIMED_MAX_MS = 90_000;
@@ -45,11 +48,13 @@ const VOICE = {
   crafted: (name: string) => `${name}做好了！`,
   starLit: '点亮一颗星！',
   constellation: (name: string) => `${name}连起来了！`,
+  galaxyDone: '下界也走完了！七十五关你都闯过来了！',
 } as const;
 
-// 九九星图结算祝贺语（集齐 > 有新点亮 > 普通完成）。结算与重播读同一句。
-const ttResultLine = (correct: number, newLit: number, lit: number): string =>
-  lit >= 36 ? VOICE.ttComplete : newLit > 0 ? VOICE.ttResultLit(correct, newLit) : VOICE.ttResult(correct);
+// 九九星图结算祝贺语（首次集齐 > 有新点亮 > 普通完成）。结算与重播读同一句。
+// 集齐庆祝只在 litBest 首达 36 的那一场播（审查 C2：最高光的话天天重复必然贬值）。
+const ttResultLine = (correct: number, newLit: number, firstComplete: boolean): string =>
+  firstComplete ? VOICE.ttComplete : newLit > 0 ? VOICE.ttResultLit(correct, newLit) : VOICE.ttResult(correct);
 
 function usePortrait(): boolean {
   const [portrait, setPortrait] = useState(() => window.innerHeight > window.innerWidth);
@@ -70,6 +75,26 @@ export function App() {
   const [screen, setScreen] = useState<Screen>('map');
   const [session, setSession] = useState<Session | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  // 选人屏（审查 D3）：≥2 档案且本次会话未选过 → 启动先选人。
+  // 选同一档案直接进入；选其他档案切 active 后整页重载（干净重置全部会话态）。
+  const [needPick, setNeedPick] = useState(
+    () => profileMeta().count > 1 && !globalThis.sessionStorage?.getItem('mn_profile_picked'),
+  );
+  const pickProfile = (i: number) => {
+    try { globalThis.sessionStorage?.setItem('mn_profile_picked', '1'); } catch { /* 私密模式 */ }
+    if (i === profileMeta().active) { setNeedPick(false); return; }
+    setActiveProfile(i);
+    location.reload();
+  };
+  // 家长设置入口：添加船员（上限 3）/ 切换船员（清选人标记后重载出选人屏）
+  const doAddProfile = () => {
+    addProfile();
+    setSettingsOpen(false);
+  };
+  const doSwitchProfile = () => {
+    try { globalThis.sessionStorage?.removeItem('mn_profile_picked'); } catch { /* 私密模式 */ }
+    location.reload();
+  };
   const scale = useStageScale();
   const portrait = usePortrait();
 
@@ -149,13 +174,13 @@ export function App() {
   const nextModeQuestion = (mode: Mode, correctCount: number, recentKeys: string[]): Question => {
     if (mode === 'endless') {
       const band = endlessBand(correctCount, effectiveLevel(progress));
-      return generateQuestion(applyIfHard(bandOf(band)), Math.random, recentKeys);
+      return { ...generateQuestion(applyIfHard(bandOf(band)), Math.random, recentKeys), band };
     }
     const pool = timedPool(progress);
     // 兜底：正常状态下 timedUnlocked 时题池必非空（锚点恒含最高得星档所在章）；
     // 万一异常数据导致为空，回落最温和的档 1，而非家长可能拉满的 unlocked。
     const band = pool.length ? pool[Math.floor(Math.random() * pool.length)] : 1;
-    return generateQuestion(applyIfHard(bandOf(band)), Math.random, recentKeys);
+    return { ...generateQuestion(applyIfHard(bandOf(band)), Math.random, recentKeys), band };
   };
 
   const startEndless = () => {
@@ -206,15 +231,17 @@ export function App() {
     for (const [k, st] of Object.entries(after))
       if (st.s === 3 && (before[k]?.s ?? 0) !== 3) newLit++;
     const lit = Object.values(after).filter((f) => f.s === 3).length;
+    // 集齐庆祝只属于 litBest 首达 36 的那一场（落盘前判定，之后回落普通句）
+    const firstComplete = lit >= 36 && (progressRef.current.timesTable.litBest ?? 0) < 36;
     // 只取 commit 的 timesTable 切片：committed 基于会话构造时的快照，
     // 整体落盘会回滚会话期间的养成埋点（rewards/weekly 在每题作答时都在更新）。
     updateProgress({ ...progressRef.current, timesTable: committed.timesTable });
-    speak(ttResultLine(correctCount, newLit, lit), { interrupt: true }); // 结算祝贺
+    speak(ttResultLine(correctCount, newLit, firstComplete), { interrupt: true }); // 结算祝贺
     setSession({
       ...s,
       feedback: null,
       ttReveal: null,
-      resultTimes: { correct: correctCount, newLit, lit },
+      resultTimes: { correct: correctCount, newLit, lit, firstComplete },
       resultGains: gainsSince(progressRef.current),
     });
     setScreen('result');
@@ -230,6 +257,15 @@ export function App() {
     if (tt.isDone()) { finishTimesTable(correctCount); return; }
     speak(tt.currentQuestion().ttsText, { interrupt: true }); // 进新题自动朗读
     setSession({ ...mirrorNextTt(s, tt), correctCount });
+  };
+
+  // 除法揭示卡点击继续：回题面原地重试（选项排除已生效），重播读题。
+  const continueFromDivReveal = () => {
+    const s = sessionRef.current;
+    if (!s || !s.divReveal) return;
+    const q = currentQuestion(s);
+    speak(q.ttsText, { interrupt: true });
+    setSession({ ...s, divReveal: null });
   };
 
   // 揭示阶段点击继续：记账答错（内部已排「再见面」、idx++）→ 结算 or 下一题。
@@ -256,12 +292,20 @@ export function App() {
     updateProgress(
       recordAnswer(
         progressRef.current,
-        { practice: true, firstTry: s.excluded.length === 0, correct: option === q.answer },
+        {
+          practice: true,
+          firstTry: s.excluded.length === 0,
+          correct: option === q.answer,
+          chapter: 'tt',
+          qText: eqText(q),
+          picked: option,
+        },
         Date.now(),
       ),
     );
     speak(koujue(fact.a, fact.b), { interrupt: true }); // 答对=庆祝口诀 / 答错=揭示口诀（同句）
     if (option === q.answer) {
+      sfx.right();
       setSession({ ...s, feedback: 'right' });
       timerRef.current = window.setTimeout(advanceTimesTable, 1100);
     } else {
@@ -304,15 +348,19 @@ export function App() {
       const stars = starsFor(s.wrongTotal);
       const next = unlockAfterWin(progressRef.current, s.level!, stars);
       const chapterUp = chapterOf(next.unlocked) > chapterOf(progressRef.current.unlocked); // 完成 15/30 关跨章
+      // 第 60 关首次得星 = 主线毕业时刻，一次性庆祝不重播（审查 A4）
+      const galaxyFirst = s.level === 75 && (progressRef.current.stars[75] ?? 0) === 0;
       updateProgress(next);
       speak(CAMPAIGN_SUB[stars], { interrupt: true }); // 结算祝贺（按星级副文案）
       if (chapterUp) speak(VOICE.unlockChapter);        // 章节解锁祝贺
-      setSession({ ...s, feedback: null, resultStars: stars, resultGains: gainsSince(next) });
+      if (galaxyFirst) speak(VOICE.galaxyDone);         // 通关庆祝（排队在祝贺语后）
+      setSession({ ...s, feedback: null, resultStars: stars, resultGalaxyFirst: galaxyFirst, resultGains: gainsSince(next) });
       setScreen('result');
     } else {
       const next = s.questions![s.qIndex + 1];
       speak(next.ttsText, { interrupt: true }); // 进新题自动朗读
-      setSession({ ...s, qIndex: s.qIndex + 1, feedback: null, excluded: [], lastWrong: undefined });
+      setSession({ ...s, qIndex: s.qIndex + 1, feedback: null, excluded: [], lastWrong: undefined,
+        divReveal: null, divRevealed: false });
     }
   };
   const advanceModeCorrect = () => {
@@ -335,6 +383,8 @@ export function App() {
       feedback: null,
       excluded: [],
       lastWrong: undefined,
+      divReveal: null,
+      divRevealed: false,
     });
   };
 
@@ -349,7 +399,15 @@ export function App() {
     // 养成埋点（评审 P 定义 = 练习模式首答即对；weekly 计全模式首答题量）
     let nextP = recordAnswer(
       progressRef.current,
-      { practice: s.mode !== 'campaign', firstTry: s.excluded.length === 0, correct: option === q.answer },
+      {
+        practice: s.mode !== 'campaign',
+        firstTry: s.excluded.length === 0,
+        correct: option === q.answer,
+        // 家长小结（审查 D2）：主线按关卡章、练习按出题档位章
+        chapter: s.mode === 'campaign' ? String(chapterOf(s.level!)) : q.band !== undefined ? String(chapterOf(q.band)) : undefined,
+        qText: eqText(q),
+        picked: option,
+      },
       Date.now(),
     );
     // 无尽连对活持久化：每题作答即落盘（搭埋点写盘的顺风车），
@@ -362,6 +420,7 @@ export function App() {
     }
     updateProgress(nextP);
     if (option === q.answer) {
+      sfx.right(); // 轻软叮（审查 C1）；答错分支无音效
       // 反馈分级：连续答对降为轻量（0.45s 快进、无语音——下一题朗读即确认），
       // 每 5 连对回到完整庆祝。首题/答错后重新开始给完整反馈（确认机制在）。
       // 表扬每题都给会通胀贬值，且 1.1s×N 的强制等待正是「被打断」感的来源。
@@ -369,6 +428,9 @@ export function App() {
       const milestone = streakNext >= 5 && streakNext % 5 === 0;
       const lite = streakNext >= 2 && !milestone;
       if (milestone) speak(VOICE.streakN(streakNext), { interrupt: true });
+      // 乘法桥（附录 A）：连加子池答对时确认语替换「答对啦」——
+      // 桥接语言放在答对反馈槽，不在题面预泄乘法等价
+      else if (!lite && isSameAddChain(q)) speak(`3 个 ${q.operands[0]}，就是 ${q.operands[0]} 乘 3！`, { interrupt: true });
       else if (!lite) speak(VOICE.right, { interrupt: true });
       setSession({
         ...s,
@@ -381,6 +443,9 @@ export function App() {
         lite ? 450 : milestone ? 1400 : 1100, // 里程碑句更长，窗口给足
       );
     } else {
+      // 除法分组揭示卡（规范 §5）：首次答错 → 0.9s 重试反馈清除后展示；每题至多一次
+      const isDivQ = q.kind === 'div' || q.kind === 'missing-div-a' || q.kind === 'missing-div-b';
+      const willReveal = isDivQ && s.excluded.length === 0 && !s.divRevealed;
       speak(VOICE.wrong, { interrupt: true }); // 答错反馈
       setSession({
         ...s,
@@ -389,9 +454,23 @@ export function App() {
         streak: 0, // 答错中断连对（模式用；主线不读）
         excluded: [...s.excluded, option],
         lastWrong: option, // 仅这一项在 wrong 反馈期抖动，旧排除项保持静止半透明
+        divRevealed: s.divRevealed || willReveal,
       });
       timerRef.current = window.setTimeout(() => {
-        setSession((prev) => (prev && prev.feedback === 'wrong' ? { ...prev, feedback: null } : prev));
+        const prev = sessionRef.current;
+        if (!prev || prev.feedback !== 'wrong') return;
+        if (willReveal) {
+          const c = q.operands[0], db = q.operands[1], da = c / db;
+          // 段 1（档 61–63）念「分一分」句（等分语义先行）；档 64 起念「想口诀」句
+          const band = prev.mode === 'campaign' ? prev.level! : (q.band ?? 64);
+          const line = band <= 63
+            ? `${c} 个，平均分成 ${db} 份，每份 ${da} 个。`
+            : `想口诀：${koujue(da, db)}。${c} 除以 ${db}，等于 ${da}。`;
+          speak(line, { interrupt: true });
+          setSession({ ...prev, feedback: null, divReveal: { c, b: db, a: da, koujue: koujue(da, db) } });
+        } else {
+          setSession({ ...prev, feedback: null });
+        }
       }, 900);
     }
   };
@@ -456,7 +535,7 @@ export function App() {
     if (s?.mode === 'campaign') speak(CAMPAIGN_SUB[s.resultStars ?? starsFor(s.wrongTotal)], { interrupt: true });
     else if (s?.mode === 'timestable' && s.resultTimes) {
       const rt = s.resultTimes;
-      speak(ttResultLine(rt.correct, rt.newLit, rt.lit), { interrupt: true });
+      speak(ttResultLine(rt.correct, rt.newLit, rt.firstComplete), { interrupt: true });
     }
   };
 
@@ -518,6 +597,7 @@ export function App() {
     const next = craft(progressRef.current, id);
     if (next === progressRef.current) return;
     updateProgress(next);
+    sfx.craft();
     speak(VOICE.crafted(CATALOG_BY_ID[id]?.name ?? ''), { interrupt: true });
   };
   const doToggleWear = (slot: 'boots' | 'helm' | 'legs' | 'chest', id: string) => {
@@ -540,12 +620,16 @@ export function App() {
   // 之后静默（逐块播报会把孩子逼疯）。会话内计数即可，不持久化。
   const reclaimCountRef = useRef(0);
   const doPlaceBlock = (index: number, blockId: string) => {
-    updateProgress(placeBlock(progressRef.current, index, blockId));
+    const next = placeBlock(progressRef.current, index, blockId);
+    if (next === progressRef.current) return; // 占用/煤不足：静默拒绝，不响
+    updateProgress(next);
+    sfx.place();
   };
   const doRemoveBlock = (index: number) => {
     const next = removeBlock(progressRef.current, index);
     if (next === progressRef.current) return;
     updateProgress(next);
+    sfx.reclaim();
     if (reclaimCountRef.current < 3) {
       reclaimCountRef.current += 1;
       speak('煤收回来了。', { interrupt: true });
@@ -560,16 +644,32 @@ export function App() {
     let acc = 0;
     for (const pat of SKY_PATTERNS) {
       acc += pat.stars;
-      if (next.rewards.skyStars === acc) { speak(VOICE.constellation(pat.name), { interrupt: true }); return; }
+      if (next.rewards.skyStars === acc) {
+        sfx.chord();
+        speak(VOICE.constellation(pat.name), { interrupt: true });
+        return;
+      }
     }
+    sfx.star();
     speak(VOICE.starLit, { interrupt: true });
   };
 
   // 解锁全部关卡（家长设置）：拉满 unlocked，不动星星；关面板回地图。
   const unlockAll = () => {
-    updateProgress({ ...progress, unlocked: 60 });
+    updateProgress({ ...progress, unlocked: 75 });
     setSettingsOpen(false);
   };
+
+  // 选人屏优先于一切（含地图）：选完才进应用
+  if (needPick) {
+    return (
+      <div class="mn-viewport">
+        <div class="mn-stage" style={{ transform: `scale(${scale})` }}>
+          <ProfilePicker onPick={pickProfile} />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div class="mn-viewport">
@@ -625,6 +725,7 @@ export function App() {
             onReplay={replayTts}
             onHint={hintTts}
             onContinueReveal={continueFromReveal}
+            onContinueDivReveal={continueFromDivReveal}
           />
         )}
         {/* 结算屏对三种 mode 穷举，无静默空屏。 */}
@@ -636,9 +737,10 @@ export function App() {
               variant="campaign"
               level={session.level!}
               stars={session.resultStars ?? starsFor(session.wrongTotal)}
+              galaxyFirst={session.resultGalaxyFirst}
               onReplaySub={replaySubTts}
               onBackToMap={exitToMap}
-              onNextLevel={session.level! < 60 ? () => startLevel(session.level! + 1) : undefined}
+              onNextLevel={session.level! < 75 ? () => startLevel(session.level! + 1) : undefined}
             />
           ) : session.mode === 'endless' ? (
             <Result
@@ -659,6 +761,7 @@ export function App() {
               answered={session.resultTimes?.correct ?? session.correctCount}
               newLit={session.resultTimes?.newLit ?? 0}
               lit={session.resultTimes?.lit ?? 0}
+              firstComplete={session.resultTimes?.firstComplete ?? false}
               onBackToStarChart={backToStarChart}
               onBackToMap={exitToMap}
               onReplaySub={replaySubTts}
@@ -679,9 +782,12 @@ export function App() {
           <SettingsModal
             settings={progress.settings}
             weekly={progress.weekly}
+            insight={progress.insight}
             onUpdateSettings={updateSettings}
             onResetProgress={resetProgress}
             onUnlockAll={unlockAll}
+            onAddProfile={doAddProfile}
+            onSwitchProfile={doSwitchProfile}
             onClose={() => setSettingsOpen(false)}
           />
         )}

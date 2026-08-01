@@ -5,11 +5,11 @@ import type { Question } from '../../core/types';
 
 type Tok = { t: 'num'; v: number } | { t: 'op'; v: string } | { t: 'box' };
 
-const opChar = (op: string): string => (op === '-' ? '−' : op === '×' ? '×' : '+'); // 减号 U+2212、乘号 U+00D7
+const opChar = (op: string): string => (op === '-' ? '−' : op === '×' ? '×' : op === '÷' ? '÷' : '+'); // 减号 U+2212、乘号 U+00D7、除号 U+00F7
 
 // 按实际运算符求值（缺数题显示结果 / 字号判断复用）。
 const evalOp = (a: number, b: number, op: string): number =>
-  op === '-' ? a - b : op === '×' ? a * b : a + b;
+  op === '-' ? a - b : op === '×' ? a * b : op === '÷' ? a / b : a + b;
 
 function buildTokens(q: Question): Tok[] {
   const toks: Tok[] = [];

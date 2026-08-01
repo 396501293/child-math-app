@@ -9,6 +9,10 @@ export type Mode = 'campaign' | 'endless' | 'timed' | 'timestable';
 // 九九星图答错揭示阶段的最小数据（口诀 + 阵列由 fact 推得），点击继续后清空。
 export interface TtReveal { a: number; b: number; koujue: string }
 
+// 除法分组揭示卡（第五章规范 §5）：首次答错后展示，点击继续回题面原地重试。
+// 除法不做常显教具（数格子泄底），揭示只在答错后出现——教学时刻，不是惩罚。
+export interface DivReveal { c: number; b: number; a: number; koujue: string }
+
 export interface Session {
   mode: Mode;
   level?: number;                     // campaign
@@ -31,7 +35,10 @@ export interface Session {
   ttTotal?: number;                   // 当前 queue 长度（再见面会实时增长）
   ttLit?: number;                     // 当前已点亮 X/36
   ttReveal?: TtReveal | null;         // 答错揭示阶段（口诀 + 阵列），点击继续后清空
-  resultTimes?: { correct: number; newLit: number; lit: number }; // timestable 结算数据
+  divReveal?: DivReveal | null;       // 除法分组揭示卡（每题至多一次，二次答错走普通重试）
+  divRevealed?: boolean;              // 本题是否已揭示过（进新题时重置）
+  resultTimes?: { correct: number; newLit: number; lit: number; firstComplete: boolean }; // timestable 结算数据
+  resultGalaxyFirst?: boolean; // 第 60 关首次得星：一次性通关庆祝（审查 A4）
   resultGains?: Partial<Ores>; // 本局材料增量（结算入账行；M1：只在结算处出现一次）
 }
 

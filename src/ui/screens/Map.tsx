@@ -1,11 +1,11 @@
 import { useEffect, useRef, useState } from 'preact/hooks';
 import type { Progress } from '../../core/types';
-import { chapterOf, chapterStart, endlessUnlocked, timedUnlocked, timesTableUnlocked } from '../../core/progression';
+import { chapterOf, chapterStart, effectiveLevel, endlessUnlocked, mapNodeState, timedUnlocked, timesTableUnlocked } from '../../core/progression';
 import { Steve } from '../components/Steve';
 import nodeLocked from '../../assets/ico-lock.png';
 import { balance } from '../../core/rewards';
 import { ORE_SRC } from '../components/oreAssets';
-import { skyState } from '../components/skyPatterns';
+import { SkyLayer } from '../components/SkyLayer';
 import icoEndless from '../../assets/ico-mode-endless.png';
 import icoStar from '../../assets/ico-mode-chart.png';
 import icoTimed from '../../assets/ico-mode-timed.png';
@@ -22,8 +22,8 @@ interface MapProps {
   onWelcome: (line: string) => void; // 点击史蒂夫卡片/🔊 徽标念欢迎语（首次交互后发声，无自动播）
 }
 
-const CN_NUM = ['一', '二', '三', '四'];
-const CHAPTER_NAME = ['启航', '深海', '远洋', '银河'];
+const CN_NUM = ['一', '二', '三', '四', '五'];
+const CHAPTER_NAME = ['启航', '深海', '远洋', '银河', '下界'];
 const STEVE_LINES = ['准备好出发了吗？', '这一关有点挑战，加油！', '你越来越厉害了！', '星星快集满一排啦！'];
 
 // 蛇形路径几何（面板内坐标，面板 660×598）：5 列节点 × 3 行，第 2 行反向。
@@ -85,7 +85,8 @@ function NodeCell({ level, state, stars, onTap }: {
 
 export function Map({ progress, onStartLevel, onStartEndless, onStartTimed, onOpenStarChart, onOpenSteve, onOpenSettings, onWelcome }: MapProps) {
   const maxChapter = chapterOf(progress.unlocked);
-  const [viewChapter, setViewChapter] = useState<number>(maxChapter);
+  // 落地章跟随真实前沿（审查 A1）：unlock-all 后仍打开孩子正在学的那一章
+  const [viewChapter, setViewChapter] = useState<number>(chapterOf(effectiveLevel(progress)));
   const [seen, setSeen] = useState<Record<string, boolean>>(loadSeen);
 
   const cnNum = CN_NUM[viewChapter - 1];
@@ -93,23 +94,20 @@ export function Map({ progress, onStartLevel, onStartEndless, onStartTimed, onOp
   const start = chapterStart(viewChapter);
   const levels = Array.from({ length: 15 }, (_, i) => start + i);
 
-  const stateOf = (n: number): NodeState => {
-    if (n > progress.unlocked) return 'locked';
-    if (n === progress.unlocked && (progress.stars[n] ?? 0) === 0) return 'current';
-    return 'done';
-  };
+  const stateOf = (n: number): NodeState => mapNodeState(progress, n);
 
   const doneCount = levels.filter((n) => (progress.stars[n] ?? 0) > 0).length;
   const chapterStars = levels.reduce((sum, n) => sum + (progress.stars[n] ?? 0), 0);
 
   const rows = [levels.slice(0, 5), levels.slice(5, 10).reverse(), levels.slice(10, 15)];
 
-  const current = Math.min(progress.unlocked, 60);
+  // CTA 与台词轮换锚真实前沿，unlocked 只决定节点可点性（审查 A1）
+  const current = effectiveLevel(progress);
   const steveLine = STEVE_LINES[current % STEVE_LINES.length];
 
   const leftDisabled = viewChapter <= 1;
-  const rightLocked = viewChapter < 4 && viewChapter + 1 > maxChapter;
-  const rightDisabled = viewChapter >= 4 || rightLocked;
+  const rightLocked = viewChapter < 5 && viewChapter + 1 > maxChapter;
+  const rightDisabled = viewChapter >= 5 || rightLocked;
 
   const endlessOn = endlessUnlocked(progress);
   const timedOn = timedUnlocked(progress);
@@ -135,29 +133,11 @@ export function Map({ progress, onStartLevel, onStartEndless, onStartTimed, onOp
   };
   useEffect(() => () => window.clearTimeout(gearTimer.current), []);
 
-  const sky = skyState(progress.rewards.skyStars);
 
   return (
     <>
       {/* ─── 夜空层：点亮的星常驻地图背景（评审：终局层 = 环境级展示物） ─── */}
-      <svg class="mn-sky" width="1024" height="768" aria-hidden="true">
-        {sky.map(({ pattern, lit, complete }) => (
-          <g key={pattern.id}>
-            {complete &&
-              pattern.lines.map(([a, b], i) => (
-                <line
-                  key={i}
-                  x1={pattern.stars[a].x} y1={pattern.stars[a].y}
-                  x2={pattern.stars[b].x} y2={pattern.stars[b].y}
-                  class="mn-sky-line"
-                />
-              ))}
-            {pattern.stars.slice(0, lit).map((st, i) => (
-              <rect key={i} x={st.x - 3} y={st.y - 3} width="6" height="6" class="mn-sky-star" />
-            ))}
-          </g>
-        ))}
-      </svg>
+      <SkyLayer skyStars={progress.rewards.skyStars} />
       {/* ─── 顶栏 ─── */}
       <div style={{ position: 'absolute', top: 32, left: 40, right: 40, display: 'flex', alignItems: 'center', gap: 20 }}>
         <div style={{ fontSize: 38, fontWeight: 900, color: 'var(--color-white-100)' }}>
@@ -233,7 +213,10 @@ export function Map({ progress, onStartLevel, onStartEndless, onStartTimed, onOp
           </div>
         </div>
 
-        <button class="mn-btn mn-btn--coral mn-cta" onClick={() => onStartLevel(current)}>挑战第 {current} 关 ▶</button>
+        {/* 通关后语义从「没做完」变「自选挑战」（审查 A4）；仍指第 60 关 */}
+        <button class="mn-btn mn-btn--coral mn-cta" onClick={() => onStartLevel(current)}>
+          {(progress.stars[75] ?? 0) >= 1 ? '再战下界大挑战 ▶' : `挑战第 ${current} 关 ▶`}
+        </button>
 
         {/* 三个模式键分配琥珀/青绿/叶绿：既是动森的色彩性格，
             也让 4–7 岁能靠颜色而非文字辨认模式。 */}

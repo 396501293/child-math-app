@@ -1,12 +1,16 @@
 import { useEffect, useRef, useState } from 'preact/hooks';
 import type { Progress } from '../../core/types';
+import { MAX_PROFILES, profileMeta } from '../../core/storage';
 
 interface SettingsModalProps {
   settings: Progress['settings'];
   weekly: Progress['weekly'];
+  insight: Progress['insight'];
   onUpdateSettings: (patch: Partial<Progress['settings']>) => void;
   onResetProgress: () => void;
   onUnlockAll: () => void;
+  onAddProfile: () => void;   // 添加船员（多档案，审查 D3）
+  onSwitchProfile: () => void; // 重载出选人屏
   onClose: () => void;
 }
 
@@ -29,9 +33,21 @@ function Toggle({ on, label, onToggle }: { on: boolean; label: string; onToggle:
   );
 }
 
-export function SettingsModal({ settings, weekly, onUpdateSettings, onResetProgress, onUnlockAll, onClose }: SettingsModalProps) {
+export function SettingsModal({ settings, weekly, insight, onUpdateSettings, onResetProgress, onUnlockAll, onAddProfile, onSwitchProfile, onClose }: SettingsModalProps) {
   // 观察清单（评审 M6 硬性交付）：折叠在设置内，家长按需展开
   const [showChecklist, setShowChecklist] = useState(false);
+  // 家长小结完整版（审查 D2）：近 7 天分章正确率 + 最近错题，折叠展开
+  const [showErrors, setShowErrors] = useState(false);
+  const CH_LABEL: Record<string, string> = { 1: '第一章', 2: '第二章', 3: '第三章', 4: '第四章', 5: '第五章', tt: '九九星图' };
+  const byChapter = new Map<string, { n: number; ok: number }>();
+  for (const day of insight.days)
+    for (const [ch, v] of Object.entries(day.ch)) {
+      const cur = byChapter.get(ch) ?? { n: 0, ok: 0 };
+      byChapter.set(ch, { n: cur.n + v.n, ok: cur.ok + v.ok });
+    }
+  const chRows = Object.keys(CH_LABEL)
+    .filter((ch) => byChapter.has(ch))
+    .map((ch) => ({ label: CH_LABEL[ch], ...byChapter.get(ch)! }));
   // 重置进度二次确认：首点变红提示，5s 内再点执行，超时还原。
   const [confirmReset, setConfirmReset] = useState(false);
   const resetTimer = useRef<number | undefined>(undefined);
@@ -61,6 +77,21 @@ export function SettingsModal({ settings, weekly, onUpdateSettings, onResetProgr
       onUnlockAll();
     }
   };
+
+  // 添加船员二次确认（新档案无法删除，防误触）
+  const [confirmAdd, setConfirmAdd] = useState(false);
+  const addTimer = useRef<number | undefined>(undefined);
+  useEffect(() => () => window.clearTimeout(addTimer.current), []);
+  const clickAdd = () => {
+    if (!confirmAdd) {
+      setConfirmAdd(true);
+      addTimer.current = window.setTimeout(() => setConfirmAdd(false), 5000);
+    } else {
+      window.clearTimeout(addTimer.current);
+      onAddProfile();
+    }
+  };
+  const profiles = profileMeta();
 
   const qc = settings.questionCount;
   const setCount = (n: number) => onUpdateSettings({ questionCount: Math.min(10, Math.max(3, n)) });
@@ -111,6 +142,33 @@ export function SettingsModal({ settings, weekly, onUpdateSettings, onResetProgr
           {weekly.answered > 0 && ` · 首答正确率 ${Math.round((weekly.firstTry / weekly.answered) * 100)}%`}
         </div>
 
+        {/* 近 7 天分章首答正确率（审查 D2）：回答「他卡在哪一类题」 */}
+        {chRows.length > 0 && (
+          <div class="mn-set-insight">
+            {chRows.map((r) => (
+              <div key={r.label} class="mn-set-insight-row">
+                {r.label} 首答正确率 {Math.round((r.ok / r.n) * 100)}%（{r.n} 题 / 近 7 天）
+              </div>
+            ))}
+          </div>
+        )}
+        {insight.errors.length > 0 && (
+          <>
+            <button class="mn-set-checklist-toggle" onClick={() => setShowErrors(!showErrors)}>
+              {showErrors ? '收起最近错题 ▲' : `最近错题（${insight.errors.length}）▼`}
+            </button>
+            {showErrors && (
+              <div class="mn-set-errlog">
+                {[...insight.errors].reverse().map((e, i) => (
+                  <div key={i} class="mn-set-errlog-row">
+                    {e.text}　孩子选了 {e.picked}
+                  </div>
+                ))}
+              </div>
+            )}
+          </>
+        )}
+
         <button class="mn-set-checklist-toggle" onClick={() => setShowChecklist(!showChecklist)}>
           {showChecklist ? '收起观察清单 ▲' : '查看观察清单 ▼'}
         </button>
@@ -125,6 +183,16 @@ export function SettingsModal({ settings, weekly, onUpdateSettings, onResetProgr
             <p>6. 一边把煤全点了星空、一边抱怨装备升不了级——陪他看一遍工作台的换材料说明。</p>
             <p>健康信号（放心）：给装备编故事、主动展示、指认星座；换装在会话头尾且答题量不降；练习模式玩得更多。每两周对照一次即可。</p>
           </div>
+        )}
+
+        {/* 多档案（审查 D3）：一人一档，弟妹拆不了哥哥的家 */}
+        {profiles.count < MAX_PROFILES && (
+          <button class={'mn-set-reset' + (confirmAdd ? ' is-confirm' : '')} onClick={clickAdd}>
+            {confirmAdd ? '再点一次确认添加（添加后不可删）' : '添加一位船员（多孩子分开存档）'}
+          </button>
+        )}
+        {profiles.count > 1 && (
+          <button class="mn-set-reset" onClick={onSwitchProfile}>切换船员</button>
         )}
 
         <button

@@ -25,6 +25,47 @@ export function makeOptions(item: Item, answer: number, band: number, rng: Rng):
     }
   }
 
+  // ── 除法错误模型（第五章规范 §4；operands 恒为 [c, b]，商 = c/b）──
+  if (item.kind === 'div') {
+    const [c, b] = item.operands;
+    const quot = c / b;
+    // ① 商邻位 q±1（口诀串行在商侧的镜像）
+    for (const v of shuffle([quot - 1, quot + 1], rng))
+      if (cands.length < 2 && ok(v) && !cands.includes(v)) cands.push(v);
+    // ② 减法混淆 c−b（「把 ÷ 看成 −」），50% 概率替换一枚商邻位
+    const subConf = c - b;
+    if (rng() < 0.5 && ok(subConf) && !cands.includes(subConf)) {
+      if (cands.length >= 2) cands[1] = subConf;
+      else cands.push(subConf);
+    }
+  }
+  if (item.kind === 'missing-div-b') {
+    const [c, b] = item.operands;
+    // ③ 同积异对：c 的另一组表内分解的除数 d（「拿错口诀家族」；允许 d = 可见商）
+    const alts: number[] = [];
+    for (let d = 2; d <= 9; d++)
+      if (d !== b && c % d === 0 && c / d >= 2 && c / d <= 9) alts.push(d);
+    for (const v of shuffle(alts, rng))
+      if (cands.length < 2 && ok(v) && !cands.includes(v)) cands.push(v);
+    // 无异对回落除数邻位 b±1
+    for (const v of shuffle([b - 1, b + 1], rng))
+      if (cands.length < 2 && ok(v) && !cands.includes(v)) cands.push(v);
+  }
+  if (item.kind === 'missing-div-a') {
+    const [c, b] = item.operands;
+    const quot = c / b;
+    // ④ 口诀邻位积（继承第四章）：(q±1)×b、q×(b±1)
+    for (const v of shuffle([(quot - 1) * b, (quot + 1) * b, quot * (b - 1), quot * (b + 1)], rng)) {
+      if (cands.length >= 2) break;
+      if (ok(v) && !cands.includes(v)) cands.push(v);
+    }
+  }
+  // ⑤ 半途干扰（两步题首选，档 73/74/75）：第一步中间结果——「只做了一步」
+  if (item.kind === 'chain3' && band >= 61 && (item.ops[0] === '÷' || item.ops[0] === '×')) {
+    const s1 = item.ops[0] === '÷' ? item.operands[0] / item.operands[1] : item.operands[0] * item.operands[1];
+    if (ok(s1) && !cands.includes(s1)) cands.unshift(s1);
+  }
+
   // 特殊干扰（优先，但最多占一个名额）
   if (band >= 7 && (item.kind === 'add' || item.kind === 'sub') && rng() < 0.5) {
     const [a, b] = item.operands;

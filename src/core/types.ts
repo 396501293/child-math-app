@@ -1,7 +1,9 @@
-export type Op = '+' | '-' | '×';
+export type Op = '+' | '-' | '×' | '÷';
 export type QuestionKind =
   | 'add' | 'sub' | 'missing-a' | 'missing-b' | 'missing-sub' | 'chain3'
-  | 'mul' | 'missing-mul-a' | 'missing-mul-b';
+  | 'mul' | 'missing-mul-a' | 'missing-mul-b'
+  // 第五章（规范 2026-08-01）：除法域 = 口诀反用，operands 恒存 [c, b]（c = 商×b）
+  | 'div' | 'missing-div-a' | 'missing-div-b';
 export type Rng = () => number; // [0,1)
 
 export type BlocksPlan =
@@ -22,6 +24,7 @@ export interface Question {
   ttsText: string;
   blocksHint?: string;       // 计数块提示行文案（🔊 行），第三章无
   blocksPlan?: BlocksPlan;   // 第三章为 undefined
+  band?: number;             // 出题档位（练习模式出题处点缀；家长小结按章聚合用）
 }
 
 export interface PoolSpec {
@@ -34,7 +37,7 @@ export interface PoolSpec {
   filter?: (a: number, b: number, c?: number) => boolean;
 }
 
-export interface BandConfig { band: number; chapter: 1 | 2 | 3 | 4; label: string; pools: PoolSpec[] }
+export interface BandConfig { band: number; chapter: 1 | 2 | 3 | 4 | 5; label: string; pools: PoolSpec[] }
 
 export interface Item { kind: QuestionKind; operands: number[]; ops: Op[] }
 
@@ -42,7 +45,7 @@ export interface Item { kind: QuestionKind; operands: number[]; ops: Op[] }
 export type OreKind = 'coal' | 'iron' | 'gold' | 'diamond' | 'emerald';
 export type Ores = Record<OreKind, number>;
 export type EquipSlot = 'boots' | 'helm' | 'legs' | 'chest';
-export type EquipTier = 'leather' | 'iron' | 'gold' | 'diamond';
+export type EquipTier = 'leather' | 'iron' | 'gold' | 'diamond' | 'netherite';
 export type TradeKind = 'coalToIron' | 'ironToGold' | 'goldToDiamond' | 'diamondToEmerald';
 
 export interface RewardsSlice {
@@ -78,4 +81,11 @@ export interface Progress {
   rewards: RewardsSlice;
   // 每周小结（P0-2-lite）：仅保留当周，翻周即重置
   weekly: { weekStart: number; answered: number; firstTry: number };
+  // 家长小结（审查 D2）：本地只读，无任何面向孩子的呈现。
+  // days = 近 7 天按日分桶的首答数（d 为 UTC 日序号；ch 键 '1'–'4' 章 / 'tt' 九九）；
+  // errors = 最近 20 道首答错题（题面 + 孩子错选），环形缓冲约 2KB。
+  insight: {
+    days: { d: number; ch: Record<string, { n: number; ok: number }> }[];
+    errors: { text: string; picked: number; at: number }[];
+  };
 }

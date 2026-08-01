@@ -59,7 +59,53 @@ export const SKY_LAYOUT: SkyPattern[] = [
     ],
     lines: [[0, 1], [1, 2], [2, 3], [3, 4], [4, 5], [5, 6], [5, 7], [4, 8], [8, 9], [9, 10], [10, 11], [11, 0]],
   },
+  // ── 第五章 +2 座（规范 §8.3）：落在原自由星空隙带 3/4，接鲸鱼座之后按序点亮 ──
+  {
+    id: 'sky-blaze',
+    name: '烈焰座',
+    // 火焰轮廓（灯塔—月亮之间空隙带）
+    stars: [
+      { x: 556, y: 116 }, { x: 588, y: 116 }, { x: 548, y: 92 }, { x: 572, y: 100 },
+      { x: 596, y: 92 }, { x: 556, y: 68 }, { x: 588, y: 64 }, { x: 572, y: 46 },
+    ],
+    lines: [[0, 2], [2, 5], [5, 7], [7, 6], [6, 4], [4, 1], [1, 3], [3, 0]],
+  },
+  {
+    id: 'sky-bastion',
+    name: '堡垒座',
+    // 双塔城墙（月亮—鲸鱼之间空隙带）
+    stars: [
+      { x: 676, y: 120 }, { x: 748, y: 120 }, { x: 676, y: 88 }, { x: 748, y: 88 },
+      { x: 676, y: 58 }, { x: 692, y: 58 }, { x: 732, y: 58 }, { x: 748, y: 58 },
+      { x: 692, y: 88 }, { x: 732, y: 88 }, { x: 712, y: 70 },
+    ],
+    lines: [[0, 2], [2, 4], [4, 5], [5, 8], [8, 10], [10, 9], [9, 6], [6, 7], [7, 3], [3, 1], [1, 0]],
+  },
 ];
+
+export const PATTERN_STAR_TOTAL = SKY_LAYOUT.reduce((s, p) => s + p.stars.length, 0); // 45
+
+// 自由点星（第 46 颗起，审查 D1）：坐标由星序号确定性派生，散布在图样间的
+// 4 条空隙带（x 区间与所有图样零重叠，天然不撞星）。仍是同一 skyStars 计数——
+// 铁则：不得分裂出第二种星。
+const FREE_BANDS = [
+  { x0: 184, w: 58 }, // 小船—北斗之间
+  { x0: 404, w: 52 }, // 北斗—灯塔之间（带 3/4 已让给烈焰座/堡垒座）
+];
+
+export function freeStarPositions(skyStars: number): { x: number; y: number }[] {
+  const n = Math.max(0, skyStars - PATTERN_STAR_TOTAL);
+  const out: { x: number; y: number }[] = [];
+  for (let k = 0; k < n; k++) {
+    const band = FREE_BANDS[k % FREE_BANDS.length];
+    const j = Math.floor(k / FREE_BANDS.length);
+    out.push({
+      x: band.x0 + ((j * 37 + k * 11) % band.w),
+      y: 44 + ((j * 53 + (k % FREE_BANDS.length) * 19) % 80),
+    });
+  }
+  return out;
+}
 
 // skyStars（全局累计）→ 每个图样的点亮数与是否集齐
 export function skyState(skyStars: number): { pattern: SkyPattern; lit: number; complete: boolean }[] {

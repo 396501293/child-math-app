@@ -15,11 +15,14 @@ test('every band: 500 sampled questions satisfy invariants', () => {
       if (q.missingIndex !== undefined) expect(q.answer).toBe(q.operands[q.missingIndex]);
       expect(q.ttsText.length).toBeGreaterThan(0);
       if (cfg.chapter === 3) expect(q.blocksPlan).toBeUndefined();
-      else if (cfg.chapter === 4) {
-        // 第四章：仅纯乘法题出阵列教具，其余（缺数/两步）不出教具
+      else if (cfg.chapter === 4 || cfg.chapter === 5) {
+        // 第四/五章：纯乘法出阵列教具；档 46 连加桥出三色组（附录 A）；
+        // 除法一律无常显教具（泄底，揭示卡在 UI 层）
         if (q.kind === 'mul') {
           expect(q.blocksPlan).toEqual({ type: 'array-grid', rows: q.operands[0], cols: q.operands[1] });
           expect(q.blocksHint).toBeDefined();
+        } else if (q.kind === 'chain3' && q.ops[0] === '+' && q.operands[0] === q.operands[1] && q.operands[1] === q.operands[2]) {
+          expect(q.blocksPlan?.type).toBe('three-group');
         } else {
           expect(q.blocksPlan).toBeUndefined();
           expect(q.blocksHint).toBeUndefined();
@@ -38,7 +41,7 @@ test('band 15 level of 5 = exactly 3 missing + 2 carry', () => {
 });
 
 test('level questions unique and sorted by answer', () => {
-  for (let band = 1; band <= 60; band++) {
+  for (let band = 1; band <= 75; band++) {
     const qs = generateLevel(bandOf(band), 10, seeded(band));
     expect(new Set(qs.map(q => itemKey(q))).size).toBe(10);
     for (let i = 1; i < qs.length; i++) expect(qs[i].answer).toBeGreaterThanOrEqual(qs[i - 1].answer);
