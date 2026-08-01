@@ -1,7 +1,7 @@
 import type { Progress } from './types';
 
 export const starsFor = (wrong: number): 1 | 2 | 3 => (wrong === 0 ? 3 : wrong <= 2 ? 2 : 1);
-export const chapterOf = (level: number): 1 | 2 | 3 | 4 => Math.ceil(level / 15) as 1 | 2 | 3 | 4;
+export const chapterOf = (level: number): 1 | 2 | 3 | 4 | 5 => Math.ceil(level / 15) as 1 | 2 | 3 | 4 | 5;
 export const chapterStart = (ch: number): number => (ch - 1) * 15 + 1;
 
 export const endlessBand = (correct: number, maxUnlocked: number): number =>
@@ -21,7 +21,7 @@ export function effectiveLevel(p: Progress): number {
     const level = Number(key);
     if ((p.stars[level] ?? 0) >= 1 && level > maxStarred) maxStarred = level;
   }
-  return Math.min(Math.max(Math.min(p.unlocked, maxStarred + 1), 1), 60);
+  return Math.min(Math.max(Math.min(p.unlocked, maxStarred + 1), 1), 75);
 }
 
 // 地图节点状态（审查 A1）：可点性由 unlocked 决定，「当前关」脉冲锚 effectiveLevel——
@@ -35,7 +35,7 @@ export function mapNodeState(p: Progress, n: number): 'done' | 'current' | 'lock
 export function timedPool(p: Progress): number[] {
   const cur = chapterOf(effectiveLevel(p));
   const out: number[] = [];
-  for (let b = 1; b <= 60; b++)
+  for (let b = 1; b <= 75; b++)
     if ((p.stars[b] ?? 0) >= 1 && (chapterOf(b) === cur || chapterOf(b) === cur - 1)) out.push(b);
   return out;
 }
@@ -44,6 +44,6 @@ export function unlockAfterWin(p: Progress, level: number, stars: 1 | 2 | 3): Pr
   return {
     ...p,
     stars: { ...p.stars, [level]: Math.max(p.stars[level] ?? 0, stars) as 0 | 1 | 2 | 3 },
-    unlocked: Math.max(p.unlocked, Math.min(level + 1, 60)),
+    unlocked: Math.max(p.unlocked, Math.min(level + 1, 75)),
   };
 }

@@ -31,6 +31,7 @@ function nextLabel(level: number): string {
   if (level === 15) return '进入第二章 ▶';
   if (level === 30) return '进入第三章 ▶';
   if (level === 45) return '进入第四章 ▶';
+  if (level === 60) return '进入第五章 ▶';
   return '下一关 ▶';
 }
 
@@ -67,8 +68,8 @@ export function Result(props: ResultProps) {
           <Steve pose={pose} scale={1.15} equipped={props.equipped} />
         </div>
         <div class="mn-result-title">第 {level} 关完成！</div>
-        {/* 第 60 关首次得星的一次性毕业横幅（审查 A4），此后不再出现 */}
-        {galaxyFirst && <div class="mn-result-record"><Ico name="party" /> 银河走完了！</div>}
+        {/* 第 75 关首次得星的一次性毕业横幅（审查 A4），此后不再出现 */}
+        {galaxyFirst && <div class="mn-result-record"><Ico name="party" /> 七十五关全走完了！</div>}
         <div class="mn-result-stars">{starStr}</div>
         <div class="mn-result-sub">
           {CAMPAIGN_SUB[stars]}

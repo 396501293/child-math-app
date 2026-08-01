@@ -6,7 +6,7 @@ import { shuffle } from './rand';
 const evalItem = (it: Item): number =>
   it.ops.reduce((acc, op, k) => {
     const operand = it.operands[k + 1];
-    return op === '+' ? acc + operand : op === '-' ? acc - operand : acc * operand;
+    return op === '+' ? acc + operand : op === '-' ? acc - operand : op === '÷' ? acc / operand : acc * operand;
   }, it.operands[0]);
 
 // 加权选池
@@ -26,13 +26,18 @@ export function allocate(cfg: BandConfig, count: number, rng: Rng): number[] {
   return alloc;
 }
 
-const opWord = (op: Op) => (op === '+' ? '加' : op === '-' ? '减' : '乘');
+const opWord = (op: Op) => (op === '+' ? '加' : op === '-' ? '减' : op === '÷' ? '除以' : '乘');
+
+// 附录 A 乘法桥：档 46 的同数连加子池（n+n+n）——答对确认语与教具都要认出它
+export const isSameAddChain = (q: { kind: string; ops: Op[]; operands: number[] }): boolean =>
+  q.kind === 'chain3' && q.ops[0] === '+' && q.ops[1] === '+' &&
+  q.operands[0] === q.operands[1] && q.operands[1] === q.operands[2];
 
 function toQuestion(it: Item, cfg: BandConfig, rng: Rng): Question {
   const [a, b] = it.operands;
   let answer: number, missingIndex: number | undefined, ttsText: string;
   switch (it.kind) {
-    case 'add': case 'sub': case 'mul': case 'chain3': {
+    case 'add': case 'sub': case 'mul': case 'div': case 'chain3': {
       answer = evalItem(it);
       ttsText = it.kind === 'chain3'
         ? `${a} ${opWord(it.ops[0])} ${b} 再${opWord(it.ops[1])} ${it.operands[2]}，等于几？`
@@ -44,14 +49,22 @@ function toQuestion(it: Item, cfg: BandConfig, rng: Rng): Question {
     case 'missing-sub': { answer = b; missingIndex = 1; ttsText = `${a} 减去几，等于 ${a - b}？`; break; }
     case 'missing-mul-b': { answer = b; missingIndex = 1; ttsText = `${a} 乘几，等于 ${a * b}？`; break; }
     case 'missing-mul-a': { answer = a; missingIndex = 0; ttsText = `几乘 ${b}，等于 ${a * b}？`; break; }
+    // 除法缺数（规范 §6）：operands = [c, b]，c = 商×b
+    case 'missing-div-b': { answer = b; missingIndex = 1; ttsText = `${a} 除以几，等于 ${a / b}？`; break; }
+    case 'missing-div-a': { answer = a; missingIndex = 0; ttsText = `几除以 ${b}，等于 ${a / b}？`; break; }
   }
   const q: Question = { kind: it.kind, operands: [...it.operands], ops: [...it.ops], missingIndex,
     answer, options: makeOptions(it, answer, cfg.band, rng), ttsText };
-  // 教具：一二章沿用；第三章无；第四章仅纯乘法题出阵列网格（缺数/两步不出）。
+  // 教具：一二章沿用；第三章无；第四/五章仅纯乘法题出阵列网格（缺数/两步不出；
+  // 除法不做常显教具——「数格子泄底」，C/P 支撑走答错后的分组揭示卡，规范 §5）。
   if (cfg.chapter === 1 || cfg.chapter === 2) attachBlocks(q);
-  else if (cfg.chapter === 4 && q.kind === 'mul') {
+  else if ((cfg.chapter === 4 || cfg.chapter === 5) && q.kind === 'mul') {
     q.blocksPlan = { type: 'array-grid', rows: a, cols: b };
     q.blocksHint = `${a} 组方块，每组 ${b} 个，一共几个？`;
+  } else if (cfg.chapter === 4 && isSameAddChain(q)) {
+    // 附录 A：连加子池出三色组（组数即「几个几」的 C 层）
+    q.blocksPlan = { type: 'three-group', groups: [a, b, it.operands[2]], ops: ['+', '+'] };
+    q.blocksHint = `一组一组数，${q.ttsText}`;
   }
   return q;
 }

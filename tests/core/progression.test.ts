@@ -70,7 +70,9 @@ test('unlockAfterWin: extends unlocked, keeps best stars', () => {
   const p4 = unlockAfterWin(p3, 59, 3);
   expect(p4.unlocked).toBe(60); // 完成 59 → 解锁 60
   const p5 = unlockAfterWin(p4, 60, 3);
-  expect(p5.unlocked).toBe(60); // 上限 60（第 60 关无下一关）
+  expect(p5.unlocked).toBe(61); // 完成 60 → 解锁第五章
+  const p6 = unlockAfterWin(p5, 75, 3);
+  expect(p6.unlocked).toBe(75); // 上限 75（第 75 关无下一关）
 });
 
 test('timedPool spans chapter 3 & 4', () => {

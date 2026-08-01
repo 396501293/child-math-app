@@ -22,8 +22,8 @@ interface MapProps {
   onWelcome: (line: string) => void; // 点击史蒂夫卡片/🔊 徽标念欢迎语（首次交互后发声，无自动播）
 }
 
-const CN_NUM = ['一', '二', '三', '四'];
-const CHAPTER_NAME = ['启航', '深海', '远洋', '银河'];
+const CN_NUM = ['一', '二', '三', '四', '五'];
+const CHAPTER_NAME = ['启航', '深海', '远洋', '银河', '下界'];
 const STEVE_LINES = ['准备好出发了吗？', '这一关有点挑战，加油！', '你越来越厉害了！', '星星快集满一排啦！'];
 
 // 蛇形路径几何（面板内坐标，面板 660×598）：5 列节点 × 3 行，第 2 行反向。
@@ -106,8 +106,8 @@ export function Map({ progress, onStartLevel, onStartEndless, onStartTimed, onOp
   const steveLine = STEVE_LINES[current % STEVE_LINES.length];
 
   const leftDisabled = viewChapter <= 1;
-  const rightLocked = viewChapter < 4 && viewChapter + 1 > maxChapter;
-  const rightDisabled = viewChapter >= 4 || rightLocked;
+  const rightLocked = viewChapter < 5 && viewChapter + 1 > maxChapter;
+  const rightDisabled = viewChapter >= 5 || rightLocked;
 
   const endlessOn = endlessUnlocked(progress);
   const timedOn = timedUnlocked(progress);
@@ -215,7 +215,7 @@ export function Map({ progress, onStartLevel, onStartEndless, onStartTimed, onOp
 
         {/* 通关后语义从「没做完」变「自选挑战」（审查 A4）；仍指第 60 关 */}
         <button class="mn-btn mn-btn--coral mn-cta" onClick={() => onStartLevel(current)}>
-          {(progress.stars[60] ?? 0) >= 1 ? '再战银河大挑战 ▶' : `挑战第 ${current} 关 ▶`}
+          {(progress.stars[75] ?? 0) >= 1 ? '再战下界大挑战 ▶' : `挑战第 ${current} 关 ▶`}
         </button>
 
         {/* 三个模式键分配琥珀/青绿/叶绿：既是动森的色彩性格，

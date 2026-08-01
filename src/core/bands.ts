@@ -61,8 +61,10 @@ const mul48 = (w = 1): PoolSpec => ({ kind: 'mul', weight: w, aRange: [1, 9], bR
   filter: (a, b) => (a >= 2 && a <= 5) || (b >= 2 && b <= 5) });
 // 九九全口诀：a,b ∈ [2,9]
 const mulAll = (w = 1): PoolSpec => ({ kind: 'mul', weight: w, aRange: [2, 9], bRange: [2, 9] });
-const missMulB = (w = 1): PoolSpec => ({ ...mulAll(w), kind: 'missing-mul-b' });
-const missMulA = (w = 1): PoolSpec => ({ ...mulAll(w), kind: 'missing-mul-a' });
+// 乘法缺数剔平方（第五章规范附录 B）：3×?=9 时答案 = 可见因子，泄底机理同档 67，
+// 与星图「平方口诀不出缺数变体」裁决对齐。
+const missMulB = (w = 1): PoolSpec => ({ ...mulAll(w), kind: 'missing-mul-b', filter: (a, b) => a !== b });
+const missMulA = (w = 1): PoolSpec => ({ ...mulAll(w), kind: 'missing-mul-a', filter: (a, b) => a !== b });
 // 乘加/乘减两步：a×b (op2) c，从左往右算，中间与最终结果 ∈ [1,100]
 const chainMul = (op2: '+' | '-', w = 1): PoolSpec => ({ kind: 'chain3', weight: w, ops: ['×', op2],
   aRange: [2, 9], bRange: [2, 9], cRange: [1, 99],
@@ -73,8 +75,32 @@ const chainMul = (op2: '+' | '-', w = 1): PoolSpec => ({ kind: 'chain3', weight:
     return s2 >= 1 && s2 <= 100;
   } });
 
+// ── 第五章「下界」表内除法（规范 2026-08-01）──
+// 除法池按 (商, 除数) 迭代（enumerate 转 [商×b, b] 题面）；aRange = 商域恒 [2,9]。
+const divTable = (ds: number[], w = 1): PoolSpec => ({ kind: 'div', weight: w,
+  aRange: [2, 9], bRange: [2, 9], filter: (_q, b) => ds.includes(b) });
+const divAll = (w = 1): PoolSpec => ({ kind: 'div', weight: w, aRange: [2, 9], bRange: [2, 9] });
+// c÷?=a 剔平方：c=a² 时可见商 = 被隐藏除数，泄底（规范 §1 档 67）
+const missDivB = (w = 1): PoolSpec => ({ ...divAll(w), kind: 'missing-div-b', filter: (q, b) => q !== b });
+// ?÷b=a 不剔（?÷6=6 答案 36 未泄露）
+const missDivA = (w = 1): PoolSpec => ({ ...divAll(w), kind: 'missing-div-a' });
+// 档 61/62 乘法复习子池：a=t 或 b=t（15 题面）
+const mulReview = (t: number, w = 1): PoolSpec => ({ kind: 'mul', weight: w,
+  aRange: [2, 9], bRange: [2, 9], filter: (a, b) => a === t || b === t });
+// 除加/除减两步：中间结果 = 商 ∈ [2,9] 恒合法；最终 ∈ [1,100]
+const chainDiv = (op2: '+' | '-', w = 1): PoolSpec => ({ kind: 'chain3', weight: w, ops: ['÷', op2],
+  aRange: [2, 9], bRange: [2, 9], cRange: [1, 99],
+  filter: (q, _b, c) => {
+    const s2 = op2 === '+' ? q + c! : q - c!;
+    return s2 >= 1 && s2 <= 100;
+  } });
+// 档 46 乘法桥（附录 A）：同数连加 n+n+n，n∈[2,9]，8 题面
+const sameAddChain = (w = 1): PoolSpec => ({ kind: 'chain3', weight: w, ops: ['+', '+'],
+  aRange: [2, 9], bRange: [2, 9], cRange: [2, 9],
+  filter: (a, b, c) => a === b && b === c });
+
 const B = (band: number, label: string, pools: PoolSpec[]): BandConfig =>
-  ({ band, chapter: Math.ceil(band / 15) as 1 | 2 | 3 | 4, label, pools });
+  ({ band, chapter: Math.ceil(band / 15) as 1 | 2 | 3 | 4 | 5, label, pools });
 
 export const BANDS: BandConfig[] = [
   B(1, '5以内加法', [add([2, 5])]),
@@ -127,7 +153,8 @@ export const BANDS: BandConfig[] = [
   B(45, '远洋大挑战', [tensAdd(), tensSub(), add2d1dNC(), sub2d1dNB(), add2dTens(), sub2dTens(),
     add2d1dC(), sub2d1dB(), add2d2dNC(), sub2d2dNB(), add2d2dC(), sub2d2dB()]),
   // 第四章「银河」· 乘法与进阶
-  B(46, '乘法入门 ×2 ×5', [mulTable([2, 5])]),
+  // 附录 A 乘法桥：连加子池 30%（「3 个 4」的具象）+ 乘法 70%
+  B(46, '乘法入门 ×2 ×5', [mulTable([2, 5], 0.7), sameAddChain(0.3)]),
   B(47, '乘法 ×3 ×4', [mulTable([3, 4])]),
   B(48, '口诀 2–5 混合', [mul48()]),
   B(49, '乘法 ×6 ×7', [mulTable([6, 7])]),
@@ -143,9 +170,26 @@ export const BANDS: BandConfig[] = [
   B(59, '乘加减混合', [chainMul('+'), chainMul('-')]),
   B(60, '银河大挑战', [mulAll(), missMulB(), missMulA(), chainMul('+'), chainMul('-'),
     add2d2dC(), sub2d2dB()]),
+  // 第五章「下界」· 表内除法（5 段 × 3 关）
+  B(61, '分一分 · ÷2', [divTable([2], 0.6), mulReview(2, 0.4)]),
+  B(62, '分一分 · ÷5', [divTable([5], 0.6), mulReview(5, 0.4)]),
+  B(63, '÷2 ÷5 混合', [divTable([2, 5])]),
+  B(64, '÷3 ÷4', [divTable([3, 4])]),
+  B(65, '÷6–÷9', [divTable([6, 7, 8, 9])]),
+  B(66, '表内除法全口诀', [divAll()]),
+  B(67, '除法缺数 c÷?=a', [missDivB()]),
+  B(68, '除法缺数 ?÷b=a', [missDivA()]),
+  B(69, '除法缺数混合', [missDivB(), missDivA()]),
+  B(70, '乘除一家 · 计算', [mulAll(), divAll()]),
+  B(71, '乘除一家 · 缺数', [missMulB(), missMulA(), missDivB(), missDivA()]),
+  B(72, '互逆综合', [mulAll(), divAll(), missMulB(), missMulA(), missDivB(), missDivA()]),
+  B(73, '除加除减两步', [chainDiv('+'), chainDiv('-')]),
+  B(74, '乘除两步综合', [chainDiv('+'), chainDiv('-'), chainMul('+'), chainMul('-')]),
+  B(75, '下界大挑战', [divAll(), missDivB(), missDivA(), mulAll(), missMulB(), missMulA(),
+    chainDiv('+'), chainDiv('-'), chainMul('+'), chainMul('-')]),
 ];
 
 export const bandOf = (band: number): BandConfig => {
-  if (band < 1 || band > 60) throw new RangeError(`band out of range [1,60]: ${band}`);
+  if (band < 1 || band > 75) throw new RangeError(`band out of range [1,75]: ${band}`);
   return BANDS[band - 1];
 };

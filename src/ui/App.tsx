@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'preact/hooks';
 import type { BandConfig, Progress, Question } from '../core/types';
 import { bandOf } from '../core/bands';
 import { itemKey } from '../core/enumerate';
-import { applyHardMode, generateLevel, generateQuestion } from '../core/generator';
+import { applyHardMode, generateLevel, generateQuestion, isSameAddChain } from '../core/generator';
 import { chapterOf, effectiveLevel, endlessBand, starsFor, timedPool, unlockAfterWin } from '../core/progression';
 import { defaultProgress, loadProgress, saveProgress } from '../core/storage';
 import { koujue, TimesTableSession } from '../core/timesTable';
@@ -47,7 +47,7 @@ const VOICE = {
   crafted: (name: string) => `${name}做好了！`,
   starLit: '点亮一颗星！',
   constellation: (name: string) => `${name}连起来了！`,
-  galaxyDone: '银河走完了！六十关你都闯过来了！',
+  galaxyDone: '下界也走完了！七十五关你都闯过来了！',
 } as const;
 
 // 九九星图结算祝贺语（首次集齐 > 有新点亮 > 普通完成）。结算与重播读同一句。
@@ -319,7 +319,7 @@ export function App() {
       const next = unlockAfterWin(progressRef.current, s.level!, stars);
       const chapterUp = chapterOf(next.unlocked) > chapterOf(progressRef.current.unlocked); // 完成 15/30 关跨章
       // 第 60 关首次得星 = 主线毕业时刻，一次性庆祝不重播（审查 A4）
-      const galaxyFirst = s.level === 60 && (progressRef.current.stars[60] ?? 0) === 0;
+      const galaxyFirst = s.level === 75 && (progressRef.current.stars[75] ?? 0) === 0;
       updateProgress(next);
       speak(CAMPAIGN_SUB[stars], { interrupt: true }); // 结算祝贺（按星级副文案）
       if (chapterUp) speak(VOICE.unlockChapter);        // 章节解锁祝贺
@@ -395,6 +395,9 @@ export function App() {
       const milestone = streakNext >= 5 && streakNext % 5 === 0;
       const lite = streakNext >= 2 && !milestone;
       if (milestone) speak(VOICE.streakN(streakNext), { interrupt: true });
+      // 乘法桥（附录 A）：连加子池答对时确认语替换「答对啦」——
+      // 桥接语言放在答对反馈槽，不在题面预泄乘法等价
+      else if (!lite && isSameAddChain(q)) speak(`3 个 ${q.operands[0]}，就是 ${q.operands[0]} 乘 3！`, { interrupt: true });
       else if (!lite) speak(VOICE.right, { interrupt: true });
       setSession({
         ...s,
@@ -603,7 +606,7 @@ export function App() {
 
   // 解锁全部关卡（家长设置）：拉满 unlocked，不动星星；关面板回地图。
   const unlockAll = () => {
-    updateProgress({ ...progress, unlocked: 60 });
+    updateProgress({ ...progress, unlocked: 75 });
     setSettingsOpen(false);
   };
 
@@ -675,7 +678,7 @@ export function App() {
               galaxyFirst={session.resultGalaxyFirst}
               onReplaySub={replaySubTts}
               onBackToMap={exitToMap}
-              onNextLevel={session.level! < 60 ? () => startLevel(session.level! + 1) : undefined}
+              onNextLevel={session.level! < 75 ? () => startLevel(session.level! + 1) : undefined}
             />
           ) : session.mode === 'endless' ? (
             <Result

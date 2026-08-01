@@ -1,7 +1,9 @@
-export type Op = '+' | '-' | '×';
+export type Op = '+' | '-' | '×' | '÷';
 export type QuestionKind =
   | 'add' | 'sub' | 'missing-a' | 'missing-b' | 'missing-sub' | 'chain3'
-  | 'mul' | 'missing-mul-a' | 'missing-mul-b';
+  | 'mul' | 'missing-mul-a' | 'missing-mul-b'
+  // 第五章（规范 2026-08-01）：除法域 = 口诀反用，operands 恒存 [c, b]（c = 商×b）
+  | 'div' | 'missing-div-a' | 'missing-div-b';
 export type Rng = () => number; // [0,1)
 
 export type BlocksPlan =
@@ -35,7 +37,7 @@ export interface PoolSpec {
   filter?: (a: number, b: number, c?: number) => boolean;
 }
 
-export interface BandConfig { band: number; chapter: 1 | 2 | 3 | 4; label: string; pools: PoolSpec[] }
+export interface BandConfig { band: number; chapter: 1 | 2 | 3 | 4 | 5; label: string; pools: PoolSpec[] }
 
 export interface Item { kind: QuestionKind; operands: number[]; ops: Op[] }
 
